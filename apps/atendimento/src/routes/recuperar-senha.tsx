@@ -30,13 +30,11 @@ function RecuperarSenhaPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-secondary px-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-md rounded-2xl border bg-card shadow-sm">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-3 h-20 w-20 flex items-center justify-center">
-            <img src={logoLSL} alt="Lar de Seu Luiz" className="h-20 w-20 object-contain" />
-          </div>
-          <CardTitle>Recuperar senha</CardTitle>
+          <img src={logoLSL} alt="Lar de Seu Luiz" className="mx-auto mb-3 h-14 w-14 object-contain rounded-xl" />
+          <CardTitle className="font-['Playfair_Display'] text-2xl">Recuperar senha</CardTitle>
           <CardDescription>
             Informe seu e-mail para receber as instruções de redefinição.
           </CardDescription>
@@ -44,10 +42,10 @@ function RecuperarSenhaPage() {
         <CardContent>
           {enviado ? (
             <div className="space-y-4">
-              <div className="rounded-lg border border-green-300 bg-green-50 p-4 text-sm text-green-800">
+              <div className="rounded-lg border border-emerald-300 bg-emerald-100 p-3 text-sm text-emerald-800">
                 Enviamos um link de redefinição para <strong>{email}</strong>. Verifique sua caixa de entrada (e o spam).
               </div>
-              <Link to="/login" className="block text-center text-sm text-primary underline">
+              <Link to="/login" className="block text-center text-sm text-primary hover:underline">
                 Voltar para o login
               </Link>
             </div>
@@ -67,7 +65,7 @@ function RecuperarSenhaPage() {
                 {busy ? "Enviando..." : "Enviar link de recuperação"}
               </Button>
               <p className="text-xs text-muted-foreground text-center">
-                <Link to="/login" className="text-primary underline">Voltar para o login</Link>
+                <Link to="/login" className="text-primary hover:underline">Voltar para o login</Link>
               </p>
             </form>
           )}

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
+import logoLSL from "@/assets/logo-lsl.png";
 import { concluirTrocaSenha } from "@/lib/usuarios.functions";
 
 export const Route = createFileRoute("/trocar-senha")({
@@ -53,10 +54,11 @@ function TrocarSenhaPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-secondary px-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-md rounded-2xl border bg-card shadow-sm">
         <CardHeader className="text-center">
-          <CardTitle>Trocar senha</CardTitle>
+          <img src={logoLSL} alt="Lar de Seu Luiz" className="mx-auto mb-3 h-14 w-14 object-contain rounded-xl" />
+          <CardTitle className="font-['Playfair_Display'] text-2xl">Trocar senha</CardTitle>
           <CardDescription>
             Este é seu primeiro acesso. Defina uma nova senha pessoal para continuar.
           </CardDescription>
@@ -115,11 +117,11 @@ function TrocarSenhaPage() {
                 {regras.map((regra) => (
                   <li key={regra.label} className="flex items-center gap-2 text-sm">
                     {regra.ok ? (
-                      <Check size={16} className="text-green-500 shrink-0" />
+                      <Check size={16} className="text-emerald-600 shrink-0" />
                     ) : (
-                      <X size={16} className="text-red-500 shrink-0" />
+                      <X size={16} className="text-destructive shrink-0" />
                     )}
-                    <span className={regra.ok ? "text-green-700" : "text-muted-foreground"}>
+                    <span className={regra.ok ? "text-emerald-800" : "text-muted-foreground"}>
                       {regra.label}
                     </span>
                   </li>

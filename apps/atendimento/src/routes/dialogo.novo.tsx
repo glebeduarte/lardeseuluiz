@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { RequireAuth } from "@/components/RequireAuth";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
+import { CabecalhoPagina } from "@/compartilhado";
 import { ConsulenteFormFields, emptyConsulenteForm, type ConsulenteForm } from "@/components/ConsulenteForm";
 import { toTitleCaseName } from "@/lib/text";
 import { maskPhone, formatDateISOToBR } from "@/lib/masks";
@@ -57,14 +58,16 @@ function NovoConsulente() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-4">
-      <h1 className="text-2xl font-semibold">Novo Diálogo</h1>
+    <>
+      <CabecalhoPagina titulo="Novo Diálogo" descricao="Cadastrar consulente via diálogo fraterno" />
+      <div className="space-y-6 max-w-3xl">
       <ConsulenteFormFields
         initial={{ ...emptyConsulenteForm, data_dialogo: hojeBR(), dialogador_id: user?.id ?? null }}
         busy={busy}
         onSubmit={submit}
         onCancel={() => navigate({ to: "/consulentes" })}
       />
-    </div>
+      </div>
+    </>
   );
 }

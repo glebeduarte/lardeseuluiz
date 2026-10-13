@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { registrarAuditoria } from "@/lib/auditoria";
 import { Plus, Upload, Download, Loader2, Trash2, KeyRound } from "lucide-react";
+import { CabecalhoPagina } from "@/compartilhado";
 import { criarUsuario, importarUsuarios, atualizarTelefone, definirAtivoUsuario, removerUsuario, resetarSenhaUsuario } from "@/lib/usuarios.functions";
 
 const DEFAULT_PASSWORD = "uma senha provisória nova (gerada na hora e mostrada a você)";
@@ -203,19 +204,15 @@ function Usuarios() {
   );
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold">Usuários</h1>
-          <p className="text-sm text-muted-foreground">
-            {isAdmin ? "Cadastre usuários individualmente ou importe via Excel. Papéis são cumulativos." : "Cadastre novos trabalhadores no sistema."}
-          </p>
-        </div>
-        <div className="flex gap-2 flex-wrap">
+    <>
+      <CabecalhoPagina
+        titulo="Usuários"
+        descricao={isAdmin ? "Cadastre usuários individualmente ou importe via Excel. Papéis são cumulativos." : "Cadastre novos trabalhadores no sistema."}
+        acoes={<>
           {isAdmin && selected.size > 0 && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button size="sm" variant="outline" disabled={resetting} className="border-2 border-amber-500 text-amber-700 hover:bg-amber-50">
+                <Button variant="outline" disabled={resetting} className="border-amber-300 text-amber-800 hover:bg-amber-100 hover:text-amber-800">
                   {resetting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <KeyRound className="w-4 h-4 mr-2" />}
                   Resetar senha ({selected.size})
                 </Button>
@@ -238,19 +235,20 @@ function Usuarios() {
           )}
           {isAdmin && (
             <>
-              <Button variant="outline" size="sm" onClick={baixarModelo} className="border-2">
+              <Button variant="outline" onClick={baixarModelo}>
                 <Download className="w-4 h-4 mr-2" /> Modelo Excel
               </Button>
-              <Button size="sm" variant="outline" onClick={() => setOpenImport(true)} className="border-2">
+              <Button variant="outline" onClick={() => setOpenImport(true)}>
                 <Upload className="w-4 h-4 mr-2" /> Importar XLSX
               </Button>
             </>
           )}
-          <Button size="sm" onClick={() => setOpenNovo(true)} className="bg-brand-blue hover:bg-brand-blue/90 text-white shadow-md">
+          <Button onClick={() => setOpenNovo(true)}>
             <Plus className="w-4 h-4 mr-2" /> Novo usuário
           </Button>
-        </div>
-      </div>
+        </>}
+      />
+      <div className="space-y-6">
 
       <div className="flex items-center gap-2 max-w-md">
         <Input
@@ -275,7 +273,7 @@ function Usuarios() {
           <button
             key={opt.v}
             onClick={() => setFiltroRole(opt.v as any)}
-            className={`px-2.5 py-1 rounded-md border text-xs transition-colors ${filtroRole === opt.v ? "bg-brand-blue text-white border-brand-blue" : "bg-background hover:bg-muted"}`}
+            className={`px-2.5 py-1 rounded-md border text-xs transition-colors ${filtroRole === opt.v ? "bg-primary text-primary-foreground border-primary" : "bg-card hover:bg-muted"}`}
           >
             {opt.label}
           </button>
@@ -286,11 +284,9 @@ function Usuarios() {
         Mostrando {sorted.length} de {data?.length ?? 0} usuários. Os papéis são cumulativos: marque quantos forem necessários.
       </p>
 
-      <Card className="overflow-hidden hidden md:block">
-
-        <div className="overflow-x-auto">
+      <div className="rounded-lg border bg-card overflow-x-auto hidden md:block">
           <table className="w-full text-sm">
-            <thead className="bg-muted/60 border-b">
+            <thead className="bg-muted/60 border-b text-muted-foreground">
               <tr>
                 {isAdmin && (
                   <th className="text-center px-2 py-2 w-10">
@@ -329,8 +325,7 @@ function Usuarios() {
               )}
             </tbody>
           </table>
-        </div>
-      </Card>
+      </div>
 
       {/* Versão mobile: cartões no lugar da tabela */}
       <div className="md:hidden space-y-2">
@@ -354,7 +349,8 @@ function Usuarios() {
 
       <NovoUsuarioDialog open={openNovo} onOpenChange={setOpenNovo} />
       <ImportarDialog open={openImport} onOpenChange={setOpenImport} />
-    </div>
+      </div>
+    </>
   );
 }
 
@@ -386,7 +382,7 @@ function UserRow({ user: u, onToggle, zebra, selected, onSelect, onResetSenha, i
   };
 
   return (
-    <tr className={`border-b last:border-0 ${zebra ? "bg-muted/30" : "bg-background"} ${!u.ativo ? "opacity-60" : ""}`}>
+    <tr className={`border-b last:border-0 ${zebra ? "bg-muted/30" : "bg-card"} ${!u.ativo ? "opacity-60" : ""}`}>
       {isAdmin && (
         <td className="text-center px-2 py-2 align-top">
           <Checkbox checked={selected} onCheckedChange={(v) => onSelect(!!v)} />
@@ -395,7 +391,7 @@ function UserRow({ user: u, onToggle, zebra, selected, onSelect, onResetSenha, i
       <td className="px-3 py-2 align-top">
         <div className="font-medium flex items-center gap-2">
           {u.como_chamar || u.nome || "—"}
-          {!u.ativo && <span className="text-[10px] uppercase tracking-wide bg-muted px-1.5 py-0.5 rounded">Inativo</span>}
+          {!u.ativo && <span className="text-[10px] uppercase tracking-wide bg-muted text-muted-foreground border border-border px-1.5 py-0.5 rounded">Inativo</span>}
         </div>
         {u.como_chamar && u.nome && <div className="text-xs text-muted-foreground">{u.nome}</div>}
         <div className="text-xs text-muted-foreground">✉ {u.email}</div>
@@ -420,7 +416,7 @@ function UserRow({ user: u, onToggle, zebra, selected, onSelect, onResetSenha, i
           <div className="inline-flex items-center gap-1">
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="icon" disabled={busy} title="Resetar senha" aria-label="Resetar senha" className="text-amber-700 hover:text-amber-700 hover:bg-amber-50 h-8 w-8">
+              <Button variant="ghost" size="icon" disabled={busy} title="Resetar senha" aria-label="Resetar senha" className="text-amber-800 hover:text-amber-800 hover:bg-amber-100 h-8 w-8">
                 <KeyRound className="w-4 h-4" />
               </Button>
             </AlertDialogTrigger>
@@ -502,7 +498,7 @@ function UserMobileCard({ user: u, onToggle, selected, onSelect, onResetSenha, i
           <div className="min-w-0">
             <div className="font-medium flex items-center gap-2 flex-wrap">
               {u.como_chamar || u.nome || "—"}
-              {!u.ativo && <span className="text-[10px] uppercase tracking-wide bg-muted px-1.5 py-0.5 rounded">Inativo</span>}
+              {!u.ativo && <span className="text-[10px] uppercase tracking-wide bg-muted text-muted-foreground border border-border px-1.5 py-0.5 rounded">Inativo</span>}
             </div>
             {u.como_chamar && u.nome && <div className="text-xs text-muted-foreground">{u.nome}</div>}
             <div className="text-xs text-muted-foreground break-all">✉ {u.email}</div>
@@ -514,7 +510,7 @@ function UserMobileCard({ user: u, onToggle, selected, onSelect, onResetSenha, i
           <div className="flex items-center gap-1 shrink-0">
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="icon" disabled={busy} title="Resetar senha" aria-label="Resetar senha" className="text-amber-700 hover:bg-amber-50 h-8 w-8">
+                <Button variant="ghost" size="icon" disabled={busy} title="Resetar senha" aria-label="Resetar senha" className="text-amber-800 hover:bg-amber-100 h-8 w-8">
                   <KeyRound className="w-4 h-4" />
                 </Button>
               </AlertDialogTrigger>
@@ -673,7 +669,7 @@ function NovoUsuarioDialog({ open, onOpenChange }: { open: boolean; onOpenChange
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={submit} disabled={loading} className="bg-brand-blue hover:bg-brand-blue/90 text-white">
+          <Button onClick={submit} disabled={loading}>
             {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}Criar
           </Button>
         </DialogFooter>
@@ -774,7 +770,7 @@ function ImportarDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (
         )}
         <DialogFooter>
           <Button variant="outline" onClick={() => { setRows([]); setErros([]); onOpenChange(false); }}>Fechar</Button>
-          <Button onClick={enviar} disabled={loading || rows.length === 0} className="bg-brand-blue hover:bg-brand-blue/90 text-white">
+          <Button onClick={enviar} disabled={loading || rows.length === 0}>
             {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />} Importar {rows.length} usuário(s)
           </Button>
         </DialogFooter>

@@ -155,8 +155,8 @@ export function AtribuirConsulenteDialog({ macaId, macaNome, trigger }: Props) {
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
       <DialogTrigger asChild>
         {trigger ?? (
-          <Button size="sm" className="shadow-sm hover:shadow-md transition-shadow bg-brand-blue text-white hover:bg-brand-blue-dark">
-            <UserPlus className="h-4 w-4 mr-1.5" /> Atribuir consulente
+          <Button size="sm">
+            <UserPlus className="h-4 w-4 mr-2" /> Atribuir consulente
           </Button>
         )}
       </DialogTrigger>
@@ -198,13 +198,13 @@ export function AtribuirConsulenteDialog({ macaId, macaNome, trigger }: Props) {
                   key={c.id}
                   disabled={busy}
                   onClick={() => designarExistente(c.id, c.nome)}
-                  className="w-full text-left px-3 py-2.5 rounded-md hover:bg-secondary flex items-center justify-between gap-2 transition-colors border border-transparent hover:border-primary/20"
+                  className="w-full text-left px-3 py-2.5 rounded-md hover:bg-muted flex items-center justify-between gap-2 transition-colors border border-transparent hover:border-primary/20"
                 >
                   <div>
                     <div className="font-medium flex items-center gap-2">
                       {c.nome}
                       {c.dialogo_pendente && (
-                        <Badge variant="outline" className="text-xs">Diálogo pendente</Badge>
+                        <Badge variant="outline" className="text-xs bg-amber-100 text-amber-800 border-amber-300">Diálogo pendente</Badge>
                       )}
                     </div>
                     <div className="text-xs text-muted-foreground">{c.telefone}</div>
@@ -251,8 +251,8 @@ export function AtribuirConsulenteDialog({ macaId, macaNome, trigger }: Props) {
               </div>
             </div>
             {duplicatas.length > 0 && (
-              <div className="rounded-lg border-2 border-amber-300 bg-amber-50 p-3 space-y-2">
-                <p className="text-sm font-medium text-amber-900">
+              <div className="rounded-lg border border-amber-300 bg-amber-100 p-3 space-y-2">
+                <p className="text-sm font-medium text-amber-800">
                   Encontramos {duplicatas.length === 1 ? "um cadastro parecido" : `${duplicatas.length} cadastros parecidos`}. Confira se não é a mesma pessoa:
                 </p>
                 <div className="space-y-1">
@@ -262,7 +262,7 @@ export function AtribuirConsulenteDialog({ macaId, macaNome, trigger }: Props) {
                       type="button"
                       disabled={busy}
                       onClick={() => { setDuplicatas([]); void designarExistente(d.id, d.nome); }}
-                      className="w-full text-left px-3 py-2 rounded-md bg-white border border-amber-200 hover:border-primary/40 flex items-center justify-between gap-2 transition-colors"
+                      className="w-full text-left px-3 py-2 rounded-md bg-card border border-amber-300 hover:border-primary/40 flex items-center justify-between gap-2 transition-colors"
                     >
                       <div>
                         <div className="font-medium text-sm">{d.nome}</div>
@@ -283,8 +283,8 @@ export function AtribuirConsulenteDialog({ macaId, macaNome, trigger }: Props) {
                 </Button>
               </div>
             )}
-            <Button onClick={() => void criarRapido()} disabled={busy} className="w-full shadow-sm hover:shadow-md transition-shadow bg-brand-blue text-white hover:bg-brand-blue-dark">
-              <UserPlus className="h-4 w-4 mr-1.5" /> Cadastrar e designar
+            <Button onClick={() => void criarRapido()} disabled={busy} className="w-full">
+              <UserPlus className="h-4 w-4 mr-2" /> Cadastrar e designar
             </Button>
           </TabsContent>
         </Tabs>

@@ -7,6 +7,8 @@ import { RequireAuth } from "@/components/RequireAuth";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Printer, ArrowLeft } from "lucide-react";
+import { CabecalhoPagina } from "@/compartilhado";
+import { LinkRota } from "@/components/LinkRota";
 import { Link } from "@tanstack/react-router";
 import { diaFromDate, diaLabel, type DiaTrabalho } from "@/lib/sessao";
 import { getMacaCategoria } from "@/lib/maca-categoria";
@@ -192,35 +194,33 @@ function RecepcaoImprimir() {
         }
       `}</style>
 
-      <div className="no-print flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Link to="/recepcao">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-1" /> Voltar
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-2xl font-semibold">Lista para impressão</h1>
-            <p className="text-muted-foreground text-sm">Consulentes por maca · {diaLabel(dia)}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Tabs value={dia} onValueChange={(v) => setDia(v as DiaTrabalho)}>
-            <TabsList>
-              <TabsTrigger value="terca">{diaLabel("terca")}</TabsTrigger>
-              <TabsTrigger value="sabado">{diaLabel("sabado")}</TabsTrigger>
-            </TabsList>
-          </Tabs>
-          <Button onClick={() => window.print()}>
-            <Printer className="h-4 w-4 mr-1" /> Imprimir
-          </Button>
-        </div>
+      {/* Cabeçalho só na tela; a folha impressa continua igual */}
+      <div className="no-print">
+        <CabecalhoPagina
+          voltar={{ href: "/recepcao", rotulo: "Voltar" }}
+          Link={LinkRota}
+          titulo="Lista para impressão"
+          descricao={`Consulentes por maca · ${diaLabel(dia)}`}
+          acoes={
+            <>
+              <Tabs value={dia} onValueChange={(v) => setDia(v as DiaTrabalho)}>
+                <TabsList>
+                  <TabsTrigger value="terca">{diaLabel("terca")}</TabsTrigger>
+                  <TabsTrigger value="sabado">{diaLabel("sabado")}</TabsTrigger>
+                </TabsList>
+              </Tabs>
+              <Button onClick={() => window.print()}>
+                <Printer className="h-4 w-4 mr-2" /> Imprimir
+              </Button>
+            </>
+          }
+        />
       </div>
 
-      {isLoading && <p className="text-sm">Carregando…</p>}
+      {isLoading && <p className="text-center text-sm text-muted-foreground py-8">Carregando…</p>}
 
       {!isLoading && macas && macas.length === 0 && (
-        <p className="text-sm">Nenhuma maca cadastrada para {diaLabel(dia).toLowerCase()}.</p>
+        <p className="text-center text-sm text-muted-foreground py-8">Nenhuma maca cadastrada para {diaLabel(dia).toLowerCase()}.</p>
       )}
 
       {!isLoading && (macasProcessadas?.length ?? 0) > 0 && (
@@ -228,7 +228,7 @@ function RecepcaoImprimir() {
           {/* Folha 1: Ativos */}
           <div
             className="print-area bg-white text-black mx-auto"
-            style={{ width: "194mm", padding: "6mm", boxShadow: "0 0 0 1px hsl(var(--border))" }}
+            style={{ width: "194mm", padding: "6mm", boxShadow: "0 0 0 1px var(--border)" }}
           >
             <FolhaHeader titulo="Consulentes ATIVOS por Maca" />
             <div className="grid grid-cols-3 gap-1.5">
@@ -239,7 +239,7 @@ function RecepcaoImprimir() {
           {/* Folha 2: Inativos */}
           <div
             className="print-area print-sheet-break bg-white text-black mx-auto mt-4"
-            style={{ width: "194mm", padding: "6mm", boxShadow: "0 0 0 1px hsl(var(--border))" }}
+            style={{ width: "194mm", padding: "6mm", boxShadow: "0 0 0 1px var(--border)" }}
           >
             <FolhaHeader titulo="Consulentes INATIVOS por Maca" />
             <div className="grid grid-cols-3 gap-1.5">

@@ -45,13 +45,11 @@ function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-secondary px-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-md rounded-2xl border bg-card shadow-sm">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-3 h-20 w-20 flex items-center justify-center">
-            <img src={logoLSL} alt="Lar de Seu Luiz" className="h-20 w-20 object-contain" />
-          </div>
-          <CardTitle>Centro Espiritualista Lar de Seu Luiz</CardTitle>
+          <img src={logoLSL} alt="Lar de Seu Luiz" className="mx-auto mb-3 h-14 w-14 object-contain rounded-xl" />
+          <CardTitle className="font-['Playfair_Display'] text-2xl">Centro Espiritualista Lar de Seu Luiz</CardTitle>
           <CardDescription>Sistema de Controle de Macas</CardDescription>
         </CardHeader>
         <CardContent>
@@ -85,12 +83,12 @@ function LoginPage() {
               {busy ? "Entrando..." : "Entrar"}
             </Button>
             <p className="text-sm text-center">
-              <Link to="/recuperar-senha" className="text-primary underline">
+              <Link to="/recuperar-senha" className="text-primary hover:underline">
                 Esqueci minha senha
               </Link>
             </p>
 
-            <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 space-y-2">
+            <div className="rounded-lg border border-amber-300 bg-amber-100 p-3 space-y-2">
               <p className="text-sm text-amber-800">
                 Use o mesmo e-mail e senha da plataforma do Lar de Seu Luiz (site, Formação e Atendimento usam uma conta só).
                 Primeiro acesso? Use "Esqueci minha senha" com o e-mail que você já usava aqui.
@@ -98,7 +96,7 @@ function LoginPage() {
             </div>
             <p className="text-xs text-muted-foreground text-center">
               Ainda não tem acesso?{" "}
-              <Link to="/cadastro" className="text-primary underline">Solicitar cadastro</Link>
+              <Link to="/cadastro" className="text-primary hover:underline">Solicitar cadastro</Link>
             </p>
           </form>
         </CardContent>

@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, type ReactNode } from "react";
 import { AlertTriangle, Users, Layers, HeartHandshake, Wifi, ShieldAlert, FileWarning, CalendarCheck, CalendarX } from "lucide-react";
+import { CabecalhoPagina } from "@/compartilhado";
 import { RequireAuth } from "@/components/RequireAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -359,15 +360,13 @@ function RelatoriosPage() {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      <header className="border-l-4 border-brand-teal pl-3">
-        <h1 className="font-display text-2xl font-bold text-brand-blue-dark">Relatórios de consulentes</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Consulentes considerados são os que possuem designação ativa em uma maca.
-        </p>
-      </header>
-
-      <p className="text-xs text-muted-foreground -mt-3">Clique em um indicador para abrir o relatório correspondente.</p>
+    <>
+      <CabecalhoPagina
+        titulo="Relatórios de consulentes"
+        descricao="Consulentes considerados são os que possuem designação ativa em uma maca."
+      />
+      <div className="space-y-6">
+      <p className="text-xs text-muted-foreground">Clique em um indicador para abrir o relatório correspondente.</p>
 
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
         <KpiCard icon={FileWarning} onClick={() => irParaAba("incompletos")} label="Cadastros incompletos" value={rel.totalIncompletos} tone="amber" />
@@ -381,7 +380,7 @@ function RelatoriosPage() {
       </div>
 
       <Tabs value={aba} onValueChange={(v) => navigate({ search: { aba: v as Aba }, replace: true })} className="w-full">
-        <TabsList className="w-full flex flex-wrap h-auto justify-start gap-1 bg-brand-blue-muted/50 p-1 [&>button]:rounded-md [&>button]:text-brand-blue-dark [&>button[data-state=active]]:bg-brand-blue-dark [&>button[data-state=active]]:text-white [&>button[data-state=active]]:shadow-sm">
+        <TabsList className="w-full flex flex-wrap h-auto justify-start gap-1 p-1">
           <TabsTrigger value="incompletos">Incompletos por maca</TabsTrigger>
           <TabsTrigger value="ativos">Ativos por maca</TabsTrigger>
           <TabsTrigger value="registros">Registros por maca</TabsTrigger>
@@ -400,7 +399,7 @@ function RelatoriosPage() {
                 key={v}
                 type="button"
                 onClick={() => setPeriodo(v)}
-                className={`rounded-full border px-3 py-1 text-xs transition ${periodo === v ? "border-brand-teal bg-brand-teal-muted text-brand-teal-dark font-medium" : "hover:bg-background"}`}
+                className={`rounded-full border px-3 py-1 text-xs transition ${periodo === v ? "border-transparent bg-primary text-primary-foreground font-medium" : "bg-card hover:bg-muted"}`}
               >
                 {label}
               </button>
@@ -423,8 +422,8 @@ function RelatoriosPage() {
             <EmptyMsg text="Carregando registros..." />
           ) : (
             <>
-              <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
-                <div className="px-4 py-2 border-b bg-red-50 text-sm font-semibold text-red-800">
+              <div className="rounded-lg border bg-card overflow-x-auto">
+                <div className="px-4 py-2 border-b bg-destructive/10 text-sm font-semibold text-destructive">
                   Macas sem nenhum registro até hoje ({registros.semRegistro.length})
                 </div>
                 {registros.semRegistro.length === 0 ? (
@@ -441,7 +440,7 @@ function RelatoriosPage() {
                     <TableBody>
                       {registros.semRegistro.map((l) => (
                         <TableRow key={l.maca.id}>
-                          <TableCell className="font-medium text-brand-blue-dark">{l.maca.nome}</TableCell>
+                          <TableCell className="font-medium text-foreground">{l.maca.nome}</TableCell>
                           <TableCell className="text-muted-foreground">{l.maca.dia}</TableCell>
                           <TableCell>{l.esperadas.length}</TableCell>
                         </TableRow>
@@ -451,8 +450,8 @@ function RelatoriosPage() {
                 )}
               </div>
 
-              <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
-                <div className="px-4 py-2 border-b bg-brand-teal-muted text-sm font-semibold text-brand-teal-dark">
+              <div className="rounded-lg border bg-card overflow-x-auto">
+                <div className="px-4 py-2 border-b bg-muted text-sm font-semibold text-foreground">
                   Macas com registros ({registros.comRegistro.length})
                 </div>
                 <Table>
@@ -473,26 +472,26 @@ function RelatoriosPage() {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <span className="inline-block h-3 w-3 rounded-full" style={{ background: l.maca.cor_hex }} />
-                            <span className="font-medium text-brand-blue-dark">{l.maca.nome}</span>
+                            <span className="font-medium text-foreground">{l.maca.nome}</span>
                             <span className="text-xs text-muted-foreground">({l.maca.dia})</span>
                           </div>
                         </TableCell>
                         <TableCell>{l.registradas.length}/{l.esperadas.length}</TableCell>
                         <TableCell>
                           {l.faltantes.length === 0 ? (
-                            <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">Em dia</Badge>
+                            <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300">Em dia</Badge>
                           ) : (
                             <div className="flex flex-wrap gap-1">
                               {l.faltantes.map((iso) => (
-                                <Badge key={iso} variant="secondary" className="bg-amber-100 text-amber-900 hover:bg-amber-100">
+                                <Badge key={iso} variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">
                                   {fmtDia(iso)}
                                 </Badge>
                               ))}
                             </div>
                           )}
                         </TableCell>
-                        <TableCell className="text-emerald-700 font-medium">{l.totalPresencas}</TableCell>
-                        <TableCell className="text-red-700 font-medium">{l.totalFaltas}</TableCell>
+                        <TableCell className="text-emerald-800 font-medium">{l.totalPresencas}</TableCell>
+                        <TableCell className="text-destructive font-medium">{l.totalFaltas}</TableCell>
                         <TableCell>{l.taxa}%</TableCell>
                         <TableCell className="text-muted-foreground">{l.ultimaRegistrada ? fmtDia(l.ultimaRegistrada) : "—"}</TableCell>
                       </TableRow>
@@ -518,7 +517,7 @@ function RelatoriosPage() {
             macasComIncompletos.map((m) => {
               const items = rel.incompletosPorMaca.get(m.id) ?? [];
               return (
-                <div key={m.id} className="rounded-xl border bg-card shadow-sm overflow-hidden">
+                <div key={m.id} className="rounded-lg border bg-card overflow-x-auto">
                   <MacaHeader maca={m} count={items.length} />
                   <Table>
                     <TableHeader>
@@ -532,7 +531,7 @@ function RelatoriosPage() {
                       {items.map(({ c, faltando }) => (
                         <TableRow key={c.id}>
                           <TableCell>
-                            <Link to="/consulentes/$id" params={{ id: c.id }} className="font-medium text-brand-blue-dark hover:underline">
+                            <Link to="/consulentes/$id" params={{ id: c.id }} className="font-medium text-primary hover:underline">
                               {c.nome}
                             </Link>
                           </TableCell>
@@ -540,7 +539,7 @@ function RelatoriosPage() {
                           <TableCell>
                             <div className="flex flex-wrap gap-1">
                               {faltando.map((f) => (
-                                <Badge key={f} variant="secondary" className="bg-amber-100 text-amber-900 hover:bg-amber-100">{f}</Badge>
+                                <Badge key={f} variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">{f}</Badge>
                               ))}
                             </div>
                           </TableCell>
@@ -560,16 +559,16 @@ function RelatoriosPage() {
             const items = rel.ativosPorMaca.get(m.id) ?? [];
             if (items.length === 0) return null;
             return (
-              <div key={m.id} className="rounded-xl border bg-card shadow-sm overflow-hidden">
+              <div key={m.id} className="rounded-lg border bg-card overflow-x-auto">
                 <MacaHeader maca={m} count={items.length} />
                 <ul className="divide-y">
                   {items.sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR")).map((c) => (
                     <li key={c.id} className="px-4 py-2 flex items-center gap-2 flex-wrap">
-                      <Link to="/consulentes/$id" params={{ id: c.id }} className="font-medium text-brand-blue-dark hover:underline">
+                      <Link to="/consulentes/$id" params={{ id: c.id }} className="font-medium text-primary hover:underline">
                         {c.nome}
                       </Link>
-                      {c.trabalhador && <Badge variant="outline" className="text-[10px]">Trab</Badge>}
-                      {c.tratamento_distancia && <Badge variant="outline" className="text-[10px]">Dist</Badge>}
+                      {c.trabalhador && <Badge variant="outline" className="text-[10px] bg-sky-100 text-sky-800 border-sky-300">Trab</Badge>}
+                      {c.tratamento_distancia && <Badge variant="outline" className="text-[10px] bg-accent/20 text-accent-foreground border-accent">Dist</Badge>}
                       {c.telefone && <span className="text-xs text-muted-foreground ml-auto">{c.telefone}</span>}
                     </li>
                   ))}
@@ -612,7 +611,7 @@ function RelatoriosPage() {
             desc="Ocupação atual de cada maca (designações ativas) frente à lotação máxima. Amarelo a partir de 90% e vermelho quando lotada."
             action={<ExportRelatorioButton filename="ocupacao-macas" columns={colsLotacao} rows={linhasLotacao} />}
           />
-          <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
+          <div className="rounded-lg border bg-card overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -630,7 +629,7 @@ function RelatoriosPage() {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <span className="inline-block h-3 w-3 rounded-full" style={{ background: l.maca.cor_hex }} />
-                        <span className="font-medium text-brand-blue-dark">{l.maca.nome}</span>
+                        <span className="font-medium text-foreground">{l.maca.nome}</span>
                       </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground">{l.maca.dia}</TableCell>
@@ -639,11 +638,11 @@ function RelatoriosPage() {
                     <TableCell>{l.vagas}</TableCell>
                     <TableCell>
                       {l.vagas <= 0 ? (
-                        <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Lotada</Badge>
+                        <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/40">Lotada</Badge>
                       ) : l.pct >= 90 ? (
-                        <Badge className="bg-amber-100 text-amber-900 hover:bg-amber-100">Próxima do limite</Badge>
+                        <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">Próxima do limite</Badge>
                       ) : (
-                        <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">Com vagas</Badge>
+                        <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300">Com vagas</Badge>
                       )}
                     </TableCell>
                   </TableRow>
@@ -658,7 +657,7 @@ function RelatoriosPage() {
           {rel.alertas.length === 0 ? (
             <EmptyMsg text="Nenhum alerta registrado entre os consulentes ativos." />
           ) : (
-            <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
+            <div className="rounded-lg border bg-card overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -671,17 +670,17 @@ function RelatoriosPage() {
                   {rel.alertas.map(({ c, macas }) => (
                     <TableRow key={c.id}>
                       <TableCell>
-                        <Link to="/consulentes/$id" params={{ id: c.id }} className="font-medium text-brand-blue-dark hover:underline">
+                        <Link to="/consulentes/$id" params={{ id: c.id }} className="font-medium text-primary hover:underline">
                           {c.nome}
                         </Link>
                       </TableCell>
                       <TableCell className="text-muted-foreground">{macas.map((m) => m.nome).join(" · ") || "—"}</TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
-                          {c.ideias_suicidas && <Badge className="bg-red-100 text-red-800 hover:bg-red-100"><AlertTriangle className="h-3 w-3 mr-1" />Ideias suicidas</Badge>}
-                          {c.ideacao_criminosa && <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Ideação criminosa</Badge>}
-                          {c.uso_drogas && <Badge variant="secondary">Drogas</Badge>}
-                          {c.uso_alcool && <Badge variant="secondary">Álcool</Badge>}
+                          {c.ideias_suicidas && <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/40"><AlertTriangle className="h-3 w-3 mr-1" />Ideias suicidas</Badge>}
+                          {c.ideacao_criminosa && <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/40">Ideação criminosa</Badge>}
+                          {c.uso_drogas && <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">Drogas</Badge>}
+                          {c.uso_alcool && <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">Álcool</Badge>}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -692,37 +691,40 @@ function RelatoriosPage() {
           )}
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+    </>
   );
 }
 
 function KpiCard({ icon: Icon, label, value, tone, onClick }: { icon: typeof Users; label: string; value: number; tone: "amber" | "teal" | "blue" | "red"; onClick?: () => void }) {
+  // Cartão de indicador do guia: ícone em quadrado de 44px, número grande e rótulo pequeno
   const styles: Record<string, string> = {
-    amber: "bg-amber-50 text-amber-800 border-amber-200",
-    teal: "bg-brand-teal-muted text-brand-teal-dark border-brand-teal/30",
-    blue: "bg-brand-blue-muted text-brand-blue-dark border-brand-blue/30",
-    red: "bg-red-50 text-red-800 border-red-200",
+    amber: "bg-amber-100 text-amber-800",
+    teal: "bg-primary/10 text-primary",
+    blue: "bg-primary/10 text-primary",
+    red: "bg-destructive/10 text-destructive",
   };
   return (
     <button
       type="button"
       onClick={onClick}
       title={onClick ? `Ver detalhes: ${label}` : label}
-      className={`rounded-xl border p-3 text-left transition ${styles[tone]} ${onClick ? "cursor-pointer hover:shadow-md hover:brightness-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-teal" : "cursor-default"}`}
+      className={`rounded-xl border bg-card p-4 text-left shadow-sm transition ${onClick ? "cursor-pointer hover:shadow-md hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" : "cursor-default"}`}
     >
-      <div className="flex items-center gap-2 text-xs font-medium">
-        <Icon className="h-4 w-4" /> {label}
+      <div className={`w-11 h-11 rounded-lg flex items-center justify-center ${styles[tone]}`}>
+        <Icon className="h-5 w-5" />
       </div>
-      <div className="text-2xl font-bold mt-1">{value}</div>
+      <div className="text-2xl font-bold text-foreground mt-2">{value}</div>
+      <div className="text-xs text-muted-foreground">{label}</div>
     </button>
   );
 }
 
 function SectionHeader({ title, desc, action }: { title: string; desc: string; action?: ReactNode }) {
   return (
-    <div className="flex items-start justify-between gap-3">
-      <div className="border-l-4 border-brand-teal pl-3 flex-1">
-        <h2 className="font-display font-semibold text-brand-blue-dark">{title}</h2>
+    <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="flex-1">
+        <h2 className="text-lg font-semibold font-['Playfair_Display'] text-foreground">{title}</h2>
         <p className="text-xs text-muted-foreground">{desc}</p>
       </div>
       {action}
@@ -735,18 +737,18 @@ function MacaHeader({ maca, count }: { maca: Maca; count: number }) {
   return (
     <div className="flex items-center gap-3 px-4 py-2 border-b" style={{ background: maca.cor_hex + "22" }}>
       <span className="inline-block h-3 w-3 rounded-full" style={{ background: maca.cor_hex }} />
-      <span className="font-semibold text-sm text-brand-blue-dark">{maca.nome}</span>
+      <span className="font-semibold text-sm text-foreground">{maca.nome}</span>
       <span className="text-xs text-muted-foreground">
         {maca.dia} · {maca.categoria}
       </span>
-      <Badge variant="secondary" className="ml-auto">{count}</Badge>
+      <Badge variant="outline" className="ml-auto bg-card text-muted-foreground border-border">{count}</Badge>
     </div>
   );
 }
 
 function SimpleTable({ rows, extraLabel }: { rows: { c: Consulente; extra: string }[]; extraLabel: string }) {
   return (
-    <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
+    <div className="rounded-lg border bg-card overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
@@ -759,7 +761,7 @@ function SimpleTable({ rows, extraLabel }: { rows: { c: Consulente; extra: strin
           {rows.sort((a, b) => a.c.nome.localeCompare(b.c.nome, "pt-BR")).map(({ c, extra }) => (
             <TableRow key={c.id}>
               <TableCell>
-                <Link to="/consulentes/$id" params={{ id: c.id }} className="font-medium text-brand-blue-dark hover:underline">
+                <Link to="/consulentes/$id" params={{ id: c.id }} className="font-medium text-primary hover:underline">
                   {c.nome}
                 </Link>
               </TableCell>
@@ -774,5 +776,5 @@ function SimpleTable({ rows, extraLabel }: { rows: { c: Consulente; extra: strin
 }
 
 function EmptyMsg({ text }: { text: string }) {
-  return <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">{text}</div>;
+  return <div className="rounded-lg border border-dashed bg-card py-8 text-center text-sm text-muted-foreground">{text}</div>;
 }

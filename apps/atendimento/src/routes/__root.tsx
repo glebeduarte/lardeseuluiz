@@ -16,8 +16,8 @@ function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Página não encontrada</h2>
+        <h1 className="font-['Playfair_Display'] text-7xl font-bold text-foreground">404</h1>
+        <h2 className="mt-4 font-['Playfair_Display'] text-xl font-semibold text-foreground">Página não encontrada</h2>
         <div className="mt-6">
           <Link
             to="/"
@@ -37,7 +37,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight">Algo deu errado</h1>
+        <h1 className="font-['Playfair_Display'] text-xl font-semibold tracking-tight text-foreground">Algo deu errado</h1>
         <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button

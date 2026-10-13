@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, ChevronRight, Users, CalendarDays } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { MacaCategoriaTag } from "@/lib/maca-categoria";
+import { CabecalhoPagina } from "@/compartilhado";
 import {
   ATENDIMENTO_DATES_ISO,
   formatDataCurta,
@@ -130,15 +131,12 @@ function LancarSessao() {
   // ---------- Passo 1: escolher a sessão ----------
   if (!sessaoIso) {
     return (
-      <div className="space-y-5">
-        <div>
-          <h1 className="text-2xl font-semibold flex items-center gap-2">
-            <CalendarDays className="h-5 w-5 text-brand-teal" /> Lançar sessão
-          </h1>
-          <p className="text-muted-foreground text-sm">
-            Qual sessão você vai lançar? Só terças e sábados. As pendentes aparecem primeiro.
-          </p>
-        </div>
+      <>
+        <CabecalhoPagina
+          titulo={<span className="inline-flex items-center gap-2"><CalendarDays className="h-5 w-5 text-primary" /> Lançar sessão</span>}
+          descricao="Qual sessão você vai lançar? Só terças e sábados. As pendentes aparecem primeiro."
+        />
+        <div className="space-y-6">
 
         {isLoading && (
           <div className="space-y-2" aria-busy="true">
@@ -175,7 +173,8 @@ function LancarSessao() {
             )}
           </>
         )}
-      </div>
+        </div>
+      </>
     );
   }
 
@@ -185,21 +184,21 @@ function LancarSessao() {
   const lancadas: Set<string> = data?.lancadasPorData?.get(sessaoIso) ?? new Set();
 
   return (
-    <div className="space-y-5">
-      <div className="flex items-start gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Voltar para a escolha da sessão"
-          onClick={() => setSessaoIso(null)}
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div>
-          <h1 className="text-2xl font-semibold">Lançar sessão</h1>
-          <p className="text-sm text-muted-foreground">{formatDataExtenso(sessaoIso)}</p>
-        </div>
-      </div>
+    <>
+      <CabecalhoPagina
+        titulo="Lançar sessão"
+        descricao={formatDataExtenso(sessaoIso)}
+        acoes={
+          <Button
+            variant="outline"
+            aria-label="Voltar para a escolha da sessão"
+            onClick={() => setSessaoIso(null)}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" /> Voltar
+          </Button>
+        }
+      />
+      <div className="space-y-6">
 
       <p className="text-sm text-muted-foreground">
         Escolha a maca para fazer a chamada. {lancadas.size} de {macasDoDia.length} macas já lançadas nesta sessão.
@@ -243,13 +242,13 @@ function LancarSessao() {
                   <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
                 </div>
                 <div className="mt-3 h-1.5 rounded-full bg-muted overflow-hidden">
-                  <div className="h-full rounded-full bg-brand-teal" style={{ width: `${pct}%` }} />
+                  <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
                 </div>
                 <div className="mt-2">
                   {lancada ? (
-                    <Badge className="bg-brand-teal-muted text-brand-teal-dark border-brand-teal/40">Lançada</Badge>
+                    <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300">Lançada</Badge>
                   ) : (
-                    <Badge variant="outline" className="border-amber-400 text-amber-700">Pendente</Badge>
+                    <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">Pendente</Badge>
                   )}
                 </div>
               </Card>
@@ -257,7 +256,8 @@ function LancarSessao() {
           );
         })}
       </div>
-    </div>
+      </div>
+    </>
   );
 }
 
@@ -274,7 +274,7 @@ function SessaoGrupo({
 }) {
   return (
     <section className="space-y-2">
-      <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{titulo}</h2>
+      <h2 className="text-lg font-semibold font-['Playfair_Display'] text-foreground">{titulo}</h2>
       {itens.length === 0 ? (
         <Card className="p-4 text-sm text-muted-foreground">{vazio}</Card>
       ) : (
@@ -292,13 +292,13 @@ function SessaoGrupo({
                 </div>
               </div>
               {s.estado === "pendente" && (
-                <Badge className="bg-amber-100 text-amber-800 border-amber-300">Pendente</Badge>
+                <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">Pendente</Badge>
               )}
               {s.estado === "parcial" && (
-                <Badge className="bg-amber-50 text-amber-700 border-amber-200">Parcial</Badge>
+                <Badge variant="outline" className="bg-sky-100 text-sky-800 border-sky-300">Parcial</Badge>
               )}
               {s.estado === "concluida" && (
-                <Badge className="bg-brand-teal-muted text-brand-teal-dark border-brand-teal/40">Concluída</Badge>
+                <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300">Concluída</Badge>
               )}
               <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
             </Card>

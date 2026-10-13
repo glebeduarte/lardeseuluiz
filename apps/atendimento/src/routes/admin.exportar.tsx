@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import * as XLSX from "xlsx";
 import { Download, FileSpreadsheet, Loader2, ShieldAlert } from "lucide-react";
+import { CabecalhoPagina } from "@/compartilhado";
 import { RequireAuth } from "@/components/RequireAuth";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -204,22 +205,23 @@ function ExportarPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <header>
-        <h1 className="font-display text-2xl font-bold text-brand-blue-dark">Exportar dados</h1>
-        <p className="text-sm text-muted-foreground mt-1">
+    <>
+      <CabecalhoPagina
+        titulo="Exportar dados"
+        descricao={<>
           Gera uma planilha Excel com <strong>todos os dados</strong> cadastrados dos consulentes,
           incluindo observações, designações, presenças, sessões e macas relacionadas.
-        </p>
-      </header>
+        </>}
+      />
+      <div className="space-y-6 max-w-3xl">
 
       <div className="rounded-xl border bg-card p-6 shadow-sm">
         <div className="flex items-start gap-4">
-          <div className="w-11 h-11 rounded-md flex items-center justify-center bg-brand-teal-muted text-brand-teal-dark shrink-0">
+          <div className="w-11 h-11 rounded-lg flex items-center justify-center bg-primary/10 text-primary shrink-0">
             <FileSpreadsheet className="h-5 w-5" />
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="font-semibold text-foreground">Planilha completa (.xlsx)</h2>
+            <h2 className="font-['Playfair_Display'] text-lg font-semibold text-foreground">Planilha completa (.xlsx)</h2>
             <ul className="text-sm text-muted-foreground mt-2 space-y-1 list-disc pl-5">
               <li>Aba <strong>Consulentes</strong> — todos os campos da ficha + dialogador + total de atendimentos</li>
               <li>Aba <strong>Observações</strong> — histórico completo com autor</li>
@@ -228,15 +230,15 @@ function ExportarPage() {
               <li>Aba <strong>Sessões</strong> e <strong>Macas</strong> — dados de referência</li>
             </ul>
 
-            <div className="mt-5 rounded-lg border border-amber-300 bg-amber-50/60 p-4 space-y-2">
+            <div className="mt-5 rounded-lg border border-amber-300 bg-amber-100 p-4 space-y-2">
               <div className="flex items-center gap-2 text-amber-800">
                 <ShieldAlert className="h-4 w-4" />
                 <span className="text-sm font-semibold">Dados sensíveis</span>
               </div>
-              <p className="text-xs text-amber-900/80">
+              <p className="text-xs text-amber-800">
                 Informe por que precisa desta exportação. O motivo fica registrado junto com seu nome e o horário.
               </p>
-              <Label htmlFor="justificativa" className="text-xs text-amber-900">
+              <Label htmlFor="justificativa" className="text-xs text-amber-800">
                 Motivo da exportação
               </Label>
               <Textarea
@@ -245,7 +247,7 @@ function ExportarPage() {
                 onChange={(e) => setJustificativa(e.target.value)}
                 placeholder="Ex.: conferência do cadastro para a reunião administrativa de setembro"
                 rows={2}
-                className="bg-white"
+                className="bg-card"
               />
               {!justificativaOk && justificativa.length > 0 && (
                 <p className="text-xs text-amber-800">Descreva com pelo menos 10 caracteres.</p>
@@ -266,6 +268,7 @@ function ExportarPage() {
       <p className="text-xs text-muted-foreground">
         A geração acontece no seu navegador — nenhum dado é enviado para terceiros.
       </p>
-    </div>
+      </div>
+    </>
   );
 }

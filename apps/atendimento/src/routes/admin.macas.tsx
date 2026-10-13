@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import { diaLabel, type DiaTrabalho } from "@/lib/sessao";
 import { Sparkles, X, UserPlus } from "lucide-react";
+import { CabecalhoPagina } from "@/compartilhado";
 import { criarUsuarioMedium } from "@/lib/macas.functions";
 import { MacaCategoriaTag, type MacaCategoria } from "@/lib/maca-categoria";
 import { useServerFn } from "@/lib/server-fn";
@@ -110,14 +111,16 @@ function MacasAdmin() {
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Gestão de Macas</h1>
-        <NovaMacaButton onCreated={reload} proximoNumero={(macas?.reduce((max, m) => Math.max(max, m.numero), 0) ?? 0) + 1} />
-      </div>
+    <>
+      <CabecalhoPagina
+        titulo="Gestão de Macas"
+        descricao="Configurar cores, nomes e médiuns responsáveis"
+        acoes={<NovaMacaButton onCreated={reload} proximoNumero={(macas?.reduce((max, m) => Math.max(max, m.numero), 0) ?? 0) + 1} />}
+      />
+      <div className="space-y-6">
 
       {semMedium.length > 0 && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+        <div className="rounded-lg border border-amber-300 bg-amber-100 p-3 text-sm text-amber-800">
           <strong>{semMedium.length} maca{semMedium.length === 1 ? "" : "s"} sem médium atribuído:</strong>{" "}
           {semMedium.map((m) => `${m.numero} · ${m.nome}`).join(" — ")}
         </div>
@@ -155,7 +158,7 @@ function MacasAdmin() {
 
       {grupos.map((g) => (
         <section key={g.dia} className="space-y-2">
-          <h2 className="text-lg font-medium">
+          <h2 className="text-lg font-semibold font-['Playfair_Display'] text-foreground">
             {diaLabel(g.dia)}{" "}
             <span className="text-sm text-muted-foreground font-normal">
               ({g.itens.length} maca{g.itens.length === 1 ? "" : "s"})
@@ -179,7 +182,8 @@ function MacasAdmin() {
           </div>
         </section>
       ))}
-    </div>
+      </div>
+    </>
   );
 }
 
@@ -323,14 +327,14 @@ function MacaCard({
         {!maca.ativa && " · inativa"}
       </div>
       {maca.finalidade && (
-        <div className="text-xs text-brand-blue-dark mt-0.5">Finalidade: {maca.finalidade}</div>
+        <div className="text-xs text-primary mt-0.5">Finalidade: {maca.finalidade}</div>
       )}
       <div className="mt-2 flex flex-wrap gap-1">
         {assignedNames.length === 0 ? (
           <span className="text-xs text-muted-foreground italic">Sem médium atribuído</span>
         ) : (
           assignedNames.map((n) => (
-            <Badge key={n} variant="secondary" className="text-xs gap-1">
+            <Badge key={n} variant="outline" className="text-xs gap-1 bg-muted text-foreground border-border">
               <Sparkles className="h-3 w-3" /> {n}
             </Badge>
           ))
@@ -338,7 +342,7 @@ function MacaCard({
       </div>
       <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (v) { setSelectedMediums(assignedIds); setShowNovoMedium(false); } }}>
         <DialogTrigger asChild>
-          <Button variant="outline" size="sm" className="mt-3 w-full border-2 border-brand-blue/30 text-brand-blue hover:bg-brand-blue-muted hover:text-brand-blue-dark hover:border-brand-blue/50 transition-colors font-medium">
+          <Button variant="outline" size="sm" className="mt-3 w-full">
             Editar maca
           </Button>
         </DialogTrigger>
@@ -358,7 +362,7 @@ function MacaCard({
                     title={c.nome}
                     aria-label={`Cor ${c.nome}`}
                     onClick={() => setCor(c.hex)}
-                    className={`h-8 w-8 rounded-full border-2 transition ${cor.toLowerCase() === c.hex.toLowerCase() ? "border-brand-blue ring-2 ring-brand-blue/40" : "border-transparent"}`}
+                    className={`h-8 w-8 rounded-full border-2 transition ${cor.toLowerCase() === c.hex.toLowerCase() ? "border-primary ring-2 ring-primary/40" : "border-transparent"}`}
                     style={{ background: c.hex }}
                   />
                 ))}
@@ -415,7 +419,7 @@ function MacaCard({
               </div>
 
               {showNovoMedium && (
-                <div className="border rounded-md p-3 space-y-2 bg-secondary/30">
+                <div className="border rounded-md p-3 space-y-2 bg-muted">
                   <div className="text-sm font-medium">Criar novo médium</div>
                   <div className="space-y-1"><Label className="text-xs">Nome</Label><Input size={1} value={novoNome} onChange={(e) => setNovoNome(e.target.value)} placeholder="Nome completo" /></div>
                   <div className="space-y-1"><Label className="text-xs">Email</Label><Input size={1} type="email" value={novoEmail} onChange={(e) => setNovoEmail(e.target.value)} placeholder="email@exemplo.com" /></div>
@@ -423,7 +427,7 @@ function MacaCard({
                   <Button
                     type="button"
                     size="sm"
-                    className="w-full bg-brand-blue text-white hover:bg-brand-blue-dark"
+                    className="w-full"
                     onClick={handleCriarMedium}
                     disabled={criando}
                   >
@@ -441,7 +445,7 @@ function MacaCard({
                   {mediumUsers.map((u) => {
                     const checked = selectedMediums.includes(u.id);
                     return (
-                      <label key={u.id} className="flex items-center gap-2 px-3 py-2 text-sm cursor-pointer hover:bg-secondary/40">
+                      <label key={u.id} className="flex items-center gap-2 px-3 py-2 text-sm cursor-pointer hover:bg-muted">
                         <input
                           type="checkbox"
                           checked={checked}
@@ -463,7 +467,7 @@ function MacaCard({
                     const u = mediumUsers.find((x) => x.id === id);
                     if (!u) return null;
                     return (
-                    <Badge key={id} variant="secondary" className="gap-1 text-xs">
+                    <Badge key={id} variant="outline" className="gap-1 text-xs bg-muted text-foreground border-border">
                         {u.como_chamar || u.nome || u.email}
                         <button type="button" onClick={() => toggleMedium(id)}>
                           <X className="h-3 w-3" />
@@ -510,7 +514,7 @@ function MacaCard({
           </div>
           <DialogFooter className="shrink-0 border-t bg-background px-6 py-4">
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-            <Button onClick={save} className="shadow-sm hover:shadow-md transition-shadow bg-brand-blue text-white hover:bg-brand-blue-dark">
+            <Button onClick={save}>
               Salvar alterações
             </Button>
           </DialogFooter>
@@ -564,7 +568,7 @@ function NovaMacaButton({ onCreated, proximoNumero }: { onCreated: () => void; p
   return (
     <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (v) reset(); }}>
       <DialogTrigger asChild>
-        <Button className="bg-brand-blue text-white hover:bg-brand-blue-dark">+ Nova maca</Button>
+        <Button>+ Nova maca</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader><DialogTitle>Criar nova maca</DialogTitle></DialogHeader>
@@ -600,7 +604,7 @@ function NovaMacaButton({ onCreated, proximoNumero }: { onCreated: () => void; p
           <div className="space-y-1"><Label>Lotação máxima</Label><Input type="number" value={lotacao} onChange={(e) => setLotacao(e.target.value)} /></div>
         </div>
         <DialogFooter>
-          <Button onClick={criar} disabled={salvando} className="bg-brand-blue text-white hover:bg-brand-blue-dark">
+          <Button onClick={criar} disabled={salvando}>
             {salvando ? "Criando..." : "Criar maca"}
           </Button>
         </DialogFooter>

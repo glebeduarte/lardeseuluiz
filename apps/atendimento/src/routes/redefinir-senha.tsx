@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
+import logoLSL from "@/assets/logo-lsl.png";
 
 export const Route = createFileRoute("/redefinir-senha")({
   component: RedefinirSenhaPage,
@@ -78,19 +79,20 @@ function RedefinirSenhaPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-secondary px-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-md rounded-2xl border bg-card shadow-sm">
         <CardHeader className="text-center">
-          <CardTitle>Redefinir senha</CardTitle>
+          <img src={logoLSL} alt="Lar de Seu Luiz" className="mx-auto mb-3 h-14 w-14 object-contain rounded-xl" />
+          <CardTitle className="font-['Playfair_Display'] text-2xl">Redefinir senha</CardTitle>
           <CardDescription>Defina sua nova senha pessoal.</CardDescription>
         </CardHeader>
         <CardContent>
           {erroLink ? (
             <div className="space-y-4">
-              <div className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-800">
+              <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
                 {erroLink}
               </div>
-              <Link to="/recuperar-senha" className="block text-center text-sm text-primary underline">
+              <Link to="/recuperar-senha" className="block text-center text-sm text-primary hover:underline">
                 Solicitar novo link
               </Link>
             </div>
@@ -150,11 +152,11 @@ function RedefinirSenhaPage() {
                   {regras.map((regra) => (
                     <li key={regra.label} className="flex items-center gap-2 text-sm">
                       {regra.ok ? (
-                        <Check size={16} className="text-green-500 shrink-0" />
+                        <Check size={16} className="text-emerald-600 shrink-0" />
                       ) : (
-                        <X size={16} className="text-red-500 shrink-0" />
+                        <X size={16} className="text-destructive shrink-0" />
                       )}
-                      <span className={regra.ok ? "text-green-700" : "text-muted-foreground"}>
+                      <span className={regra.ok ? "text-emerald-800" : "text-muted-foreground"}>
                         {regra.label}
                       </span>
                     </li>

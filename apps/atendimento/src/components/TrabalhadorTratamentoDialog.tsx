@@ -119,8 +119,8 @@ export function TrabalhadorTratamentoDialog({ trigger }: Props) {
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
       <DialogTrigger asChild>
         {trigger ?? (
-          <Button size="sm" variant="outline" className="border-2">
-            <HeartPulse className="h-4 w-4 mr-1.5" /> Trabalhador para tratamento
+          <Button variant="outline">
+            <HeartPulse className="h-4 w-4 mr-2" /> Trabalhador para tratamento
           </Button>
         )}
       </DialogTrigger>
@@ -158,7 +158,7 @@ export function TrabalhadorTratamentoDialog({ trigger }: Props) {
                   key={t.id}
                   disabled={busy}
                   onClick={() => criarEDesignar(t)}
-                  className="w-full text-left px-3 py-2.5 rounded-md hover:bg-secondary flex items-center justify-between gap-2 transition-colors border border-transparent hover:border-primary/20"
+                  className="w-full text-left px-3 py-2.5 rounded-md hover:bg-muted flex items-center justify-between gap-2 transition-colors border border-transparent hover:border-primary/20"
                 >
                   <div className="min-w-0">
                     <div className="font-medium truncate">{t.nome}</div>
@@ -203,13 +203,12 @@ export function TrabalhadorTratamentoDialog({ trigger }: Props) {
               />
             </div>
             <div className="flex justify-end gap-2 pt-2">
-              <Button variant="outline" onClick={() => setCompletar(null)} className="border-2">
+              <Button variant="outline" onClick={() => setCompletar(null)}>
                 Voltar
               </Button>
               <Button
                 disabled={busy || !extra.telefone || !extra.data_nascimento}
                 onClick={() => criarEDesignar(completar, extra)}
-                className="bg-brand-blue text-white hover:bg-brand-blue-dark"
               >
                 Continuar
               </Button>

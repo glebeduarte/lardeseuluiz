@@ -5,6 +5,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { RequireAuth } from "@/components/RequireAuth";
 import { toast } from "sonner";
+import { CabecalhoPagina } from "@/compartilhado";
 import { ConsulenteFormFields, type ConsulenteForm } from "@/components/ConsulenteForm";
 import { toTitleCaseName } from "@/lib/text";
 import { maskPhone, formatDateISOToBR } from "@/lib/masks";
@@ -42,7 +43,7 @@ function EditarConsulente() {
         <Skeleton className="h-96 w-full rounded-xl" />
       </div>
     );
-  if (!c) return <div>Consulente não encontrado.</div>;
+  if (!c) return <div className="text-center text-muted-foreground py-8">Consulente não encontrado.</div>;
 
   const initial: ConsulenteForm = {
     nome: c.nome ?? "",
@@ -118,8 +119,12 @@ function EditarConsulente() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-4">
-      <h1 className="text-2xl font-semibold">Editar consulente</h1>
+    <>
+      <CabecalhoPagina
+        titulo="Editar consulente"
+        descricao={c.nome}
+      />
+      <div className="space-y-6 max-w-3xl">
       <ConsulenteFormFields
         initial={initial}
         busy={busy}
@@ -127,6 +132,7 @@ function EditarConsulente() {
         onCancel={() => navigate({ to: "/consulentes/$id", params: { id } })}
         submitLabel="Salvar alterações"
       />
-    </div>
+      </div>
+    </>
   );
 }

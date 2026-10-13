@@ -13,6 +13,7 @@ import { MacaCategoriaTag } from "@/lib/maca-categoria";
 import { friendlyDbError } from "@/lib/db-errors";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { ArrowLeft } from "lucide-react";
+import { CabecalhoPagina } from "@/compartilhado";
 import { cn } from "@/lib/utils";
 import { useEscolhaMaca, buscarMacasAtivas, encerrarPorTroca } from "@/components/EscolhaMacaDialog";
 
@@ -120,17 +121,18 @@ function Designar() {
   };
 
   return (
-    <div className="space-y-4">
+    <>
       {escolhaEl}
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-semibold">Designar maca</h1>
-          <p className="text-muted-foreground">Consulente: <strong>{consulente?.nome}</strong></p>
-        </div>
-        <Button variant="outline" className="gap-1" onClick={() => navigate({ to: "/consulentes/$id", params: { id: consulenteId } })}>
-          <ArrowLeft className="h-4 w-4" /> Voltar
-        </Button>
-      </div>
+      <CabecalhoPagina
+        titulo="Designar maca"
+        descricao={<>Consulente: <strong className="text-foreground">{consulente?.nome}</strong></>}
+        acoes={
+          <Button variant="outline" onClick={() => navigate({ to: "/consulentes/$id", params: { id: consulenteId } })}>
+            <ArrowLeft className="h-4 w-4 mr-2" /> Voltar
+          </Button>
+        }
+      />
+      <div className="space-y-6">
 
       <div className="flex items-center gap-3 flex-wrap">
         <Tabs value={dia} onValueChange={(v) => setDia(v as "terca" | "sabado")}>
@@ -183,10 +185,10 @@ function Designar() {
                     variant="outline"
                     className={
                       lotada
-                        ? "bg-red-100 text-red-800 border-red-300"
+                        ? "bg-destructive/10 text-destructive border-destructive/40"
                         : quase
-                          ? "bg-amber-100 text-amber-900 border-amber-300"
-                          : ""
+                          ? "bg-amber-100 text-amber-800 border-amber-300"
+                          : "bg-emerald-100 text-emerald-800 border-emerald-300"
                     }
                   >
                     {m.ativos}/{m.lotacao_max}
@@ -195,11 +197,11 @@ function Designar() {
                     {lotada ? "Lotada" : quase ? "Quase cheia" : `${m.lotacao_max - m.ativos} vagas`}
                   </span>
                 </div>
-                <div className="h-1.5 w-full rounded-full bg-secondary overflow-hidden">
+                <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
                   <div
                     className={cn(
                       "h-full rounded-full transition-all",
-                      lotada ? "bg-red-500" : quase ? "bg-amber-500" : "bg-brand-teal",
+                      lotada ? "bg-destructive" : quase ? "bg-amber-500" : "bg-primary",
                     )}
                     style={{ width: `${Math.min(100, (m.ativos / Math.max(1, m.lotacao_max)) * 100)}%` }}
                   />
@@ -207,7 +209,7 @@ function Designar() {
               </div>
               <Button
                 size="sm"
-                className="w-full shadow-sm hover:shadow-md transition-shadow bg-brand-blue text-white hover:bg-brand-blue-dark"
+                className="w-full"
                 disabled={busy || lotada}
                 onClick={() => designar(m.id, m.lotacao_max, m.ativos, `Maca ${m.numero} · ${m.nome}`)}
               >
@@ -222,6 +224,7 @@ function Designar() {
           </p>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 }

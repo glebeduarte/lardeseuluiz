@@ -166,7 +166,7 @@ export function ConsulenteFormFields({
       className="space-y-4"
     >
       <Card>
-        <CardHeader><CardTitle>Dados pessoais</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="font-['Playfair_Display'] text-lg">Dados pessoais</CardTitle></CardHeader>
         <CardContent className="grid sm:grid-cols-2 gap-4">
           <Field label="Nome completo *">
             <Input id="consulente-nome" required value={f.nome} onChange={(e) => set("nome", e.target.value)} />
@@ -286,7 +286,7 @@ export function ConsulenteFormFields({
 
       <Card>
 
-        <CardHeader><CardTitle>Motivos do atendimento</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="font-['Playfair_Display'] text-lg">Motivos do atendimento</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <Check label="Saúde física" checked={f.motivo_saude_fisica} onChange={(v) => set("motivo_saude_fisica", v)} />
           {f.motivo_saude_fisica && (
@@ -343,7 +343,7 @@ export function ConsulenteFormFields({
 
 
       <Card>
-        <CardHeader><CardTitle>Dados de atenção</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="font-['Playfair_Display'] text-lg">Dados de atenção</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <Check label="Uso de drogas ilícitas" checked={f.uso_drogas} onChange={(v) => set("uso_drogas", v)} />
           <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3">
@@ -361,7 +361,7 @@ export function ConsulenteFormFields({
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>Encaminhamento</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="font-['Playfair_Display'] text-lg">Encaminhamento</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <Label>Encaminhar para *</Label>
           <div className="flex flex-col gap-2">
@@ -410,17 +410,17 @@ export function ConsulenteFormFields({
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>Outras informações</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="font-['Playfair_Display'] text-lg">Outras informações</CardTitle></CardHeader>
         <CardContent>
           <Textarea rows={4} value={f.outras_informacoes} onChange={(e) => set("outras_informacoes", e.target.value)} />
         </CardContent>
       </Card>
 
-      <div className="flex justify-end gap-2 sticky bottom-[calc(env(safe-area-inset-bottom)+4.5rem)] md:bottom-2 bg-background/95 p-2 rounded backdrop-blur">
-        <Button type="button" variant="outline" onClick={onCancel} className="border-2">
+      <div className="flex justify-end gap-2 sticky bottom-[calc(env(safe-area-inset-bottom)+4.5rem)] md:bottom-2 bg-background/95 p-2 rounded-lg backdrop-blur">
+        <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
-        <Button type="submit" disabled={busy} className="shadow-sm hover:shadow-md transition-shadow bg-brand-blue text-white hover:bg-brand-blue-dark">
+        <Button type="submit" disabled={busy}>
           {busy ? "Salvando..." : submitLabel}
         </Button>
       </div>
@@ -481,8 +481,8 @@ function DuplicadosAviso({ nome, telefone }: { nome: string; telefone: string })
   if (!ativo || !data || data.length === 0) return null;
 
   return (
-    <div className="rounded-md border-2 border-amber-300 bg-amber-50 p-3 space-y-2">
-      <p className="text-sm font-medium text-amber-900">
+    <div className="rounded-md border border-amber-300 bg-amber-100 p-3 space-y-2">
+      <p className="text-sm font-medium text-amber-800">
         Já existe cadastro parecido — confirme antes de criar um novo.
       </p>
       <ul className="space-y-1">
@@ -496,7 +496,7 @@ function DuplicadosAviso({ nome, telefone }: { nome: string; telefone: string })
               href={`/consulentes/${c.id}`}
               target="_blank"
               rel="noreferrer"
-              className="text-brand-blue underline underline-offset-2 shrink-0"
+              className="text-primary underline underline-offset-2 shrink-0"
             >
               Abrir cadastro
             </a>

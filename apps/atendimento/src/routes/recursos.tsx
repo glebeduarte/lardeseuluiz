@@ -41,17 +41,12 @@ export const Route = createFileRoute("/recursos")({
 
 type Accent = "blue" | "teal" | "gold" | "red";
 
-const ACCENT_BAR: Record<Accent, string> = {
-  blue: "bg-brand-blue",
-  teal: "bg-brand-teal",
-  gold: "bg-brand-gold",
-  red: "bg-brand-red",
-};
+// Ícones no padrão único: azul institucional, com o dourado como destaque
 const ACCENT_ICON: Record<Accent, string> = {
-  blue: "bg-brand-blue-muted text-brand-blue",
-  teal: "bg-brand-teal-muted text-brand-teal-dark",
-  gold: "bg-brand-gold-muted text-brand-gold-dark",
-  red: "bg-brand-red-muted text-brand-red",
+  blue: "bg-primary/10 text-primary",
+  teal: "bg-primary/10 text-primary",
+  gold: "bg-accent/20 text-accent-foreground",
+  red: "bg-primary/10 text-primary",
 };
 
 const perfis: { icon: typeof Shield; title: string; desc: string; accent: Accent }[] = [
@@ -204,33 +199,31 @@ function RecursosPage() {
         <Link to="/" className="flex items-center gap-2.5">
           <img src={logoLSL} alt="Lar de Seu Luiz" className="h-8 w-8 object-contain rounded-md" />
           <div className="flex flex-col leading-tight">
-            <span className="font-display text-[14px] font-bold text-brand-blue-dark">Lar de Seu Luiz</span>
+            <span className="font-['Playfair_Display'] text-[14px] font-bold text-foreground">Lar de Seu Luiz</span>
             <span className="text-[11px] text-muted-foreground -mt-0.5">Sistema de Macas</span>
           </div>
         </Link>
         <Link
           to="/login"
-          className="inline-flex items-center gap-1.5 rounded-md bg-primary text-primary-foreground px-3.5 py-1.5 text-sm font-semibold shadow-sm hover:bg-primary/90 transition-colors"
+          className="inline-flex items-center gap-2 rounded-md bg-primary text-primary-foreground px-3.5 py-1.5 text-sm font-medium shadow-sm hover:bg-primary/90 transition-colors"
         >
           Entrar
-          <ArrowRight className="h-3.5 w-3.5" />
+          <ArrowRight className="h-4 w-4" />
         </Link>
       </header>
 
       <main className="max-w-[1180px] mx-auto px-4 md:px-7 py-8 md:py-10 space-y-10">
         {/* Hero */}
-        <section className="relative overflow-hidden rounded-[20px] px-7 py-9 md:px-12 md:py-12 text-white shadow-lg bg-gradient-to-br from-brand-blue-dark via-brand-blue to-brand-blue-light">
-          <div className="absolute -top-12 -right-12 w-52 h-52 rounded-full bg-white/[0.06]" aria-hidden />
-          <div className="absolute -bottom-20 right-24 w-72 h-72 rounded-full bg-white/[0.04]" aria-hidden />
-          <div className="relative max-w-3xl">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-white/90">
+        <section className="rounded-2xl border bg-card px-6 py-8 md:px-10 md:py-10 shadow-sm">
+          <div className="max-w-3xl">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-accent bg-accent/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-accent-foreground">
               <Sparkles className="h-3 w-3" />
               Recursos e funcionalidades
             </span>
-            <h1 className="font-display text-[28px] md:text-[38px] font-bold leading-tight mt-4">
+            <h1 className="font-['Playfair_Display'] text-[28px] md:text-[36px] font-bold leading-tight mt-4 text-foreground">
               Tudo o que o Sistema de Macas é capaz de fazer
             </h1>
-            <p className="text-[14px] md:text-[15px] text-white/80 mt-3 leading-relaxed">
+            <p className="text-sm md:text-[15px] text-muted-foreground mt-3 leading-relaxed">
               Em um só lugar, a casa organiza quem trabalha, quem é atendido e o que acontece em
               cada maca — com respeito ao sigilo das informações e ao papel de cada pessoa no
               trabalho.
@@ -245,11 +238,10 @@ function RecursosPage() {
             {perfis.map((p) => (
               <div
                 key={p.title}
-                className="relative overflow-hidden rounded-xl border bg-card p-5 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
+                className="rounded-xl border bg-card p-5 shadow-sm transition-shadow hover:shadow-md"
               >
-                <span className={cn("absolute top-0 inset-x-0 h-[3px]", ACCENT_BAR[p.accent])} />
-                <div className={cn("w-10 h-10 rounded-md flex items-center justify-center mb-3", ACCENT_ICON[p.accent])}>
-                  <p.icon className="h-[18px] w-[18px]" />
+                <div className={cn("w-11 h-11 rounded-lg flex items-center justify-center mb-3", ACCENT_ICON[p.accent])}>
+                  <p.icon className="h-5 w-5" />
                 </div>
                 <div className="font-semibold text-sm text-foreground">{p.title}</div>
                 <p className="text-[12.5px] text-muted-foreground leading-snug mt-1.5">{p.desc}</p>
@@ -265,19 +257,18 @@ function RecursosPage() {
             {recursos.map((r) => (
               <div
                 key={r.title}
-                className="relative overflow-hidden rounded-xl border bg-card p-5 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
+                className="rounded-xl border bg-card p-5 shadow-sm transition-shadow hover:shadow-md"
               >
-                <span className={cn("absolute top-0 inset-x-0 h-[3px]", ACCENT_BAR[r.accent])} />
                 <div className="flex items-center gap-3 mb-3">
-                  <div className={cn("w-10 h-10 rounded-md flex items-center justify-center shrink-0", ACCENT_ICON[r.accent])}>
-                    <r.icon className="h-[18px] w-[18px]" />
+                  <div className={cn("w-11 h-11 rounded-lg flex items-center justify-center shrink-0", ACCENT_ICON[r.accent])}>
+                    <r.icon className="h-5 w-5" />
                   </div>
-                  <div className="font-semibold text-[15px] text-foreground">{r.title}</div>
+                  <h3 className="font-['Playfair_Display'] text-lg font-semibold text-foreground">{r.title}</h3>
                 </div>
                 <ul className="space-y-1.5">
                   {r.items.map((it) => (
                     <li key={it} className="flex gap-2 text-[13px] text-muted-foreground leading-snug">
-                      <Check className="h-3.5 w-3.5 mt-0.5 shrink-0 text-brand-teal" />
+                      <Check className="h-3.5 w-3.5 mt-0.5 shrink-0 text-primary" />
                       <span>{it}</span>
                     </li>
                   ))}
@@ -290,11 +281,11 @@ function RecursosPage() {
         {/* Resumo / CTA */}
         <section className="rounded-xl border bg-card p-6 md:p-8 shadow-sm">
           <div className="flex items-start gap-4 flex-wrap md:flex-nowrap">
-            <div className="w-11 h-11 rounded-md flex items-center justify-center bg-brand-gold-muted text-brand-gold-dark shrink-0">
+            <div className="w-11 h-11 rounded-lg flex items-center justify-center bg-accent/20 text-accent-foreground shrink-0">
               <Sparkles className="h-5 w-5" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-display text-lg font-bold text-foreground">Em resumo</h3>
+              <h3 className="font-['Playfair_Display'] text-lg font-bold text-foreground">Em resumo</h3>
               <p className="text-[13.5px] text-muted-foreground mt-1.5 leading-relaxed">
                 O sistema substitui controles em papel e planilhas soltas por um único lugar,
                 organizado e seguro, onde a casa pode acompanhar quem atende, quem é atendido e o
@@ -303,10 +294,10 @@ function RecursosPage() {
             </div>
             <Link
               to="/login"
-              className="inline-flex items-center gap-1.5 rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm font-semibold shadow-sm hover:bg-primary/90 transition-colors shrink-0"
+              className="inline-flex items-center gap-2 rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm font-medium shadow-sm hover:bg-primary/90 transition-colors shrink-0"
             >
               Acessar o sistema
-              <ArrowRight className="h-3.5 w-3.5" />
+              <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </section>
@@ -322,11 +313,8 @@ function RecursosPage() {
 function SectionHeader({ title, subtitle }: { title: string; subtitle: string }) {
   return (
     <div className="mb-5">
-      <div className="flex items-center gap-2.5 mb-1.5">
-        <span className="block w-[3px] h-[18px] rounded-sm bg-brand-gold" />
-        <h2 className="font-display text-[20px] font-bold text-foreground">{title}</h2>
-      </div>
-      <p className="text-[13.5px] text-muted-foreground ml-[14px]">{subtitle}</p>
+      <h2 className="font-['Playfair_Display'] text-xl font-bold text-foreground mb-1.5">{title}</h2>
+      <p className="text-sm text-muted-foreground">{subtitle}</p>
     </div>
   );
 }

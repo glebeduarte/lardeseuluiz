@@ -93,7 +93,7 @@ export function ConsulenteObservacoes({ consulenteId }: { consulenteId: string }
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Observações</CardTitle>
+        <CardTitle className="font-['Playfair_Display'] text-lg">Observações</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="space-y-2">
@@ -103,15 +103,15 @@ export function ConsulenteObservacoes({ consulenteId }: { consulenteId: string }
               value={novo}
               onChange={(e) => setNovo(e.target.value)}
               rows={3}
-              className={salvoComSucesso ? "border-green-500 ring-1 ring-green-500/30 transition-all" : ""}
+              className={salvoComSucesso ? "border-emerald-500 ring-1 ring-emerald-500/30 transition-all" : ""}
             />
             {salvoComSucesso && (
-              <CheckCircle2 className="absolute right-3 top-3 h-4 w-4 text-green-500 animate-in fade-in zoom-in duration-300" />
+              <CheckCircle2 className="absolute right-3 top-3 h-4 w-4 text-emerald-600 animate-in fade-in zoom-in duration-300" />
             )}
           </div>
           <div className="flex justify-end items-center gap-2">
             {salvoComSucesso && (
-              <span className="text-xs text-green-500 animate-in fade-in slide-in-from-right-2 duration-300">
+              <span className="text-xs text-emerald-800 animate-in fade-in slide-in-from-right-2 duration-300">
                 Observação salva
               </span>
             )}

@@ -11,6 +11,7 @@ import { Users, Search, ArrowRight, AlertTriangle, BadgeCheck, Printer } from "l
 import { diaFromDate, diaLabel, type DiaTrabalho } from "@/lib/sessao";
 import { getAtendimentoDatesIsoByDia, formatDataCurta } from "@/lib/atendimento-dates";
 import { cn } from "@/lib/utils";
+import { CabecalhoPagina } from "@/compartilhado";
 import { useAuth } from "@/lib/auth";
 import { MacaCategoriaTag } from "@/lib/maca-categoria";
 
@@ -108,26 +109,27 @@ function RecepcaoIndex() {
   });
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 sm:flex sm:flex-wrap sm:justify-between">
-        <div className="min-w-0">
-          <h1 className="text-2xl font-semibold">Acolhimento</h1>
-          <p className="text-muted-foreground text-sm">
-            Identifique o consulente, designe a maca e entregue a ficha por ordem de chegada.
-            A presença é registrada depois pelo médium responsável.
-          </p>
+    <>
+      <CabecalhoPagina
+        titulo="Acolhimento"
+        descricao={<>
+          Identifique o consulente, designe a maca e entregue a ficha por ordem de chegada.
+          A presença é registrada depois pelo médium responsável.
           {proximaSessaoIso && (
-            <p className="mt-1 text-sm font-medium" style={{ color: "#0EA5A0" }}>
+            <span className="mt-1 block font-medium text-primary">
               Sessão: {formatDataCurta(proximaSessaoIso)}
-            </p>
+            </span>
           )}
-        </div>
-        <Link to="/recepcao/imprimir" className="shrink-0">
-          <Button size="sm" className="h-11">
-            <Printer className="h-4 w-4 mr-1" /> Imprimir lista de chegada
-          </Button>
-        </Link>
-      </div>
+        </>}
+        acoes={
+          <Link to="/recepcao/imprimir" className="shrink-0">
+            <Button>
+              <Printer className="h-4 w-4 mr-2" /> Imprimir lista de chegada
+            </Button>
+          </Link>
+        }
+      />
+      <div className="space-y-6">
 
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -159,10 +161,10 @@ function RecepcaoIndex() {
             const ativa = designacoes.find((d) => d.status === "ativa");
             const encerrado = !ativa && designacoes.length > 0;
             const proximoFim = ativa ? (ativa.sessoes_totais - ativa.sessoes_realizadas <= 1) : false;
-            const cardBorder = encerrado ? "border-brand-teal" : proximoFim ? "border-brand-gold" : "";
-            const cardBg = encerrado ? "bg-brand-teal-muted" : proximoFim ? "bg-brand-gold-muted" : "";
+            const cardBorder = encerrado ? "border-border" : proximoFim ? "border-amber-300" : "";
+            const cardBg = encerrado ? "bg-muted" : proximoFim ? "bg-amber-50" : "";
             return (
-              <Card key={c.id} className={cn("p-3 flex items-center justify-between gap-3 flex-wrap group cursor-pointer border-2 hover:border-primary/20 hover:shadow-lg hover:-translate-y-0.5 transition-all", cardBorder, cardBg)}>
+              <Card key={c.id} className={cn("p-3 flex items-center justify-between gap-3 flex-wrap group cursor-pointer hover:border-primary/30 hover:shadow-md transition-shadow", cardBorder, cardBg)}>
                 <div className="flex items-center gap-2 min-w-0">
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-sm truncate">{c.nome}</div>
@@ -186,15 +188,15 @@ function RecepcaoIndex() {
                         </span>
                       )}
                       {c.dialogo_pendente && (
-                        <span className="text-muted-foreground">Diálogo pendente</span>
+                        <span className="text-amber-800">Diálogo pendente</span>
                       )}
                       {encerrado && (
-                        <span className="inline-flex items-center gap-1 text-brand-teal-dark font-medium">
+                        <span className="inline-flex items-center gap-1 text-muted-foreground font-medium">
                           Encerrado
                         </span>
                       )}
                       {proximoFim && (
-                        <span className="inline-flex items-center gap-1 text-brand-gold-dark font-medium">
+                        <span className="inline-flex items-center gap-1 text-amber-800 font-medium">
                           Próximo do término
                         </span>
                       )}
@@ -205,13 +207,13 @@ function RecepcaoIndex() {
                   {(isDialogador || isAdmin) && (
                     <Link to="/consulentes/$id" params={{ id: c.id }}>
                       <Button variant="outline" size="sm" className="h-11">
-                        Ver ficha <ArrowRight className="h-3 w-3 ml-1" />
+                        Ver ficha <ArrowRight className="h-4 w-4 ml-1" />
                       </Button>
                     </Link>
                   )}
                   <Link to="/dialogo/$consulenteId/designar" params={{ consulenteId: c.id }}>
                     <Button size="sm" className="h-11">
-                      <BadgeCheck className="h-3 w-3 mr-1" /> Designar maca
+                      <BadgeCheck className="h-4 w-4 mr-2" /> Designar maca
                     </Button>
                   </Link>
                 </div>
@@ -230,7 +232,7 @@ function RecepcaoIndex() {
 
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="text-xl font-semibold">Macas · {diaLabel(dia)}</h2>
+          <h2 className="text-lg font-semibold font-['Playfair_Display'] text-foreground">Macas · {diaLabel(dia)}</h2>
           <p className="text-muted-foreground text-sm">
             Toque em uma maca para designar o consulente e ver quem já está designado.
           </p>
@@ -257,9 +259,8 @@ function RecepcaoIndex() {
             aria-pressed={filtro === v}
             className={cn(
               "rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors",
-              filtro === v ? "border-transparent text-white" : "bg-card hover:bg-secondary/50",
+              filtro === v ? "border-transparent bg-primary text-primary-foreground" : "bg-card hover:bg-muted",
             )}
-            style={filtro === v ? { background: "#0EA5A0" } : undefined}
           >
             {label}
           </button>
@@ -282,7 +283,7 @@ function RecepcaoIndex() {
             <Link key={m.id} to="/recepcao/maca/$id" params={{ id: m.id }}>
               <Card
                 className={cn(
-                  "p-4 h-full cursor-pointer hover:shadow-xl hover:-translate-y-0.5 transition-all border-2 group",
+                  "p-4 h-full cursor-pointer hover:shadow-md transition-shadow border-2 group",
                   lotada && "opacity-90",
                 )}
                 style={{ borderColor: m.cor_hex, backgroundColor: m.cor_hex + "18" }}
@@ -300,12 +301,12 @@ function RecepcaoIndex() {
 
                 {(lotada || quaseCheia) && (
                   <div
-                    className="mt-1.5 inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold"
-                    style={
+                    className={cn(
+                      "mt-1.5 inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold",
                       lotada
-                        ? { background: "#FDECEA", color: "#A3271B" }
-                        : { background: "#FFF6E5", color: "#8A5B00" }
-                    }
+                        ? "bg-destructive/10 text-destructive border-destructive/40"
+                        : "bg-amber-100 text-amber-800 border-amber-300",
+                    )}
                   >
                     {lotada ? "Lotada" : "Quase cheia"}
                   </div>
@@ -319,7 +320,7 @@ function RecepcaoIndex() {
                     <span
                       className={cn(
                         "font-semibold tabular-nums",
-                        lotada ? "text-red-700" : quaseCheia ? "text-amber-700" : "text-foreground",
+                        lotada ? "text-destructive" : quaseCheia ? "text-amber-800" : "text-foreground",
                       )}
                     >
                       {m.ativos}/{m.lotacao_max}
@@ -327,15 +328,12 @@ function RecepcaoIndex() {
                   </div>
                   <div className="mt-1 h-1.5 w-full rounded-full bg-black/10 overflow-hidden">
                     <div
-                      className="h-full rounded-full"
-                      style={{
-                        width: `${pct}%`,
-                        background: lotada ? "#C0392B" : quaseCheia ? "#B8860B" : "#0EA5A0",
-                      }}
+                      className={cn("h-full rounded-full", lotada ? "bg-destructive" : quaseCheia ? "bg-amber-500" : "bg-primary")}
+                      style={{ width: `${pct}%` }}
                     />
                   </div>
                   {lotada && (
-                    <p className="mt-1 text-[11px] font-medium text-red-700">Não aceita novas designações</p>
+                    <p className="mt-1 text-[11px] font-medium text-destructive">Não aceita novas designações</p>
                   )}
                 </div>
 
@@ -350,7 +348,8 @@ function RecepcaoIndex() {
           );
         })}
       </div>
-    </div>
+      </div>
+    </>
   );
 }
 

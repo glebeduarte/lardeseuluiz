@@ -40,30 +40,30 @@ const toneStyles: Record<Tone, { ring: string; iconBg: string; iconColor: string
   },
   info: {
     ring: "",
-    iconBg: "bg-blue-100",
-    iconColor: "text-blue-700",
-    button: "bg-blue-600 text-white hover:bg-blue-700",
+    iconBg: "bg-sky-100",
+    iconColor: "text-sky-800",
+    button: "",
     Icon: Info,
   },
   warning: {
     ring: "",
     iconBg: "bg-amber-100",
-    iconColor: "text-amber-700",
-    button: "bg-amber-600 text-white hover:bg-amber-700",
+    iconColor: "text-amber-800",
+    button: "",
     Icon: AlertTriangle,
   },
   danger: {
     ring: "",
-    iconBg: "bg-rose-100",
-    iconColor: "text-rose-700",
+    iconBg: "bg-destructive/10",
+    iconColor: "text-destructive",
     button: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
     Icon: AlertTriangle,
   },
   success: {
     ring: "",
     iconBg: "bg-emerald-100",
-    iconColor: "text-emerald-700",
-    button: "bg-emerald-600 text-white hover:bg-emerald-700",
+    iconColor: "text-emerald-800",
+    button: "",
     Icon: CheckCircle2,
   },
 };
@@ -112,7 +112,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
                 <Icon className={cn("h-5 w-5", styles.iconColor)} />
               </div>
               <div className="flex-1 space-y-1.5">
-                <AlertDialogTitle className="text-left text-base">
+                <AlertDialogTitle className="text-left font-['Playfair_Display'] text-lg">
                   {opts?.title}
                 </AlertDialogTitle>
                 {opts?.description && (

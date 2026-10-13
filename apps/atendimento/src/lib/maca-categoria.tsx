@@ -22,8 +22,8 @@ export function MacaCategoriaTag({
   const isExterna = cat === "externa";
   return (
     <Badge
-      variant={isExterna ? "secondary" : "outline"}
-      className={className}
+      variant="outline"
+      className={`${isExterna ? "bg-sky-100 text-sky-800 border-sky-300" : ""} ${className ?? ""}`}
     >
       {isExterna ? "Externa" : "Interna"}
     </Badge>

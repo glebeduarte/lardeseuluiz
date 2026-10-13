@@ -14,6 +14,8 @@ import { AtribuirConsulenteDialog } from "@/components/AtribuirConsulenteDialog"
 import { cn } from "@/lib/utils";
 import { MacaCategoriaTag } from "@/lib/maca-categoria";
 import { isDesignacaoArquivada } from "@/lib/atendimento-dates";
+import { CabecalhoPagina } from "@/compartilhado";
+import { LinkRota } from "@/components/LinkRota";
 
 export const Route = createFileRoute("/recepcao/maca/$id")({
   component: () => (
@@ -102,59 +104,52 @@ function MacaRecepcao() {
     );
 
   const statusBadge = (p: string | null) => {
-    if (p === "presente") return <Badge className="bg-brand-teal text-white gap-1"><Check className="h-3 w-3" />Presente</Badge>;
-    if (p === "ausente") return <Badge variant="outline" className="gap-1"><X className="h-3 w-3" />Falta</Badge>;
-    if (p === "falta_justificada") return <Badge variant="outline" className="gap-1"><X className="h-3 w-3" />Falta justificada</Badge>;
+    if (p === "presente") return <Badge variant="outline" className="gap-1 bg-emerald-100 text-emerald-800 border-emerald-300"><Check className="h-3 w-3" />Presente</Badge>;
+    if (p === "ausente") return <Badge variant="outline" className="gap-1 bg-amber-100 text-amber-800 border-amber-300"><X className="h-3 w-3" />Falta</Badge>;
+    if (p === "falta_justificada") return <Badge variant="outline" className="gap-1 bg-amber-100 text-amber-800 border-amber-300"><X className="h-3 w-3" />Falta justificada</Badge>;
     if (p === "emergencia") return <Badge variant="destructive" className="gap-1"><AlertCircle className="h-3 w-3" />Emergência</Badge>;
-    if (p === "atendimento_distancia") return <Badge className="bg-brand-blue text-white gap-1"><Radio className="h-3 w-3" />À distância</Badge>;
-    return <Badge variant="outline" className="text-muted-foreground">Aguardando</Badge>;
+    if (p === "atendimento_distancia") return <Badge variant="outline" className="gap-1 bg-sky-100 text-sky-800 border-sky-300"><Radio className="h-3 w-3" />À distância</Badge>;
+    return <Badge variant="outline" className="bg-muted text-muted-foreground border-border">Aguardando</Badge>;
   };
 
   return (
-    <div className="space-y-4">
-      <Link to="/recepcao" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors font-medium">
-        <ArrowLeft className="h-4 w-4 mr-1" /> Voltar para acolhimento
-      </Link>
-
-      <div
-        className="rounded-lg p-4 border-2"
-        style={{ borderColor: maca.cor_hex, backgroundColor: maca.cor_hex + "22" }}
-      >
-        <div className="flex items-center gap-3">
-          <div
-            className="rounded h-12 w-12 flex items-center justify-center font-bold text-xl"
-            style={{ backgroundColor: maca.cor_hex, color: "#fff" }}
-          >
-            {maca.numero}
-          </div>
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-xl font-semibold">{maca.nome}</h1>
-              <MacaCategoriaTag numero={maca.numero} categoria={maca.categoria} />
-            </div>
-            <p className="text-xs text-muted-foreground">Sessão {sessao?.data}</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="rounded-md border border-brand-blue/30 bg-brand-blue-muted/30 px-3 py-2 text-xs text-brand-blue-dark flex items-start gap-2">
+    <>
+      <CabecalhoPagina
+        voltar={{ href: "/recepcao", rotulo: "Voltar para acolhimento" }}
+        Link={LinkRota}
+        titulo={
+          <span className="inline-flex items-center gap-3 flex-wrap">
+            {/* A cor da maca é dado do usuário */}
+            <span
+              className="rounded-lg h-11 w-11 inline-flex items-center justify-center font-sans font-bold text-xl shrink-0"
+              style={{ backgroundColor: maca.cor_hex, color: "#fff" }}
+            >
+              {maca.numero}
+            </span>
+            {maca.nome}
+            <MacaCategoriaTag numero={maca.numero} categoria={maca.categoria} className="font-sans" />
+          </span>
+        }
+        descricao={`Sessão ${sessao?.data ?? ""}`}
+        acoes={
+          <AtribuirConsulenteDialog
+            macaId={maca.id}
+            macaNome={maca.nome}
+            trigger={
+              <Button>
+                <UserPlus className="h-4 w-4 mr-2" /> Atribuir consulente
+              </Button>
+            }
+          />
+        }
+      />
+      <div className="space-y-6">
+      <div className="rounded-md border border-sky-300 bg-sky-100 px-3 py-2 text-xs text-sky-800 flex items-start gap-2">
         <Info className="h-4 w-4 mt-0.5 shrink-0" />
         <span>
           O acolhimento apenas confere o nome e entrega a ficha do consulente. A presença é registrada pelo
           <strong> médium responsável</strong> da maca.
         </span>
-      </div>
-
-      <div className="flex justify-end">
-        <AtribuirConsulenteDialog
-          macaId={maca.id}
-          macaNome={maca.nome}
-          trigger={
-            <Button size="sm" className="shadow-sm hover:shadow-md transition-shadow bg-brand-blue text-white hover:bg-brand-blue-dark">
-              <UserPlus className="h-4 w-4 mr-1.5" /> Atribuir consulente
-            </Button>
-          }
-        />
       </div>
 
       <div className="space-y-2">
@@ -171,10 +166,10 @@ function MacaRecepcao() {
           const restantes = total - realizados;
           const encerrado = !inativo && realizados >= total;
           const proximoFim = !encerrado && !inativo && restantes <= 1;
-          const cardBorder = inativo ? "border-muted-foreground/30" : encerrado ? "border-brand-teal" : proximoFim ? "border-brand-gold" : "";
-          const cardBg = inativo ? "bg-muted/40" : encerrado ? "bg-brand-teal-muted" : proximoFim ? "bg-brand-gold-muted" : "";
+          const cardBorder = inativo ? "border-muted-foreground/30" : encerrado ? "border-sky-300" : proximoFim ? "border-amber-300" : "";
+          const cardBg = inativo ? "bg-muted/40" : encerrado ? "bg-sky-50" : proximoFim ? "bg-amber-50" : "";
           return (
-            <Card key={d.id} className={cn("p-4 flex items-center justify-between flex-wrap gap-2 border-2", cardBorder, cardBg, inativo && "opacity-70")}>
+            <Card key={d.id} className={cn("p-4 flex items-center justify-between flex-wrap gap-2", cardBorder, cardBg, inativo && "opacity-70")}>
               <div className="flex items-center gap-3 flex-1 min-w-[200px]">
                 <div>
                   <div className="font-medium flex items-center gap-2 flex-wrap">
@@ -189,20 +184,20 @@ function MacaRecepcao() {
                       </Badge>
                     )}
                     {c?.dialogo_pendente && !inativo && (
-                      <Badge variant="outline" className="text-xs">Diálogo pendente</Badge>
+                      <Badge variant="outline" className="text-xs bg-amber-100 text-amber-800 border-amber-300">Diálogo pendente</Badge>
                     )}
                     {inativo && (
-                      <Badge variant="outline" className="text-xs text-muted-foreground border-muted-foreground/40">
+                      <Badge variant="outline" className="text-xs bg-muted text-muted-foreground border-border">
                         Inativo
                       </Badge>
                     )}
                     {encerrado && (
-                      <Badge variant="outline" className="text-xs text-brand-teal-dark border-brand-teal bg-brand-teal-muted">
+                      <Badge variant="outline" className="text-xs bg-sky-100 text-sky-800 border-sky-300">
                         Encerrado
                       </Badge>
                     )}
                     {proximoFim && (
-                      <Badge variant="outline" className="text-xs text-brand-gold-dark border-brand-gold bg-brand-gold-muted">
+                      <Badge variant="outline" className="text-xs bg-amber-100 text-amber-800 border-amber-300">
                         Próximo do término
                       </Badge>
                     )}
@@ -213,11 +208,12 @@ function MacaRecepcao() {
                   </div>
                 </div>
               </div>
-              <div>{inativo ? <Badge variant="outline" className="text-muted-foreground">Inativo</Badge> : statusBadge(d.presenca)}</div>
+              <div>{inativo ? <Badge variant="outline" className="bg-muted text-muted-foreground border-border">Inativo</Badge> : statusBadge(d.presenca)}</div>
             </Card>
           );
         })}
       </div>
-    </div>
+      </div>
+    </>
   );
 }

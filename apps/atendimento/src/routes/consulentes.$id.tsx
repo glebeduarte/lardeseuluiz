@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, AlertTriangle, RotateCcw } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
+import { CabecalhoPagina } from "@/compartilhado";
+import { LinkRota } from "@/components/LinkRota";
 import { ConsulenteObservacoes } from "@/components/ConsulenteObservacoes";
 import { useConfirm } from "@/components/ConfirmDialog";
 
@@ -171,37 +173,33 @@ function Ficha() {
     };
 
     return (
-      <div className="space-y-4 max-w-3xl mx-auto">
-        <Link to="/medium" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors font-medium">
-          <ArrowLeft className="h-4 w-4 mr-1" /> Voltar
-        </Link>
-        <div className="flex items-start justify-between flex-wrap gap-2">
-          <h1 className="text-2xl font-semibold">{c.nome}</h1>
-          {ativaM && (
-            <div className="flex gap-2 flex-wrap">
+      <>
+        <CabecalhoPagina
+          voltar={{ href: "/medium", rotulo: "Voltar" }}
+          Link={LinkRota}
+          titulo={c.nome}
+          descricao={dialogadorNome ? (
+            <>Diálogo fraterno realizado por <span className="font-medium text-foreground">{dialogadorNome}</span></>
+          ) : undefined}
+          acoes={ativaM ? (
+            <>
               <Button
                 variant="outline"
                 onClick={() => encaminharDialogo("encaminhamento")}
-                className="border-2 hover:bg-secondary"
               >
                 Encaminhar ao diálogo
               </Button>
               <Button
                 onClick={() => encaminharDialogo("alta")}
-                className="bg-brand-teal text-white hover:bg-brand-teal/90"
               >
                 Encaminhar para Alta
               </Button>
-            </div>
-          )}
-        </div>
-        {dialogadorNome && (
-          <p className="text-sm text-muted-foreground">
-            Diálogo fraterno realizado por <span className="font-medium text-foreground">{dialogadorNome}</span>
-          </p>
-        )}
+            </>
+          ) : undefined}
+        />
+        <div className="space-y-6 max-w-3xl">
         <Card>
-          <CardHeader><CardTitle>Motivos do atendimento</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="font-['Playfair_Display'] text-lg">Motivos do atendimento</CardTitle></CardHeader>
           <CardContent className="grid sm:grid-cols-2 gap-2 text-sm">
             <Info label="Saúde física" v={c.motivo_saude_fisica} extra={c.motivo_saude_fisica_especificacao} />
             {c.motivo_saude_fisica && (
@@ -233,7 +231,8 @@ function Ficha() {
           presencas={presencasHist}
           observacoes={obsHist}
         />
-      </div>
+        </div>
+      </>
     );
   }
 
@@ -358,15 +357,63 @@ function Ficha() {
   };
 
   return (
-    <div className="space-y-4 max-w-3xl mx-auto">
-      <Link to="/consulentes" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors font-medium">
-        <ArrowLeft className="h-4 w-4 mr-1" /> Voltar para lista
-      </Link>
-
-      <div className="flex items-start justify-between flex-wrap gap-2">
-        <div>
-          <h1 className="text-2xl font-semibold flex items-center gap-2">
-            {c.nome}
+    <>
+      <CabecalhoPagina
+        voltar={{ href: "/consulentes", rotulo: "Voltar para lista" }}
+        Link={LinkRota}
+        titulo={c.nome}
+        descricao={<>
+            Nasc.: {c.data_nascimento ? new Date(`${String(c.data_nascimento).slice(0, 10)}T12:00:00`).toLocaleDateString("pt-BR") : "não informado"}
+            {" · "}Tel.: {c.telefone || "não informado"}
+        </>}
+        acoes={<>
+          {(isAdmin || isDialogador) && (
+            <Button
+              variant="outline"
+              onClick={() => navigate({ to: "/consulentes/$id/editar", params: { id } })}
+            >
+              Editar dados
+            </Button>
+          )}
+          {!ativa && (isRecepcao || isAdmin) && (
+            <Button
+              onClick={() => navigate({ to: "/dialogo/$consulenteId/designar", params: { consulenteId: id } })}
+            >
+              Designar maca
+            </Button>
+          )}
+          {ativa && isMedium && (
+            <>
+              <Button
+                variant="outline"
+                onClick={() => encaminharAoDialogo("encaminhamento")}
+              >
+                Encaminhar ao diálogo
+              </Button>
+              <Button
+                onClick={() => encaminharAoDialogo("alta")}
+              >
+                Encaminhar para Alta
+              </Button>
+            </>
+          )}
+          {encaminhadoParaAlta && (isDialogador || isAdmin) && (
+            <Button
+              onClick={confirmarAlta}
+            >
+              Dar Alta
+            </Button>
+          )}
+          {ativa && isAdmin && (
+            <Button variant="outline" onClick={encerrarCiclo}>
+              Encerrar acompanhamento (sem alta)
+            </Button>
+          )}
+        </>}
+      />
+      <div className="space-y-6 max-w-3xl">
+      {/* Selos de situação (somem quando não há nenhum) */}
+      <div className="flex flex-wrap items-center gap-2 empty:hidden">
             {c.ideias_suicidas && (
               <Badge variant="destructive" className="gap-1">
                 <AlertTriangle className="h-3 w-3" /> Alerta — ideias suicidas
@@ -378,81 +425,26 @@ function Ficha() {
               </Badge>
             )}
             {isAltaConcedida && (
-              <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white">Alta</Badge>
+              <Badge variant="outline" className="bg-sky-100 text-sky-800 border-sky-300">Alta</Badge>
             )}
             {!isAltaConcedida && encaminhadoParaAlta && (
-              <Badge variant="outline" className="border-emerald-400 text-emerald-800 bg-emerald-100">
+              <Badge variant="outline" className="bg-sky-100 text-sky-800 border-sky-300">
                 Encaminhado para Alta
               </Badge>
             )}
             {!isAltaConcedida && !encaminhadoParaAlta && c.dialogo_pendente && (
-              <Badge variant="outline">Diálogo fraterno pendente</Badge>
+              <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">Diálogo fraterno pendente</Badge>
             )}
             {c.trabalhador && (
-              <Badge variant="outline" className="border-brand-blue/50 text-brand-blue-dark bg-brand-blue-muted/40">
+              <Badge variant="outline" className="bg-sky-100 text-sky-800 border-sky-300">
                 Trab
               </Badge>
             )}
             {c.tratamento_distancia && (
-              <Badge variant="outline" className="border-brand-teal/50 text-brand-teal-dark bg-brand-teal-muted">
+              <Badge variant="outline" className="bg-accent/20 text-accent-foreground border-accent">
                 Dist
               </Badge>
             )}
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Nasc.: {c.data_nascimento ? new Date(`${String(c.data_nascimento).slice(0, 10)}T12:00:00`).toLocaleDateString("pt-BR") : "não informado"}
-            {" · "}Tel.: {c.telefone || "não informado"}
-          </p>
-        </div>
-        <div className="flex gap-2 flex-wrap">
-          {(isAdmin || isDialogador) && (
-            <Button
-              variant="outline"
-              onClick={() => navigate({ to: "/consulentes/$id/editar", params: { id } })}
-              className="border-2 hover:bg-secondary"
-            >
-              Editar dados
-            </Button>
-          )}
-          {!ativa && (isRecepcao || isAdmin) && (
-            <Button
-              onClick={() => navigate({ to: "/dialogo/$consulenteId/designar", params: { consulenteId: id } })}
-              className="shadow-sm hover:shadow-md transition-shadow bg-brand-blue text-white hover:bg-brand-blue-dark"
-            >
-              Designar maca
-            </Button>
-          )}
-          {ativa && isMedium && (
-            <>
-              <Button
-                variant="outline"
-                onClick={() => encaminharAoDialogo("encaminhamento")}
-                className="border-2 hover:bg-secondary"
-              >
-                Encaminhar ao diálogo
-              </Button>
-              <Button
-                onClick={() => encaminharAoDialogo("alta")}
-                className="bg-brand-teal text-white hover:bg-brand-teal/90"
-              >
-                Encaminhar para Alta
-              </Button>
-            </>
-          )}
-          {encaminhadoParaAlta && (isDialogador || isAdmin) && (
-            <Button
-              onClick={confirmarAlta}
-              className="bg-emerald-600 text-white hover:bg-emerald-700"
-            >
-              Dar Alta
-            </Button>
-          )}
-          {ativa && isAdmin && (
-            <Button variant="outline" onClick={encerrarCiclo} className="border-2 hover:bg-secondary">
-              Encerrar acompanhamento (sem alta)
-            </Button>
-          )}
-        </div>
       </div>
 
       <CicloResumo
@@ -461,7 +453,7 @@ function Ficha() {
       />
 
       <Card>
-        <CardHeader><CardTitle>Situação atual</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="font-['Playfair_Display'] text-lg">Situação atual</CardTitle></CardHeader>
         <CardContent className="space-y-3 text-sm">
           {ativa && ativa.macas ? (
             <div className="flex items-center gap-3 flex-wrap">
@@ -477,7 +469,7 @@ function Ficha() {
                 {ativa.sessoes_realizadas}/{ativa.sessoes_totais} atendimentos
               </span>
               {ativa.sessoes_totais - ativa.sessoes_realizadas <= 1 && (
-                <Badge variant="outline" className="text-amber-700 border-amber-400 bg-amber-50">
+                <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">
                   Próximo do término
                 </Badge>
               )}
@@ -487,7 +479,7 @@ function Ficha() {
           )}
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-muted-foreground">Altas recebidas:</span>
-            <Badge variant="secondary">{altas.length}</Badge>
+            <Badge variant="outline" className="bg-muted text-muted-foreground border-border">{altas.length}</Badge>
             {altas.map((d) =>
               d.macas ? (
                 <span
@@ -505,7 +497,7 @@ function Ficha() {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>Ficha</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="font-['Playfair_Display'] text-lg">Ficha</CardTitle></CardHeader>
         <CardContent className="grid sm:grid-cols-2 gap-2 text-sm">
           <Info label="Conhece a Doutrina" v={c.conhece_doutrina} />
           <Info label="Evangelho no Lar" v={c.evangelho_no_lar} />
@@ -545,11 +537,11 @@ function Ficha() {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>Histórico de designações</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="font-['Playfair_Display'] text-lg">Histórico de designações</CardTitle></CardHeader>
         <CardContent className="space-y-2">
           {designacoes.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma designação.</p>}
           {designacoes.map((d) => (
-            <div key={d.id} className="flex items-center justify-between border rounded p-2 flex-wrap gap-2">
+            <div key={d.id} className="flex items-center justify-between border rounded-lg p-3 flex-wrap gap-2">
               <div className="flex items-center gap-2 flex-wrap">
                 {d.macas && (
                   <span
@@ -565,11 +557,11 @@ function Ficha() {
               <div className="text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
                 <span>{d.sessoes_realizadas}/{d.sessoes_totais} atendimentos</span>
                 {d.status === "concluida" ? (
-                  <Badge className="bg-brand-teal text-white hover:bg-brand-teal">
+                  <Badge variant="outline" className="bg-sky-100 text-sky-800 border-sky-300">
                     Alta {d.closed_at ? `· ${new Date(d.closed_at).toLocaleDateString("pt-BR")}` : ""}
                   </Badge>
                 ) : (
-                  <Badge variant={d.status === "ativa" ? "default" : "secondary"}>
+                  <Badge variant="outline" className={d.status === "ativa" ? "bg-emerald-100 text-emerald-800 border-emerald-300" : "bg-muted text-muted-foreground border-border"}>
                     {d.status === "ativa" ? "Em atendimento" : "Encerrada"}
                   </Badge>
                 )}
@@ -592,7 +584,7 @@ function Ficha() {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="h-7 text-xs gap-1 border-2"
+                        className="h-7 text-xs gap-1"
                         onClick={() => reativar(d.id)}
                       >
                         <RotateCcw className="h-3 w-3" /> Reativar
@@ -617,9 +609,9 @@ function Ficha() {
       />
 
       {isAdmin && (
-        <Card className="border-2 border-destructive/30 bg-destructive/5">
+        <Card className="border-destructive/30 bg-destructive/5">
           <CardHeader>
-            <CardTitle className="text-destructive text-base">Zona de risco</CardTitle>
+            <CardTitle className="font-['Playfair_Display'] text-lg text-destructive">Zona de risco</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-sm text-muted-foreground">
@@ -627,7 +619,6 @@ function Ficha() {
               presenças e observações). Prefira encerrar o acompanhamento sempre que possível.
             </p>
             <Button
-              variant="outline"
               onClick={async () => {
                 if (!(await confirm({
                   title: "Excluir cadastro do consulente?",
@@ -642,14 +633,15 @@ function Ficha() {
                 qc.invalidateQueries({ queryKey: ["consulentes"] });
                 navigate({ to: "/consulentes" });
               }}
-              className="border-2 border-destructive/50 text-destructive hover:bg-destructive/10"
+              variant="destructive"
             >
               Excluir cadastro
             </Button>
           </CardContent>
         </Card>
       )}
-    </div>
+      </div>
+    </>
   );
 }
 
@@ -700,26 +692,26 @@ const PRESENCA_STYLE: Record<string, { label: string; short: string; cls: string
   presente: {
     label: "Presença",
     short: "P",
-    cls: "border-emerald-300 bg-emerald-50 text-emerald-800",
+    cls: "border-emerald-300 bg-emerald-100 text-emerald-800",
     dot: "bg-emerald-500",
   },
   atendimento_distancia: {
     label: "Atendimento à distância",
     short: "D",
-    cls: "border-brand-teal/40 bg-brand-teal-muted text-brand-teal-dark",
-    dot: "bg-brand-teal",
+    cls: "border-sky-300 bg-sky-100 text-sky-800",
+    dot: "bg-sky-500",
   },
   falta_justificada: {
     label: "Falta justificada",
     short: "J",
-    cls: "border-amber-300 bg-amber-50 text-amber-800",
+    cls: "border-amber-300 bg-amber-100 text-amber-800",
     dot: "bg-amber-500",
   },
   ausente: {
     label: "Falta",
     short: "F",
-    cls: "border-red-300 bg-red-50 text-red-700",
-    dot: "bg-red-500",
+    cls: "border-destructive/40 bg-destructive/10 text-destructive",
+    dot: "bg-destructive",
   },
 };
 
@@ -769,14 +761,14 @@ export function CicloResumo({
   let contador = 0;
 
   return (
-    <Card className="border-2 border-brand-teal/30 bg-brand-teal-muted/30">
+    <Card className="border-primary/30 bg-primary/5">
       <CardHeader className="pb-2">
-        <CardTitle className="text-base">Ciclo de atendimentos</CardTitle>
+        <CardTitle className="font-['Playfair_Display'] text-lg">Ciclo de atendimentos</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-end justify-between gap-3 flex-wrap">
           <div>
-            <div className="text-2xl font-semibold text-brand-teal-dark leading-tight">
+            <div className="text-2xl font-bold text-primary leading-tight">
               {realizadas === 0
                 ? `Ciclo iniciando — 0 de ${total} sessões`
                 : `${ordinal(atual)} de ${total} sessões do ciclo`}
@@ -791,14 +783,14 @@ export function CicloResumo({
             </p>
           </div>
           {alvo.status === "ativa" && restantes <= 1 && (
-            <Badge variant="outline" className="text-amber-700 border-amber-400 bg-amber-50">
+            <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">
               {restantes === 0 ? "Ciclo completo" : "Próximo do término"}
             </Badge>
           )}
         </div>
 
-        <div className="h-2 w-full rounded-full bg-white/70 overflow-hidden">
-          <div className="h-full rounded-full bg-brand-teal transition-all" style={{ width: `${pct}%` }} />
+        <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+          <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
         </div>
 
         <div>
@@ -911,14 +903,14 @@ function HistoricoCard({
       titulo: "Observação registrada",
       detalhe: o.conteudo,
       autor: o.autor_nome,
-      cor: "bg-brand-blue",
+      cor: "bg-primary",
     });
   });
   eventos.sort((a, b) => (a.sortAt < b.sortAt ? 1 : -1));
 
   return (
     <Card>
-      <CardHeader><CardTitle>Histórico</CardTitle></CardHeader>
+      <CardHeader><CardTitle className="font-['Playfair_Display'] text-lg">Histórico</CardTitle></CardHeader>
       <CardContent>
         {eventos.length === 0 && (
           <p className="text-sm text-muted-foreground">Sem registros.</p>

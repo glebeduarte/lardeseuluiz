@@ -44,43 +44,34 @@ import { cn } from "@/lib/utils";
 import { diaFromDate, diaLabel } from "@/lib/sessao";
 import { formatDataExtenso, isDiaDeAtendimento } from "@/lib/atendimento-dates";
 
-// New design palette (scoped to dashboard)
+// Cores dos gráficos a partir dos tokens do padrão único (azul institucional, dourado e vermelho)
 const C = {
-  navy: "#1E3A5F",
-  teal: "#0EA5A0",
-  tealSoft: "#CCFBF1",
-  bg: "#F8FAFC",
-  text: "#1E293B",
-  muted: "#64748B",
-  border: "#E2E8F0",
-  green: "#10B981",
-  greenSoft: "#D1FAE5",
-  amber: "#F59E0B",
-  amberSoft: "#FEF3C7",
-  red: "#EF4444",
-  redSoft: "#FEE2E2",
-  blue: "#3B82F6",
-  blueSoft: "#DBEAFE",
-  gray: "#94A3B8",
-  graySoft: "#F1F5F9",
+  primary: "var(--primary)",
+  primaryLight: "var(--brand-blue-light)",
+  gold: "var(--accent)",
+  red: "var(--destructive)",
+  text: "var(--foreground)",
+  muted: "var(--muted-foreground)",
+  border: "var(--border)",
+  mutedBg: "var(--muted)",
 };
 
 type Tone = "neutral" | "positive" | "warning" | "alert" | "accent";
-// Number text colors per intent
+// Cor do número por intenção (paleta de situação do guia)
 const TONE_TEXT: Record<Tone, string> = {
-  neutral: "text-[#1E3A5F]",
-  positive: "text-[#0D7D78]",
-  warning: "text-[#B45309]",
-  alert: "text-[#B91C1C]",
-  accent: "text-[#0D7D78]",
+  neutral: "text-foreground",
+  positive: "text-emerald-800",
+  warning: "text-amber-800",
+  alert: "text-destructive",
+  accent: "text-primary",
 };
-// Icon + background per intent
+// Ícone e fundo por intenção
 const TONE_ICON_BG: Record<Tone, string> = {
-  neutral: "bg-[#EFF6FF] text-[#3B82F6]",
-  positive: "bg-[#F0FDFA] text-[#0EA5A0]",
-  warning: "bg-[#FFFBEB] text-[#F59E0B]",
-  alert: "bg-[#FEF2F2] text-[#EF4444]",
-  accent: "bg-[#F0FDFA] text-[#0EA5A0]",
+  neutral: "bg-primary/10 text-primary",
+  positive: "bg-emerald-100 text-emerald-700",
+  warning: "bg-amber-100 text-amber-700",
+  alert: "bg-destructive/10 text-destructive",
+  accent: "bg-primary/10 text-primary",
 };
 
 const QUICK_ACTIONS: { to: string; label: string; icon: LucideIcon }[] = [
@@ -164,11 +155,8 @@ export function AdminDashboard() {
             />
 
             {s.alertasAtivos > 0 && (
-              <div
-                className="mt-5 flex items-center gap-3 rounded-lg px-4 py-3 text-sm"
-                style={{ background: "#FEF2F2", borderLeft: "4px solid #EF4444", color: "#991B1B" }}
-              >
-                <AlertTriangle className="h-5 w-5 shrink-0" style={{ color: "#EF4444" }} />
+              <div className="mt-5 flex items-center gap-3 rounded-lg border border-destructive/30 border-l-4 border-l-destructive bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                <AlertTriangle className="h-5 w-5 shrink-0" />
                 <span>
                   <strong>Alertas sensíveis:</strong> {s.alertasAtivos} em tratamento ativo
                 </span>
@@ -208,15 +196,15 @@ export function AdminDashboard() {
                 <AreaChart data={s.cadastros30} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
                   <defs>
                     <linearGradient id="gradTeal" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={C.teal} stopOpacity={0.35} />
-                      <stop offset="100%" stopColor={C.teal} stopOpacity={0} />
+                      <stop offset="0%" stopColor={C.primary} stopOpacity={0.3} />
+                      <stop offset="100%" stopColor={C.primary} stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false} />
                   <XAxis dataKey="dia" tick={{ fontSize: 11, fill: C.muted }} interval={4} />
                   <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: C.muted }} />
                   <Tooltip contentStyle={tooltipStyle} />
-                  <Area type="monotone" dataKey="qtd" stroke={C.teal} strokeWidth={2} fill="url(#gradTeal)" />
+                  <Area type="monotone" dataKey="qtd" stroke={C.primary} strokeWidth={2} fill="url(#gradTeal)" />
                 </AreaChart>
               </ResponsiveContainer>
             </Card>
@@ -233,7 +221,7 @@ export function AdminDashboard() {
                   <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11, fill: C.muted }} />
                   <YAxis type="category" dataKey="nome" width={150} tick={{ fontSize: 12, fill: C.text }} />
                   <Tooltip contentStyle={tooltipStyle} />
-                  <Bar dataKey="qtd" fill="#3B82F6" radius={[8, 8, 8, 8]} barSize={18} />
+                  <Bar dataKey="qtd" fill={C.primary} radius={[8, 8, 8, 8]} barSize={18} />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -276,7 +264,7 @@ export function AdminDashboard() {
                     />
                     <Bar dataKey="ocupados" radius={[6, 6, 6, 6]} barSize={14}>
                       {s.macas.ocupacao.map((m, i) => (
-                        <Cell key={i} fill={m.ocupados > 0 ? C.teal : C.graySoft} />
+                        <Cell key={i} fill={m.ocupados > 0 ? C.primary : C.mutedBg} />
                       ))}
                     </Bar>
                   </BarChart>
@@ -293,15 +281,13 @@ export function AdminDashboard() {
                 icon={Sparkles}
                 label="Médiuns"
                 value={s.equipe.mediuns}
-                bg="#EFF6FF"
-                fg="#1D4ED8"
                 hint={s.equipe.mediunsSemMaca > 0 ? `${s.equipe.mediunsSemMaca} sem maca` : undefined}
                 hintTone="warning"
               />
-              <Pill icon={MessagesSquare} label="Dialogadores" value={s.equipe.dialogadores} bg="#F0FDFA" fg="#0D7D78" />
-              <Pill icon={Headset} label="Acolhimento" value={s.equipe.acolhimento} bg="#FDF4FF" fg="#7C3AED" />
-              <Pill icon={UserCog} label="Admins" value={s.equipe.admins} bg="#FFF7ED" fg="#C2410C" />
-              <Pill icon={MessageSquare} label="Diálogos (mês)" value={s.equipe.dialogosMes} bg="#F0FDF4" fg="#15803D" />
+              <Pill icon={MessagesSquare} label="Dialogadores" value={s.equipe.dialogadores} />
+              <Pill icon={Headset} label="Acolhimento" value={s.equipe.acolhimento} />
+              <Pill icon={UserCog} label="Admins" value={s.equipe.admins} />
+              <Pill icon={MessageSquare} label="Diálogos (mês)" value={s.equipe.dialogosMes} />
             </div>
           </Card>
 
@@ -347,8 +333,8 @@ export function AdminDashboard() {
                       type="monotone"
                       dataKey="presentes"
                       stackId="1"
-                      stroke={C.green}
-                      fill={C.green}
+                      stroke={C.primary}
+                      fill={C.primary}
                       fillOpacity={0.55}
                       name="Presentes"
                     />
@@ -356,8 +342,8 @@ export function AdminDashboard() {
                       type="monotone"
                       dataKey="faltas"
                       stackId="1"
-                      stroke={C.amber}
-                      fill={C.amber}
+                      stroke={C.gold}
+                      fill={C.gold}
                       fillOpacity={0.55}
                       name="Faltas"
                     />
@@ -385,42 +371,31 @@ export function AdminDashboard() {
 
 const tooltipStyle: React.CSSProperties = {
   borderRadius: 8,
-  border: "1px solid #E2EBF4",
-  borderLeft: "3px solid #0EA5A0",
+  border: "1px solid var(--border)",
   fontSize: 12,
-  background: "#fff",
-  color: "#1E3A5F",
+  background: "var(--card)",
+  color: "var(--foreground)",
   boxShadow: "0 4px 12px rgba(15,23,42,0.08)",
 };
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex items-center gap-2.5 pt-1">
-      <span className="block w-1 h-5 rounded" style={{ background: "#0EA5A0" }} />
-      <h2 className="text-base sm:text-lg font-semibold" style={{ color: "#1E3A5F" }}>{children}</h2>
-    </div>
-  );
+  return <h2 className="pt-1 text-lg font-semibold font-['Playfair_Display'] text-foreground">{children}</h2>;
 }
 
 function Card({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div
-      className={cn(
-        "rounded-xl bg-white shadow-sm p-6",
-        className,
-      )}
-    >
+    <div className={cn("rounded-xl border bg-card text-card-foreground shadow-sm p-6", className)}>
       {children}
     </div>
   );
 }
 
 function CardTitle({ children }: { children: React.ReactNode }) {
-  return <div className="mb-3 text-sm font-medium text-slate-500">{children}</div>;
+  return <h3 className="mb-3 font-['Playfair_Display'] text-lg font-semibold text-foreground">{children}</h3>;
 }
 
 function Empty({ text }: { text: string }) {
-  return <div className="h-[200px] grid place-items-center text-sm text-slate-400">{text}</div>;
+  return <div className="h-[200px] grid place-items-center text-sm text-muted-foreground">{text}</div>;
 }
 
 function QuickActions() {
@@ -432,20 +407,9 @@ function QuickActions() {
           to={a.to}
           title={a.label}
           aria-label={a.label}
-          className="group inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all bg-white"
-          style={{ border: "1px solid #E2EBF4", color: "#1E3A5F" }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = "#0EA5A0";
-            e.currentTarget.style.background = "#F0FDFA";
-            e.currentTarget.style.boxShadow = "0 1px 3px rgba(15,23,42,0.08)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = "#E2EBF4";
-            e.currentTarget.style.background = "#fff";
-            e.currentTarget.style.boxShadow = "";
-          }}
+          className="inline-flex items-center gap-2 rounded-md border bg-card px-3 py-2 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-muted"
         >
-          <a.icon className="h-5 w-5 shrink-0" strokeWidth={2} style={{ color: "#0EA5A0" }} />
+          <a.icon className="h-4 w-4 shrink-0 text-primary" strokeWidth={2} />
           <span>{a.label}</span>
         </Link>
       ))}
@@ -468,13 +432,13 @@ function Metric({
 }) {
   return (
     <div className="flex items-start gap-3">
-      <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center shrink-0", TONE_ICON_BG[tone])}>
+      <div className={cn("w-11 h-11 rounded-lg flex items-center justify-center shrink-0", TONE_ICON_BG[tone])}>
         <Icon className="h-5 w-5" strokeWidth={2} />
       </div>
       <div className="min-w-0">
-        <div className="text-xs text-slate-500 leading-tight">{label}</div>
-        <div className={cn("text-2xl font-bold leading-tight mt-0.5", TONE_TEXT[tone])}>{value}</div>
-        {hint && <div className="text-[11px] text-slate-400 leading-tight">{hint}</div>}
+        <div className={cn("text-2xl font-bold leading-tight", TONE_TEXT[tone])}>{value}</div>
+        <div className="text-xs text-muted-foreground leading-tight">{label}</div>
+        {hint && <div className="text-[11px] text-muted-foreground leading-tight">{hint}</div>}
       </div>
     </div>
   );
@@ -491,8 +455,8 @@ function KpiMini({
   tone?: Tone;
 }) {
   return (
-    <div className="rounded-lg bg-slate-50 px-3 py-3">
-      <div className="text-[11px] text-slate-500 leading-tight">{label}</div>
+    <div className="rounded-lg bg-muted px-3 py-3">
+      <div className="text-xs text-muted-foreground leading-tight">{label}</div>
       <div className={cn("text-xl font-bold mt-1", TONE_TEXT[tone])}>{value}</div>
     </div>
   );
@@ -513,13 +477,13 @@ function KpiBig({
 }) {
   return (
     <div className="flex items-center gap-4">
-      <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center shrink-0", TONE_ICON_BG[tone])}>
+      <div className={cn("w-11 h-11 rounded-lg flex items-center justify-center shrink-0", TONE_ICON_BG[tone])}>
         <Icon className="h-5 w-5" />
       </div>
       <div className="min-w-0">
-        <div className="text-sm text-slate-500">{label}</div>
-        <div className={cn("text-3xl font-bold leading-tight", TONE_TEXT[tone])}>{value}</div>
-        {hint && <div className="text-xs text-slate-400 mt-0.5">{hint}</div>}
+        <div className={cn("text-2xl font-bold leading-tight", TONE_TEXT[tone])}>{value}</div>
+        <div className="text-xs text-muted-foreground">{label}</div>
+        {hint && <div className="text-xs text-muted-foreground mt-0.5">{hint}</div>}
       </div>
     </div>
   );
@@ -527,9 +491,9 @@ function KpiBig({
 
 function Chip({ label, value, tone }: { label: string; value: number | string; tone: Tone }) {
   return (
-    <div className="rounded-lg bg-slate-50 px-3 py-2 text-center">
+    <div className="rounded-lg bg-muted px-3 py-2 text-center">
       <div className={cn("text-lg font-bold leading-tight", TONE_TEXT[tone])}>{value}</div>
-      <div className="text-[11px] text-slate-500 leading-tight mt-0.5">{label}</div>
+      <div className="text-[11px] text-muted-foreground leading-tight mt-0.5">{label}</div>
     </div>
   );
 }
@@ -540,30 +504,23 @@ function Pill({
   value,
   hint,
   hintTone,
-  bg = "#F8FAFC",
-  fg = "#0EA5A0",
 }: {
   icon: LucideIcon;
   label: string;
   value: number | string;
   hint?: string;
   hintTone?: Tone;
-  bg?: string;
-  fg?: string;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-lg px-3 py-3" style={{ background: bg }}>
-      <div
-        className="w-9 h-9 rounded-lg bg-white flex items-center justify-center shrink-0 shadow-sm"
-        style={{ color: fg }}
-      >
+    <div className="flex items-center gap-3 rounded-lg bg-muted px-3 py-3">
+      <div className="w-11 h-11 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
         <Icon className="h-5 w-5" />
       </div>
       <div className="min-w-0">
-        <div className="text-xs leading-tight" style={{ color: fg, opacity: 0.85 }}>{label}</div>
-        <div className="text-xl font-bold leading-tight" style={{ color: fg }}>{value}</div>
+        <div className="text-2xl font-bold leading-tight text-foreground">{value}</div>
+        <div className="text-xs leading-tight text-muted-foreground">{label}</div>
         {hint && (
-          <div className={cn("text-[11px] mt-0.5 flex items-center gap-1", hintTone === "warning" ? "text-amber-600" : "text-slate-500")}>
+          <div className={cn("text-[11px] mt-0.5 flex items-center gap-1", hintTone === "warning" ? "text-amber-800" : "text-muted-foreground")}>
             <AlertTriangle className="h-3 w-3" /> {hint}
           </div>
         )}
@@ -574,10 +531,10 @@ function Pill({
 
 function PresencaDonut({ data }: { data: { presente: number; ausente: number; falta_justificada: number; emergencia: number; atendimento_distancia: number; total: number } }) {
   const items = [
-    { name: "Presentes", value: data.presente, fill: "#0EA5A0" },
-    { name: "Aguardando", value: Math.max(data.total === 0 ? 0 : 0, 0), fill: "#3B82F6" },
-    { name: "Faltas", value: data.ausente + data.falta_justificada, fill: "#F59E0B" },
-    { name: "À distância", value: data.atendimento_distancia, fill: "#94A3B8" },
+    { name: "Presentes", value: data.presente, fill: C.primary },
+    { name: "Aguardando", value: Math.max(data.total === 0 ? 0 : 0, 0), fill: C.primaryLight },
+    { name: "Faltas", value: data.ausente + data.falta_justificada, fill: C.gold },
+    { name: "À distância", value: data.atendimento_distancia, fill: C.muted },
   ];
   const total = items.reduce((a, b) => a + b.value, 0);
 
@@ -599,16 +556,16 @@ function PresencaDonut({ data }: { data: { presente: number; ausente: number; fa
           </PieChart>
         </ResponsiveContainer>
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <div className="text-3xl font-bold text-slate-800">{total}</div>
-          <div className="text-xs text-slate-500">total</div>
+          <div className="text-3xl font-bold text-foreground">{total}</div>
+          <div className="text-xs text-muted-foreground">total</div>
         </div>
       </div>
       <div className="space-y-2">
         {items.map((it) => (
           <div key={it.name} className="flex items-center gap-3 text-sm">
             <span className="w-2.5 h-2.5 rounded-sm" style={{ background: it.fill }} />
-            <span className="flex-1 text-slate-600">{it.name}</span>
-            <span className="font-semibold text-slate-800">{it.value}</span>
+            <span className="flex-1 text-muted-foreground">{it.name}</span>
+            <span className="font-semibold text-foreground">{it.value}</span>
           </div>
         ))}
       </div>
@@ -617,7 +574,7 @@ function PresencaDonut({ data }: { data: { presente: number; ausente: number; fa
 }
 
 function OcupacaoGauge({ pct }: { pct: number }) {
-  const data = [{ name: "Ocupação", value: pct, fill: C.teal }];
+  const data = [{ name: "Ocupação", value: pct, fill: C.primary }];
   return (
     <div className="relative h-[180px]">
       <ResponsiveContainer width="100%" height="100%">
@@ -630,12 +587,12 @@ function OcupacaoGauge({ pct }: { pct: number }) {
           barSize={16}
         >
           <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
-          <RadialBar background={{ fill: C.graySoft }} dataKey="value" cornerRadius={8} />
+          <RadialBar background={{ fill: C.mutedBg }} dataKey="value" cornerRadius={8} />
         </RadialBarChart>
       </ResponsiveContainer>
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-        <div className="text-3xl font-bold text-slate-800">{pct}%</div>
-        <div className="text-xs text-slate-500">ocupação média</div>
+        <div className="text-3xl font-bold text-foreground">{pct}%</div>
+        <div className="text-xs text-muted-foreground">ocupação média</div>
       </div>
     </div>
   );
@@ -945,29 +902,22 @@ function ModoBanner({
 }) {
   const emSessao = sessaoRef.ehDiaDeAtendimento && sessaoRef.isToday;
   return (
-    <div
-      className="rounded-xl bg-white p-5 shadow-sm"
-      style={{ borderLeft: `4px solid ${emSessao ? C.teal : C.blue}` }}
-    >
+    <div className={cn("rounded-xl border border-l-4 bg-card p-5 shadow-sm", emSessao ? "border-l-emerald-500" : "border-l-primary")}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <div
-            className="text-xs font-semibold uppercase tracking-wide"
-            style={{ color: emSessao ? C.teal : C.blue }}
-          >
+          <div className={cn("text-xs font-semibold uppercase tracking-wide", emSessao ? "text-emerald-800" : "text-primary")}>
             {emSessao ? "Modo sessão — hoje tem atendimento" : "Modo espera — fora de dia de atendimento"}
           </div>
-          <div className="mt-1 text-lg font-semibold" style={{ color: C.navy }}>
+          <div className="mt-1 text-lg font-semibold font-['Playfair_Display'] text-foreground">
             {emSessao ? "Sessão de hoje" : sessaoRef.isPast ? "Última sessão" : "Próxima sessão"}: {sessaoRef.extenso}
           </div>
-          <div className="mt-0.5 text-sm" style={{ color: C.muted }}>
+          <div className="mt-0.5 text-sm text-muted-foreground">
             {esperados} consulentes esperados · {registrados} registros lançados
           </div>
         </div>
         <Link
           to="/medium"
-          className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white"
-          style={{ background: emSessao ? C.teal : C.navy }}
+          className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
         >
           <TimerReset className="h-4 w-4" />
           {emSessao ? "Lançar sessão" : "Ver macas"}
@@ -989,20 +939,17 @@ function OcupacaoBar({
   const livres = Math.max(capacidade - ocupados, 0);
   const pct = capacidade === 0 ? 0 : Math.round((ocupados / capacidade) * 100);
   return (
-    <div className="mt-5 rounded-lg p-4" style={{ background: C.graySoft }}>
+    <div className="mt-5 rounded-lg bg-muted p-4">
       <div className="flex items-baseline justify-between text-sm">
-        <span style={{ color: C.text }}>
+        <span className="text-foreground">
           Vagas livres na {dia.toLowerCase()}: <strong>{livres}</strong> de {capacidade}
         </span>
-        <span style={{ color: C.muted }}>{pct}% ocupado</span>
+        <span className="text-muted-foreground">{pct}% ocupado</span>
       </div>
-      <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full" style={{ background: "#E2E8F0" }}>
+      <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-border">
         <div
-          className="h-full rounded-full transition-all"
-          style={{
-            width: `${Math.min(pct, 100)}%`,
-            background: pct >= 90 ? C.red : pct >= 70 ? C.amber : C.teal,
-          }}
+          className={cn("h-full rounded-full transition-all", pct >= 90 ? "bg-destructive" : pct >= 70 ? "bg-amber-500" : "bg-primary")}
+          style={{ width: `${Math.min(pct, 100)}%` }}
         />
       </div>
     </div>
@@ -1012,16 +959,16 @@ function OcupacaoBar({
 function DashboardSkeleton() {
   return (
     <div className="space-y-4" aria-busy="true" aria-label="Carregando indicadores">
-      <div className="h-24 animate-pulse rounded-xl bg-white shadow-sm" />
+      <div className="h-24 animate-pulse rounded-xl bg-muted" />
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-24 animate-pulse rounded-xl bg-white shadow-sm" />
+          <div key={i} className="h-24 animate-pulse rounded-xl bg-muted" />
         ))}
       </div>
-      <div className="h-64 animate-pulse rounded-xl bg-white shadow-sm" />
+      <div className="h-64 animate-pulse rounded-xl bg-muted" />
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="h-32 animate-pulse rounded-xl bg-white shadow-sm" />
+          <div key={i} className="h-32 animate-pulse rounded-xl bg-muted" />
         ))}
       </div>
     </div>

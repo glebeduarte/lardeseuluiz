@@ -23,6 +23,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Plus, Sparkles, Pencil, Save, X, Trash2, ShieldAlert } from "lucide-react";
+import { CabecalhoPagina } from "@/compartilhado";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/auth";
@@ -110,11 +111,12 @@ function Sessoes() {
   })();
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <h1 className="text-2xl font-semibold">Atendimentos realizados</h1>
-        {(isMedium || isAdmin) && <NovoAtendimentoButton />}
-      </div>
+    <>
+      <CabecalhoPagina
+        titulo="Atendimentos realizados"
+        acoes={(isMedium || isAdmin) ? <NovoAtendimentoButton /> : undefined}
+      />
+      <div className="space-y-6">
 
       {isAdmin && (
         <Card className="p-3 flex flex-wrap items-center gap-2">
@@ -171,19 +173,19 @@ function Sessoes() {
       )}
 
       {isAdmin && pendentes.length > 0 && (
-        <Card className="p-4 space-y-3 border-2 border-amber-300 bg-amber-50/60">
+        <Card className="p-4 space-y-3 border-amber-300 bg-amber-100">
           <div className="flex items-center gap-2">
-            <ShieldAlert className="h-4 w-4 text-amber-700" />
-            <h2 className="text-sm font-bold uppercase tracking-widest text-amber-800">
+            <ShieldAlert className="h-4 w-4 text-amber-800" />
+            <h2 className="text-lg font-semibold font-['Playfair_Display'] text-amber-800">
               Pendentes de lançamento ({pendentes.length})
             </h2>
           </div>
-          <p className="text-xs text-amber-900/80">
+          <p className="text-xs text-amber-800">
             Dias válidos de atendimento que já aconteceram e ainda não têm nenhuma presença lançada.
           </p>
           <div className="flex flex-wrap gap-2">
             {pendentes.map((iso) => (
-              <Badge key={iso} variant="outline" className="bg-white border-amber-400 text-amber-900">
+              <Badge key={iso} variant="outline" className="bg-card border-amber-300 text-amber-800">
                 {formatDataExtenso(iso)}
               </Badge>
             ))}
@@ -194,13 +196,9 @@ function Sessoes() {
       <div className="space-y-8">
         {grouped.map(({ chave, label, sessoes }) => (
           <div key={chave} className="space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="h-px flex-1 bg-gradient-to-r from-brand-gold/60 to-transparent" />
-              <h2 className="text-sm font-bold uppercase tracking-widest text-brand-gold-dark whitespace-nowrap">
-                {label}
-              </h2>
-              <div className="h-px flex-1 bg-gradient-to-l from-brand-gold/60 to-transparent" />
-            </div>
+            <h2 className="text-lg font-semibold font-['Playfair_Display'] text-foreground">
+              {label}
+            </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {sessoes.map((s) => {
                 const presencas = (s.presencas ?? []) as { status: string }[];
@@ -217,18 +215,18 @@ function Sessoes() {
                   <Card
                     key={s.id}
                     onClick={() => setOpenId(s.id)}
-                    className="p-0 overflow-hidden cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all border-2 border-transparent hover:border-brand-gold/60"
+                    className="p-0 overflow-hidden cursor-pointer hover:shadow-md hover:border-primary/30 transition-shadow"
                   >
-                    <div className="bg-gradient-to-r from-brand-blue-dark to-brand-blue px-4 py-3 flex items-start justify-between gap-2">
+                    <div className="border-b bg-muted px-4 py-3 flex items-start justify-between gap-2">
                       <div>
-                        <div className="text-white font-semibold text-lg">{dataFmt}</div>
-                        <div className="text-white/80 text-xs capitalize">{diaSemana}</div>
+                        <div className="font-['Playfair_Display'] text-foreground font-semibold text-lg">{dataFmt}</div>
+                        <div className="text-muted-foreground text-xs capitalize">{diaSemana}</div>
                       </div>
                       {isAdmin && (
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="h-8 w-8 text-white/80 hover:text-white hover:bg-white/10"
+                          className="h-8 w-8 text-destructive hover:text-destructive"
                           onClick={(e) => { e.stopPropagation(); void excluir(s.id, dataFmt); }}
                           title="Excluir atendimento"
                           aria-label="Excluir atendimento"
@@ -243,46 +241,46 @@ function Sessoes() {
                           {diaLabelFromIso(s.data)}
                         </Badge>
                         {!ATENDIMENTO_DATES_ISO.includes(s.data) && (
-                          <Badge className="bg-red-100 text-red-800 border-red-300 text-[10px] gap-1">
+                          <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/40 text-[10px] gap-1">
                             <ShieldAlert className="h-3 w-3" /> Fora do calendário
                           </Badge>
                         )}
                         {total === 0 && (
-                          <Badge className="bg-amber-100 text-amber-800 border-amber-300 text-[10px]">
+                          <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 text-[10px]">
                             Pendente de lançamento
                           </Badge>
                         )}
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div className="bg-brand-teal-muted/60 rounded-lg p-2 text-center">
-                          <div className="text-lg font-bold text-brand-teal-dark">{presentes}</div>
+                        <div className="bg-emerald-100 rounded-lg p-2 text-center">
+                          <div className="text-lg font-bold text-emerald-800">{presentes}</div>
                           <div className="text-[10px] text-muted-foreground uppercase">Presentes</div>
                         </div>
-                        <div className="bg-brand-blue-muted/60 rounded-lg p-2 text-center">
-                          <div className="text-lg font-bold text-brand-blue-dark">{total}</div>
+                        <div className="bg-primary/10 rounded-lg p-2 text-center">
+                          <div className="text-lg font-bold text-primary">{total}</div>
                           <div className="text-[10px] text-muted-foreground uppercase">Total</div>
                         </div>
                         {faltas > 2 && (
-                          <div className="bg-brand-red-muted/40 rounded-lg p-2 text-center">
-                            <div className="text-lg font-bold text-brand-red-dark">{faltas}</div>
+                          <div className="bg-destructive/10 rounded-lg p-2 text-center">
+                            <div className="text-lg font-bold text-destructive">{faltas}</div>
                             <div className="text-[10px] text-muted-foreground uppercase">Faltas</div>
                           </div>
                         )}
                         {justificadas > 2 && (
-                          <div className="bg-brand-gold-muted/60 rounded-lg p-2 text-center">
-                            <div className="text-lg font-bold text-brand-gold-dark">{justificadas}</div>
+                          <div className="bg-amber-100 rounded-lg p-2 text-center">
+                            <div className="text-lg font-bold text-amber-800">{justificadas}</div>
                             <div className="text-[10px] text-muted-foreground uppercase">Justificadas</div>
                           </div>
                         )}
                         {distancia > 2 && (
-                          <div className="bg-brand-blue-muted/40 rounded-lg p-2 text-center">
-                            <div className="text-lg font-bold text-brand-blue-dark">{distancia}</div>
+                          <div className="bg-sky-100 rounded-lg p-2 text-center">
+                            <div className="text-lg font-bold text-sky-800">{distancia}</div>
                             <div className="text-[10px] text-muted-foreground uppercase">À distância</div>
                           </div>
                         )}
                         {emerg > 2 && (
-                          <div className="bg-red-100 rounded-lg p-2 text-center">
-                            <div className="text-lg font-bold text-red-700">{emerg}</div>
+                          <div className="bg-destructive/10 rounded-lg p-2 text-center">
+                            <div className="text-lg font-bold text-destructive">{emerg}</div>
                             <div className="text-[10px] text-muted-foreground uppercase">Emergência</div>
                           </div>
                         )}
@@ -306,7 +304,8 @@ function Sessoes() {
         sessaoId={openId}
         onClose={() => setOpenId(null)}
       />
-    </div>
+      </div>
+    </>
   );
 }
 
@@ -484,7 +483,7 @@ function SessaoDetalheDialog({
                 : "—"}
             </span>
             {data?.sessao?.admin_editado && (
-              <Badge className="bg-amber-100 text-amber-800 border-amber-300 gap-1">
+              <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 gap-1">
                 <ShieldAlert className="h-3 w-3" /> Editado pelo administrador
               </Badge>
             )}
@@ -495,7 +494,7 @@ function SessaoDetalheDialog({
         </DialogHeader>
 
         {isAdmin && data?.sessao && (
-          <Card className="p-3 space-y-2 border-amber-300/60 bg-amber-50/50">
+          <Card className="p-3 space-y-2 border-amber-300 bg-amber-50">
             {!editSessao ? (
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="text-xs text-muted-foreground">
@@ -659,7 +658,7 @@ function SessaoDetalheDialog({
                     </div>
                   )}
                   {p.admin_editado && (
-                    <div className="inline-flex items-center gap-1 text-amber-700 font-medium">
+                    <div className="inline-flex items-center gap-1 text-amber-800 font-medium">
                       <ShieldAlert className="h-3 w-3" /> Editado pelo administrador
                     </div>
                   )}
@@ -708,14 +707,14 @@ function NovoAtendimentoButton() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="gap-2 shadow-md">
+        <Button>
           <Plus className="h-4 w-4" /> Novo atendimento
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-brand-teal" /> Novo atendimento
+            <Sparkles className="h-5 w-5 text-primary" /> Novo atendimento
           </DialogTitle>
           <DialogDescription>
             Escolha a maca para abrir o registro de presenças.
@@ -738,7 +737,7 @@ function NovoAtendimentoButton() {
                 setOpen(false);
                 navigate({ to: "/medium/maca/$id", params: { id: m.id } });
               }}
-              className="text-left rounded-lg border-2 p-3 hover:shadow-md hover:-translate-y-0.5 transition-all"
+              className="text-left rounded-lg border-2 p-3 hover:shadow-md transition-shadow"
               style={{ borderColor: m.cor_hex, backgroundColor: m.cor_hex + "18" }}
             >
               <div className="flex items-center gap-2">

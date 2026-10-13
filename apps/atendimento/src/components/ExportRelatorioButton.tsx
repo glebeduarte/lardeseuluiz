@@ -127,7 +127,7 @@ export function ExportRelatorioButton<T>({ filename, columns, rows, disabled, se
       <PopoverContent align="end" className="w-72 p-3">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-semibold">Colunas</span>
-          <button type="button" onClick={toggleAll} className="text-xs text-brand-teal-dark hover:underline">
+          <button type="button" onClick={toggleAll} className="text-xs text-primary hover:underline">
             {allOn ? "Desmarcar todas" : "Marcar todas"}
           </button>
         </div>
@@ -144,7 +144,7 @@ export function ExportRelatorioButton<T>({ filename, columns, rows, disabled, se
         </div>
         <Separator className="my-3" />
         <div className="flex gap-2">
-          <Button size="sm" variant="secondary" className="flex-1 gap-1" onClick={() => pedir("csv")}>
+          <Button size="sm" variant="outline" className="flex-1 gap-1" onClick={() => pedir("csv")}>
             <FileText className="h-4 w-4" /> CSV
           </Button>
           <Button size="sm" className="flex-1 gap-1" onClick={() => pedir("xlsx")}>

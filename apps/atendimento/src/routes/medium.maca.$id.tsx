@@ -46,6 +46,8 @@ import { getOrCreateSessaoForDate } from "@/lib/sessao";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { MacaCategoriaTag } from "@/lib/maca-categoria";
+import { CabecalhoPagina } from "@/compartilhado";
+import { LinkRota } from "@/components/LinkRota";
 import { useConfirm } from "@/components/ConfirmDialog";
 import {
   DropdownMenu,
@@ -382,37 +384,30 @@ function MediumMacaPresenca() {
     );
 
   return (
-    <div className="space-y-4">
-      <Link
-        to="/medium"
-        className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors font-medium"
-      >
-        <ArrowLeft className="h-4 w-4 mr-1" /> Voltar para minhas macas
-      </Link>
-
-      <div
-        className="rounded-lg p-4 border-2"
-        style={{ borderColor: maca.cor_hex, backgroundColor: maca.cor_hex + "22" }}
-      >
-        <div className="flex items-center gap-3 flex-wrap">
-          <div
-            className="rounded h-12 w-12 flex items-center justify-center font-bold text-xl"
-            style={{ backgroundColor: maca.cor_hex, color: "#fff" }}
-          >
-            {maca.numero}
-          </div>
-          <div className="flex-1 min-w-[200px]">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-xl font-semibold">{maca.nome}</h1>
-              <MacaCategoriaTag numero={maca.numero} categoria={maca.categoria} />
-            </div>
-            <p className="text-xs text-muted-foreground">
+    <>
+      <CabecalhoPagina
+        voltar={{ href: "/medium", rotulo: "Voltar para minhas macas" }}
+        Link={LinkRota}
+        titulo={
+          <span className="inline-flex items-center gap-3 flex-wrap">
+            {/* A cor da maca é dado do usuário */}
+            <span
+              className="rounded-lg h-11 w-11 inline-flex items-center justify-center font-sans font-bold text-xl shrink-0"
+              style={{ backgroundColor: maca.cor_hex, color: "#fff" }}
+            >
+              {maca.numero}
+            </span>
+            {maca.nome}
+            <MacaCategoriaTag numero={maca.numero} categoria={maca.categoria} className="font-sans" />
+          </span>
+        }
+        descricao={<>
               Lançar sessão
               {dataAtendimento
                 ? ` — ${format(dataAtendimento, "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR })}`
                 : " — selecione a data"}
-            </p>
-          </div>
+        </>}
+        acoes={
           <Popover open={calendarioAberto} onOpenChange={setCalendarioAberto}>
             <PopoverTrigger asChild>
               <Button variant="outline" className="gap-2">
@@ -444,15 +439,15 @@ function MediumMacaPresenca() {
                   size="sm"
                   disabled={!dataAtendimento}
                   onClick={() => setCalendarioAberto(false)}
-                  className="bg-brand-blue text-white hover:bg-brand-blue-dark"
                 >
                   OK
                 </Button>
               </div>
             </PopoverContent>
           </Popover>
-        </div>
-      </div>
+        }
+      />
+      <div className="space-y-6">
 
       {dataAtendimento && !!lista?.length && (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-card px-3 py-2">
@@ -515,7 +510,8 @@ function MediumMacaPresenca() {
           );
         })}
       </div>
-    </div>
+      </div>
+    </>
   );
 }
 
@@ -620,16 +616,16 @@ function ConsulenteCard({
   const cardBorder = inativoReal
     ? "border-muted-foreground/30"
     : encerrado
-    ? "border-brand-teal"
+    ? "border-sky-300"
     : proximoFim
-    ? "border-brand-gold"
+    ? "border-amber-300"
     : "";
   const cardBg = inativoReal
     ? "bg-muted/40"
     : encerrado
-    ? "bg-brand-teal-muted"
+    ? "bg-sky-50"
     : proximoFim
-    ? "bg-brand-gold-muted"
+    ? "bg-amber-50"
     : "";
 
   const registradoHoje = !!d.presenca;
@@ -642,10 +638,10 @@ function ConsulenteCard({
   const chipClass = (status: string, ativo: boolean) =>
     cn(
       "shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium whitespace-nowrap",
-      status === "presente" && "border-brand-teal bg-brand-teal-muted text-brand-teal-dark",
-      status === "atendimento_distancia" && "border-brand-blue bg-brand-blue-muted text-brand-blue-dark",
-      status === "ausente" && "border-brand-red bg-brand-red-muted text-brand-red-dark",
-      status === "falta_justificada" && "border-[var(--neutral-500)]/60 bg-[var(--neutral-50)] text-[var(--neutral-600)]",
+      status === "presente" && "border-emerald-300 bg-emerald-100 text-emerald-800",
+      status === "atendimento_distancia" && "border-sky-300 bg-sky-100 text-sky-800",
+      status === "ausente" && "border-destructive/40 bg-destructive/10 text-destructive",
+      status === "falta_justificada" && "border-amber-300 bg-amber-100 text-amber-800",
       ativo && "ring-2 ring-offset-1 ring-primary"
     );
 
@@ -710,10 +706,10 @@ function ConsulenteCard({
   return (
     <Card
       className={cn(
-        "p-4 space-y-3 border-2 transition-colors",
+        "p-4 space-y-3 transition-colors",
         cardBorder,
         cardBg,
-        registradoHoje && !inativoReal && "border-brand-teal bg-brand-teal-muted/70 ring-2 ring-brand-teal/40"
+        registradoHoje && !inativoReal && "border-emerald-300 bg-emerald-50 ring-2 ring-emerald-300/60"
       )}
     >
       <div className="flex items-start justify-between flex-wrap gap-2">
@@ -722,7 +718,7 @@ function ConsulenteCard({
             {inativoReal && <span className="text-muted-foreground">[inativo]</span>}
             {c?.nome}
             {inativoReal && (
-              <Badge variant="outline" className="text-xs text-muted-foreground border-muted-foreground/40">
+              <Badge variant="outline" className="text-xs bg-muted text-muted-foreground border-border">
                 Inativo
               </Badge>
             )}
@@ -737,7 +733,7 @@ function ConsulenteCard({
             {!inativoReal && encerrado && (
               <Badge
                 variant="outline"
-                className="text-xs text-brand-teal-dark border-brand-teal bg-brand-teal-muted"
+                className="text-xs bg-sky-100 text-sky-800 border-sky-300"
               >
                 Encerrado
               </Badge>
@@ -745,23 +741,23 @@ function ConsulenteCard({
             {!inativoReal && !encerrado && proximoFim && (
               <Badge
                 variant="outline"
-                className="text-xs text-brand-gold-dark border-brand-gold bg-brand-gold-muted"
+                className="text-xs bg-amber-100 text-amber-800 border-amber-300"
               >
                 Próximo do término
               </Badge>
             )}
             {quinzenal && (
-              <Badge variant="outline" className="text-xs border-brand-blue text-brand-blue-dark bg-brand-blue-muted">
+              <Badge variant="outline" className="text-xs bg-sky-100 text-sky-800 border-sky-300">
                 Quinzenal
               </Badge>
             )}
             {!inativoReal && foraDaSemana && (
-              <Badge variant="outline" className="text-xs text-muted-foreground border-muted-foreground/40">
+              <Badge variant="outline" className="text-xs bg-muted text-muted-foreground border-border">
                 Sem atendimento nesta data
               </Badge>
             )}
             {!inativoReal && registradoHoje && (
-              <Badge className="text-xs bg-brand-teal text-white hover:bg-brand-teal">
+              <Badge variant="outline" className="text-xs bg-emerald-100 text-emerald-800 border-emerald-300">
                 {statusLabel[d.presenca!] ?? "Registrado"} nesta data
               </Badge>
             )}
@@ -838,8 +834,8 @@ function ConsulenteCard({
             size="sm"
             className={
               d.presenca === "presente"
-                ? "bg-brand-teal text-white hover:bg-brand-teal-dark shadow-sm"
-                : "border-2 border-brand-teal/40 text-brand-teal hover:bg-brand-teal-muted hover:text-brand-teal-dark"
+                ? ""
+                : "text-primary hover:text-primary"
             }
             variant={d.presenca === "presente" ? undefined : "outline"}
             onClick={handlePresenteClick}
@@ -851,8 +847,8 @@ function ConsulenteCard({
             size="sm"
             className={
               d.presenca === "ausente"
-                ? "bg-brand-red text-white hover:bg-brand-red-dark shadow-sm"
-                : "border-2 border-brand-red/40 text-brand-red hover:bg-brand-red-muted hover:text-brand-red-dark"
+                ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                : "text-destructive hover:text-destructive"
             }
             variant={d.presenca === "ausente" ? undefined : "outline"}
             onClick={() => onMarcar(d.id, "ausente")}
@@ -891,7 +887,7 @@ function ConsulenteCard({
             Observações deste atendimento
           </label>
           {temRascunho && (
-            <span className="text-[11px] font-medium text-brand-gold-dark">
+            <span className="text-[11px] font-medium text-amber-800">
               Rascunho salvo — ainda não gravado
             </span>
           )}

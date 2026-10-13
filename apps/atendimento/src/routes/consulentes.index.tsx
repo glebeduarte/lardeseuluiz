@@ -13,6 +13,7 @@ import { AlertTriangle, Search, Plus, RotateCcw, ArrowUp, ArrowDown, ChevronsUpD
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
+import { CabecalhoPagina } from "@/compartilhado";
 import { TrabalhadorTratamentoDialog } from "@/components/TrabalhadorTratamentoDialog";
 import { useConfirm } from "@/components/ConfirmDialog";
 
@@ -204,19 +205,22 @@ function ConsulentesList() {
   }, [sorted]);
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <h1 className="text-2xl font-semibold">Consulentes</h1>
-        <div className="flex items-center gap-2 flex-wrap">
-          {(isAdmin || isDialogador) && <TrabalhadorTratamentoDialog />}
-          <Link to="/dialogo/novo">
-            <Button size="sm" className="shadow-sm hover:shadow-md transition-shadow">
-              <Plus className="h-4 w-4 mr-1.5" /> Novo consulente
-            </Button>
-          </Link>
-        </div>
-      </div>
-
+    <>
+      <CabecalhoPagina
+        titulo="Consulentes"
+        descricao="Buscar fichas e histórico de atendimentos"
+        acoes={
+          <>
+            {(isAdmin || isDialogador) && <TrabalhadorTratamentoDialog />}
+            <Link to="/dialogo/novo">
+              <Button>
+                <Plus className="h-4 w-4 mr-2" /> Novo consulente
+              </Button>
+            </Link>
+          </>
+        }
+      />
+      <div className="space-y-6">
 
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative flex-1 min-w-[220px] max-w-md">
@@ -226,18 +230,18 @@ function ConsulentesList() {
       </div>
 
       {meuAtencaoCount > 0 && (
-        <div className="text-xs text-rose-900 bg-rose-50 border-l-4 border-rose-400 rounded-md px-3 py-2 font-medium">
+        <div className="text-xs text-primary bg-primary/10 border border-primary/20 border-l-4 border-l-primary rounded-md px-3 py-2 font-medium">
           {meuAtencaoCount} encaminhado{meuAtencaoCount === 1 ? "" : "s"} para você (retorno ao diálogo ou alta) — destacado{meuAtencaoCount === 1 ? "" : "s"} no topo.
         </div>
       )}
       {atencaoCount > 0 && (
-        <div className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
+        <div className="text-xs text-amber-800 bg-amber-100 border border-amber-300 rounded-md px-3 py-2">
           {atencaoCount} consulente{atencaoCount === 1 ? "" : "s"} requer{atencaoCount === 1 ? "" : "em"} atenção do diálogo (pendentes ou inativos) — listados no topo.
         </div>
       )}
 
 
-      <Card className="overflow-hidden hidden md:block">
+      <div className="rounded-lg border bg-card overflow-x-auto hidden md:block">
         <Table>
           <TableHeader>
             <TableRow>
@@ -305,22 +309,23 @@ function ConsulentesList() {
               const isEncaminhadoDialogo = !isAlta && inativoComMaca && ultimaCanc?.closure_reason === "encaminhamento_dialogo";
               const isInativoFalta = !isAlta && inativoComMaca && ultimaCanc?.closure_reason !== "encaminhamento_dialogo";
               const meuEncaminhamento = !isAlta && !!user?.id && (c as { dialogador_id?: string | null }).dialogador_id === user.id && (isEncaminhadoDialogo || isDialogoAlta);
+              // Destaque da linha na paleta de situação do guia
               const rowTone = isAlta
-                ? "bg-emerald-50 hover:bg-emerald-100"
+                ? "bg-sky-50 hover:bg-sky-100"
                 : meuEncaminhamento
-                  ? "bg-rose-100 hover:bg-rose-200 ring-2 ring-inset ring-rose-300"
+                  ? "bg-primary/10 hover:bg-primary/15 ring-2 ring-inset ring-primary/30"
                   : isDialogoAlta
-                    ? "bg-brand-teal-muted/60 hover:bg-brand-teal-muted"
+                    ? "bg-sky-50 hover:bg-sky-100"
                     : isEncaminhadoDialogo
                       ? "bg-amber-50 hover:bg-amber-100"
                       : isInativoFalta
-                        ? "bg-rose-50 hover:bg-rose-100"
+                        ? "bg-destructive/5 hover:bg-destructive/10"
                         : c.dialogo_pendente
                           ? "bg-amber-50 hover:bg-amber-100"
                           : encerrado
-                            ? "bg-brand-teal-muted/60 hover:bg-brand-teal-muted"
+                            ? "bg-muted/60 hover:bg-muted"
                             : proximoFim
-                              ? "bg-brand-gold-muted/60 hover:bg-brand-gold-muted"
+                              ? "bg-amber-50 hover:bg-amber-100"
                               : "hover:bg-muted/40";
               const totalLifetime = designacoes.reduce((acc, d) => acc + (d.sessoes_realizadas ?? 0), 0);
               const ciclos = designacoes.length;
@@ -337,18 +342,18 @@ function ConsulentesList() {
                     <Link to="/consulentes/$id" params={{ id: c.id }} className="block px-4 py-3">
                       <div className="font-medium flex items-center gap-2 flex-wrap">
                         {meuEncaminhamento && (
-                          <Badge className="text-[10px] bg-rose-600 hover:bg-rose-600 text-white">
+                          <Badge className="text-[10px]">
                             Para você
                           </Badge>
                         )}
                         {c.nome}
                         {(c as { trabalhador?: boolean }).trabalhador && (
-                          <Badge className="text-[10px] bg-brand-blue hover:bg-brand-blue text-white uppercase">
+                          <Badge variant="outline" className="text-[10px] uppercase bg-sky-100 text-sky-800 border-sky-300">
                             Trab
                           </Badge>
                         )}
                         {(c as { tratamento_distancia?: boolean }).tratamento_distancia && (
-                          <Badge className="text-[10px] bg-brand-teal hover:bg-brand-teal text-white uppercase">
+                          <Badge variant="outline" className="text-[10px] uppercase bg-accent/20 text-accent-foreground border-accent">
                             Dist
                           </Badge>
                         )}
@@ -359,17 +364,17 @@ function ConsulentesList() {
                           </Badge>
                         )}
                         {isDialogoAlta && (
-                          <Badge variant="outline" className="text-xs border-emerald-400 text-emerald-800 bg-emerald-100">
+                          <Badge variant="outline" className="text-xs bg-sky-100 text-sky-800 border-sky-300">
                             Encaminhado para Alta
                           </Badge>
                         )}
                         {isEncaminhadoDialogo && (
-                          <Badge variant="outline" className="text-xs border-orange-400 text-orange-800 bg-orange-100">
+                          <Badge variant="outline" className="text-xs bg-amber-100 text-amber-800 border-amber-300">
                             Encaminhado para diálogo
                           </Badge>
                         )}
                         {isInativoFalta && (
-                          <Badge variant="outline" className="text-xs border-gray-300 text-gray-700 bg-gray-100">
+                          <Badge variant="outline" className="text-xs bg-muted text-muted-foreground border-border">
                             Ausente - precisa diálogo
                           </Badge>
                         )}
@@ -379,17 +384,17 @@ function ConsulentesList() {
                   <TableCell className="text-sm text-muted-foreground">{c.telefone || "—"}</TableCell>
                   <TableCell>
                     {isAltaStatus ? (
-                      <Badge className="text-xs bg-emerald-600 hover:bg-emerald-600 text-white">Alta</Badge>
+                      <Badge variant="outline" className="text-xs bg-sky-100 text-sky-800 border-sky-300">Alta</Badge>
                     ) : ativa ? (
-                      <Badge variant="outline" className="text-xs border-brand-teal text-brand-teal-dark bg-brand-teal-muted">Ativo</Badge>
+                      <Badge variant="outline" className="text-xs bg-emerald-100 text-emerald-800 border-emerald-300">Ativo</Badge>
                     ) : (
-                      <Badge variant="outline" className="text-xs text-muted-foreground">Inativo</Badge>
+                      <Badge variant="outline" className="text-xs bg-muted text-muted-foreground border-border">Inativo</Badge>
                     )}
                   </TableCell>
                   <TableCell className="text-center text-sm tabular-nums">
                     <div className="font-medium">{atendimentos}</div>
                     {proximoFim && (
-                      <div className="text-[11px] text-brand-gold-dark font-medium">próximo de encerrar o ciclo</div>
+                      <div className="text-[11px] text-amber-800 font-medium">próximo de encerrar o ciclo</div>
                     )}
                   </TableCell>
                   <TableCell>
@@ -424,7 +429,7 @@ function ConsulentesList() {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="h-7 text-xs gap-1 border-2"
+                        className="h-7 text-xs gap-1"
                         onClick={() => reativar(c.id)}
                       >
                         <RotateCcw className="h-3 w-3" /> Reativar
@@ -443,7 +448,7 @@ function ConsulentesList() {
             )}
           </TableBody>
         </Table>
-      </Card>
+      </div>
 
       {/* Lista mobile em cartões */}
       <div className="md:hidden space-y-3">
@@ -479,26 +484,26 @@ function ConsulentesList() {
           const isAltaStatus = isAlta || (!ativa && ultimaFechada?.closure_reason === "alta");
 
           const statusConfig = isAltaStatus
-            ? { label: "Alta", bar: "bg-emerald-500", badge: "bg-emerald-100 text-emerald-700", muted: false }
+            ? { label: "Alta", bar: "bg-sky-500", badge: "bg-sky-100 text-sky-800 border border-sky-300", muted: false }
             : ativas.length > 0
-              ? { label: "Ativo", bar: "bg-emerald-500", badge: "bg-emerald-100 text-emerald-700", muted: false }
-              : { label: "Inativo", bar: "bg-slate-300", badge: "bg-slate-200 text-slate-500", muted: true };
+              ? { label: "Ativo", bar: "bg-emerald-500", badge: "bg-emerald-100 text-emerald-800 border border-emerald-300", muted: false }
+              : { label: "Inativo", bar: "bg-border", badge: "bg-muted text-muted-foreground border border-border", muted: true };
 
           return (
             <Link key={c.id} to="/consulentes/$id" params={{ id: c.id }} className="block">
               <Card className={cn(
                 "rounded-xl shadow-sm border overflow-hidden active:bg-muted/50 transition-colors",
-                statusConfig.muted ? "bg-slate-50/80 border-slate-200" : "bg-white border-slate-100"
+                statusConfig.muted ? "bg-muted/40" : "bg-card"
               )}>
                 <div className="flex">
                   <div className={cn("w-1.5 shrink-0", statusConfig.bar)} />
                   <div className="p-4 w-full min-w-0">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <h3 className={cn("text-base font-semibold leading-tight", statusConfig.muted ? "text-slate-600" : "text-slate-900")}>
+                        <h3 className={cn("text-base font-semibold leading-tight", statusConfig.muted ? "text-muted-foreground" : "text-foreground")}>
                           {c.nome}
                         </h3>
-                        <p className={cn("text-sm font-medium mt-0.5", statusConfig.muted ? "text-slate-400" : "text-slate-500")}>
+                        <p className={cn("text-sm font-medium mt-0.5", "text-muted-foreground")}>
                           {c.telefone || "Sem telefone"}
                         </p>
                       </div>
@@ -507,11 +512,11 @@ function ConsulentesList() {
                       </span>
                     </div>
 
-                    <div className="mt-4 grid grid-cols-2 gap-4 border-t border-slate-100 pt-3">
+                    <div className="mt-4 grid grid-cols-2 gap-4 border-t pt-3">
                       <div className="flex flex-col gap-1 min-w-0">
-                        <span className="text-[10px] uppercase text-slate-400 font-bold tracking-tight">Maca</span>
+                        <span className="text-[10px] uppercase text-muted-foreground font-bold tracking-tight">Maca</span>
                         {ativa?.macas ? (
-                          <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700 truncate">
+                          <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-foreground truncate">
                             <span
                               className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
                               style={{ backgroundColor: ativa.macas.cor_hex }}
@@ -519,7 +524,7 @@ function ConsulentesList() {
                             <span className="truncate">Maca {ativa.macas.numero} · {ativa.macas.nome}</span>
                           </span>
                         ) : ultimaCanc?.macas ? (
-                          <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 truncate">
+                          <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground truncate">
                             <span
                               className="inline-block h-2.5 w-2.5 rounded-full shrink-0 opacity-60"
                               style={{ backgroundColor: ultimaCanc.macas.cor_hex }}
@@ -527,48 +532,48 @@ function ConsulentesList() {
                             <span className="truncate">Maca {ultimaCanc.macas.numero} · {ultimaCanc.macas.nome}</span>
                           </span>
                         ) : (
-                          <span className={cn("text-sm italic", statusConfig.muted ? "text-slate-400" : "text-slate-400")}>Nenhuma</span>
+                          <span className={cn("text-sm italic", "text-muted-foreground")}>Nenhuma</span>
                         )}
                       </div>
                       <div className="flex flex-col gap-1">
-                        <span className="text-[10px] uppercase text-slate-400 font-bold tracking-tight">Atendimentos</span>
-                        <span className={cn("text-sm font-semibold tabular-nums", statusConfig.muted ? "text-slate-500" : "text-slate-700")}>
+                        <span className="text-[10px] uppercase text-muted-foreground font-bold tracking-tight">Atendimentos</span>
+                        <span className={cn("text-sm font-semibold tabular-nums", statusConfig.muted ? "text-muted-foreground" : "text-foreground")}>
                           {atendimentos} {atendimentos === 1 ? "sessão" : "sessões"}
                         </span>
                         {proximoFim && (
-                          <span className="text-[10px] font-medium text-amber-600">Próximo do fim</span>
+                          <span className="text-[10px] font-medium text-amber-800">Próximo do fim</span>
                         )}
                       </div>
                     </div>
 
                     <div className="mt-3 flex flex-wrap gap-2">
                       {meuEncaminhamento && (
-                        <Badge className="text-[10px] bg-rose-600 text-white hover:bg-rose-600">
+                        <Badge className="text-[10px]">
                           Para você
                         </Badge>
                       )}
                       {isDialogoAlta && (
-                        <Badge variant="outline" className="text-[10px] border-emerald-400 text-emerald-800 bg-emerald-100">
+                        <Badge variant="outline" className="text-[10px] bg-sky-100 text-sky-800 border-sky-300">
                           Encaminhado para Alta
                         </Badge>
                       )}
                       {isEncaminhadoDialogo && (
-                        <Badge variant="outline" className="text-[10px] border-amber-400 text-amber-800 bg-amber-100">
+                        <Badge variant="outline" className="text-[10px] bg-amber-100 text-amber-800 border-amber-300">
                           Encaminhado para diálogo
                         </Badge>
                       )}
                       {isInativoFalta && (
-                        <Badge variant="outline" className="text-[10px] border-slate-300 text-slate-700 bg-slate-100">
+                        <Badge variant="outline" className="text-[10px] bg-muted text-muted-foreground border-border">
                           Ausente - precisa diálogo
                         </Badge>
                       )}
                       {(c as { trabalhador?: boolean }).trabalhador && (
-                        <Badge variant="secondary" className="text-[10px] bg-blue-50 text-blue-700 border border-blue-100 hover:bg-blue-50">
+                        <Badge variant="outline" className="text-[10px] bg-sky-100 text-sky-800 border-sky-300">
                           Trabalhador
                         </Badge>
                       )}
                       {(c as { tratamento_distancia?: boolean }).tratamento_distancia && (
-                        <Badge variant="secondary" className="text-[10px] bg-purple-50 text-purple-700 border border-purple-100 hover:bg-purple-50">
+                        <Badge variant="outline" className="text-[10px] bg-accent/20 text-accent-foreground border-accent">
                           Tratamento à distância
                         </Badge>
                       )}
@@ -613,7 +618,8 @@ function ConsulentesList() {
           )}
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }
 
