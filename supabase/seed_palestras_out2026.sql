@@ -1,0 +1,2 @@
+-- Palestras de outubro/2026 migradas da Governança (tabela palestras), já inseridas em produção em 13/10/2026.
+-- Mantido como registro; não executar de novo.

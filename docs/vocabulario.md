@@ -20,4 +20,4 @@ Toda tela, mensagem, e-mail e documento usa estes termos. A interface é sempre 
 - Sem travessões.
 - Botões dizem exatamente o que fazem ("Salvar presença", "Confirmar alta").
 - Mensagens de erro explicam o que aconteceu e o que fazer, sem pedir desculpas.
-- Nome da casa: Lar de Seu Luiz (sigla LSL). Não usar "Centro Espiritualista".
+- Nome da casa: Lar de Seu Luiz (sigla LSL), casa espiritualista.

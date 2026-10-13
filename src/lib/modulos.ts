@@ -1,4 +1,4 @@
-import { BookOpen, HandHeart, HeartHandshake, Landmark, Settings, Users, type LucideIcon } from "lucide-react";
+import { BookOpen, Globe, HandHeart, HeartHandshake, Landmark, Settings, Sprout, Users, type LucideIcon } from "lucide-react";
 
 export type Modulo = {
   rota: string;
@@ -50,6 +50,22 @@ export const MODULOS: Modulo[] = [
     descricao: "Cadastros, cargos e funções",
     icone: Users,
     permissoes: ["pessoas.ler"],
+    disponivel: true,
+  },
+  {
+    rota: "/interessados",
+    nome: "Voluntariado",
+    descricao: "Interessados que se apresentaram pelo site",
+    icone: Sprout,
+    permissoes: ["chamamento.entrevistar"],
+    disponivel: true,
+  },
+  {
+    rota: "/painel-site",
+    nome: "Site",
+    descricao: "Agenda, programação, ações e mensagens",
+    icone: Globe,
+    permissoes: ["site.publicar"],
     disponivel: true,
   },
   {
