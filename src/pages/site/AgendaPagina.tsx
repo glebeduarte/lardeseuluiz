@@ -6,7 +6,8 @@ export default function AgendaPagina() {
   const { data } = useEventos({ desde: hojeISO() });
   const porMes = new Map<string, Evento[]>();
   for (const e of data ?? []) {
-    const mes = new Date(e.data + "T12:00").toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+    const m = new Date(e.data + "T12:00").toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+    const mes = m.charAt(0).toUpperCase() + m.slice(1);
     porMes.set(mes, [...(porMes.get(mes) ?? []), e]);
   }
 
@@ -17,7 +18,7 @@ export default function AgendaPagina() {
         {!data && <ListaEventos eventos={undefined} />}
         {[...porMes.entries()].map(([mes, eventos]) => (
           <div key={mes} className="flex flex-col gap-3">
-            <h2 className="text-2xl font-semibold capitalize">{mes}</h2>
+            <h2 className="text-2xl font-semibold">{mes}</h2>
             <ListaEventos eventos={eventos} />
           </div>
         ))}
