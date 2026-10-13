@@ -6,6 +6,8 @@ import { ListaEventos } from "@/components/site/Agenda";
 import { FormContato } from "@/components/site/Contato";
 import { Button } from "@/components/ui/button";
 import { hojeISO, useEventos, useProjetos, useSiteConfig } from "@/lib/site";
+import { useCursosPublicados } from "@/lib/formacao";
+import { CapaCurso } from "@/components/formacao/FormacaoUi";
 
 const PILARES = [
   { titulo: "Fé raciocinada", texto: "Estudo e prática do Espiritismo à luz da ciência, da filosofia e da religião." },
@@ -18,6 +20,8 @@ export default function Home() {
   const proximas = useEventos({ desde: hojeISO(), limite: 6 });
   const projetos = useProjetos();
   const { data: cfg } = useSiteConfig();
+  const cursos = useCursosPublicados();
+  const abertos = (cursos.data ?? []).filter((c) => c.inscricoes_abertas && c.publico !== "voluntarios").slice(0, 3);
 
   return (
     <SiteLayout>
@@ -102,6 +106,27 @@ export default function Home() {
         <Link to="/atendimentos" className="flex items-center gap-1 text-primary hover:underline w-fit">
           Conheça cada atendimento <ArrowRight className="h-4 w-4" aria-hidden />
         </Link>
+      </Secao>
+
+      <Secao id="cursos" eyebrow="Formação" titulo="Estudar na casa"
+        intro="Cursos gratuitos de estudo da Doutrina Espírita, com aulas presenciais e on-line.">
+        {abertos.length > 0 && (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {abertos.map((c) => (
+              <Link key={c.id} to={`/cursos/${c.id}`} className="group rounded-lg border bg-card overflow-hidden flex flex-col hover:border-primary transition-colors">
+                <CapaCurso src={c.miniatura_url || c.capa_url} titulo={c.titulo} className="aspect-video" />
+                <div className="p-5 flex flex-col gap-1">
+                  <h3 className="text-lg font-semibold group-hover:text-primary">{c.titulo}</h3>
+                  {c.horario && <p className="text-sm text-muted-foreground">{c.horario}</p>}
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+        <div className="flex flex-wrap gap-x-6 gap-y-2">
+          <Link to="/cursos" className="flex items-center gap-1 text-primary hover:underline">Ver todos os cursos <ArrowRight className="h-4 w-4" aria-hidden /></Link>
+          <Link to="/calendario/esde" className="flex items-center gap-1 text-primary hover:underline">Calendário do ESDE <ArrowRight className="h-4 w-4" aria-hidden /></Link>
+        </div>
       </Secao>
 
       <Secao id="voluntariado" eyebrow="Voluntariado" titulo="Quer servir na casa?" tom="card"

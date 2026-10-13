@@ -56,12 +56,12 @@ export default function PaginaInscricao() {
             {p.texto_livre && <div className="whitespace-pre-line text-muted-foreground">{p.texto_livre}</div>}
             {p.mostrar_capas && p.cursos.map((c) => (
               <Link key={c.id} to={`/cursos/${c.id}`} className="rounded-lg border bg-card p-4 hover:border-primary">
-                <span className="font-medium">{c.titulo}</span>
+                <span className="font-display text-lg font-semibold">{c.titulo}</span>
                 {c.descricao && <p className="text-sm text-muted-foreground">{c.descricao}</p>}
               </Link>
             ))}
           </div>
-          <aside className="rounded-lg border bg-card p-5 flex flex-col gap-4 h-fit">
+          <aside className="rounded-lg border border-t-4 border-t-lsl-dourado bg-card p-5 flex flex-col gap-4 h-fit lg:sticky lg:top-24">
             <dl className="grid gap-3 text-sm">
               {p.info_dia && <div><dt className="text-muted-foreground">Dia</dt><dd className="font-medium">{p.info_dia}</dd></div>}
               {p.info_horario && <div><dt className="text-muted-foreground">Horário</dt><dd className="font-medium">{p.info_horario}</dd></div>}
@@ -70,7 +70,7 @@ export default function PaginaInscricao() {
             </dl>
             {!session ? (
               <div className="flex flex-col gap-2">
-                <Button asChild><Link to={`/cadastro`}>Criar conta para se inscrever</Link></Button>
+                <Button asChild><Link to="/cadastro">Criar conta para se inscrever</Link></Button>
                 <Button asChild variant="outline"><Link to={`/entrar?voltar=/inscricao/${p.slug}`}>Já tenho conta</Link></Button>
               </div>
             ) : feito || jaInscrito ? (

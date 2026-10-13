@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Aviso } from "@/components/ContaLayout";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
+import { CapaCurso } from "@/components/formacao/FormacaoUi";
 import { SITUACAO_MATRICULA, duracao, useCurso, useMinhasMatriculas } from "@/lib/formacao";
 
 export default function CursoDetalhe() {
@@ -49,7 +50,7 @@ export default function CursoDetalhe() {
       <Secao eyebrow={curso.publico === "voluntarios" ? "Curso para voluntários" : "Curso aberto"} titulo={curso.titulo} intro={curso.descricao ?? undefined}>
         <div className="grid gap-8 lg:grid-cols-[1.5fr_1fr]">
           <div className="flex flex-col gap-6 min-w-0">
-            {curso.capa_url && <img src={curso.capa_url} alt="" className="w-full rounded-lg border object-cover max-h-80" />}
+            <CapaCurso src={curso.capa_url || curso.miniatura_url} titulo={curso.titulo} className="rounded-lg border max-h-80 aspect-[21/9]" />
             {curso.descricao_longa && <div className="whitespace-pre-line text-muted-foreground">{curso.descricao_longa}</div>}
             {curso.topicos.length > 0 && (
               <div className="flex flex-col gap-2">
@@ -63,7 +64,7 @@ export default function CursoDetalhe() {
                 <ol className="flex flex-col divide-y rounded-lg border bg-card">
                   {modulos.map((m, i) => (
                     <li key={m.id} className="flex gap-3 px-4 py-3">
-                      <span className="font-display text-primary tabular-nums">{i + 1}</span>
+                      <span className="font-display text-lg text-primary tabular-nums w-6 shrink-0">{i + 1}</span>
                       <div className="flex flex-col"><span className="font-medium">{m.titulo}</span>{m.descricao && <span className="text-sm text-muted-foreground">{m.descricao}</span>}</div>
                     </li>
                   ))}
@@ -71,7 +72,7 @@ export default function CursoDetalhe() {
               </div>
             )}
           </div>
-          <aside className="rounded-lg border bg-card p-5 flex flex-col gap-4 h-fit">
+          <aside className="rounded-lg border border-t-4 border-t-lsl-dourado bg-card p-5 flex flex-col gap-4 h-fit lg:sticky lg:top-24">
             <dl className="grid gap-3 text-sm">
               {curso.horario && <div><dt className="text-muted-foreground">Quando</dt><dd className="font-medium">{curso.horario}</dd></div>}
               {curso.inicio && <div><dt className="text-muted-foreground">Período</dt><dd className="font-medium">{new Date(curso.inicio + "T12:00").toLocaleDateString("pt-BR")}{curso.fim && ` a ${new Date(curso.fim + "T12:00").toLocaleDateString("pt-BR")}`}</dd></div>}
