@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Plus, Pencil } from "lucide-react";
+import { Plus, Pencil, GraduationCap, HeartPulse, HeartHandshake } from "lucide-react";
 
 type Category = "atendimento_espiritual" | "apoio_operacional" | "estrutura_organizacional";
 type Permission =
@@ -47,7 +47,17 @@ interface FunctionRow {
   category: Category;
   is_active: boolean;
   function_permissions: { permission: Permission }[];
+  atendimento_papeis: string[];
 }
+
+// Acessos que uma função libera nas outras áreas da plataforma (aplicados automaticamente a quem tem a função)
+const PAPEIS_ATENDIMENTO: { valor: string; rotulo: string; ajuda: string }[] = [
+  { valor: "recepcao", rotulo: "Acolhimento", ajuda: "Recebe os consulentes e organiza as macas do dia" },
+  { valor: "dialogador", rotulo: "Dialogador", ajuda: "Faz o diálogo fraterno e acompanha os consulentes" },
+  { valor: "medium", rotulo: "Médium", ajuda: "Lança as sessões das macas em que atua" },
+  { valor: "admin", rotulo: "Administrador do Atendimento", ajuda: "Gerencia macas, equipe e sessões" },
+];
+const PERMISSOES_OUTRAS_AREAS: Permission[] = ["modulo_formacao", "modulo_projetos", "modulo_saude"];
 
 interface FormState {
   name: string;
@@ -55,13 +65,14 @@ interface FormState {
   category: Category;
   is_active: boolean;
   permissions: Record<Permission, boolean>;
+  atendimento_papeis: string[];
 }
 
 const emptyPerms = (): Record<Permission, boolean> =>
   Object.keys(PERMISSION_LABELS).reduce((acc, k) => ({ ...acc, [k]: false }), {} as Record<Permission, boolean>);
 
 const emptyForm = (): FormState => ({
-  name: "", description: "", category: "apoio_operacional", is_active: true, permissions: emptyPerms(),
+  name: "", description: "", category: "apoio_operacional", is_active: true, permissions: emptyPerms(), atendimento_papeis: [],
 });
 
 export default function Funcoes() {
@@ -75,7 +86,7 @@ export default function Funcoes() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("functions")
-        .select("id, name, description, category, is_active, function_permissions ( permission )")
+        .select("id, name, description, category, is_active, atendimento_papeis, function_permissions ( permission )")
         .order("category").order("name");
       if (error) throw error;
       return data as unknown as FunctionRow[];
@@ -93,6 +104,7 @@ export default function Funcoes() {
       category: f.category,
       is_active: f.is_active,
       permissions: perms,
+      atendimento_papeis: f.atendimento_papeis ?? [],
     });
     setDialogOpen(true);
   };
@@ -105,6 +117,7 @@ export default function Funcoes() {
         description: form.description.trim() || null,
         category: form.category,
         is_active: form.is_active,
+        atendimento_papeis: form.atendimento_papeis,
       };
 
       let functionId = editing?.id;
@@ -202,6 +215,11 @@ export default function Funcoes() {
                                     {PERMISSION_LABELS[p.permission]}
                                   </Badge>
                                 ))}
+                              {(f.atendimento_papeis ?? []).map(r => (
+                                <Badge key={r} variant="outline" className="text-xs bg-sky-100 text-sky-800 border-sky-300">
+                                  Atendimento: {PAPEIS_ATENDIMENTO.find(x => x.valor === r)?.rotulo ?? r}
+                                </Badge>
+                              ))}
                             </div>
                           </TableCell>
                           <TableCell>
@@ -255,9 +273,9 @@ export default function Funcoes() {
             </label>
 
             <section className="space-y-2">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Módulos liberados</h3>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Módulos liberados na Governança</h3>
               <div className="grid grid-cols-2 gap-2">
-                {(Object.entries(PERMISSION_LABELS) as [Permission, string][]).map(([k, v]) => (
+                {(Object.entries(PERMISSION_LABELS) as [Permission, string][]).filter(([k]) => !PERMISSOES_OUTRAS_AREAS.includes(k)).map(([k, v]) => (
                   <label key={k} className="flex items-center gap-2 text-sm cursor-pointer">
                     <Checkbox
                       checked={form.permissions[k]}
@@ -266,6 +284,52 @@ export default function Funcoes() {
                     {v}
                   </label>
                 ))}
+              </div>
+            </section>
+
+            <section className="space-y-3 border-t pt-4">
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Acesso nas outras áreas</h3>
+                <p className="text-xs text-muted-foreground mt-1">Quem recebe esta função ganha estes acessos automaticamente na Formação, no Atendimento e nas Ações sociais.</p>
+              </div>
+
+              <div className="rounded-md border p-3 space-y-2">
+                <div className="flex items-center gap-2 text-sm font-medium"><GraduationCap className="w-4 h-4 text-primary" /> Formação</div>
+                <label className="flex items-start gap-2 text-sm cursor-pointer">
+                  <Checkbox className="mt-0.5" checked={form.permissions.modulo_formacao}
+                    onCheckedChange={c => setForm(f => ({ ...f, permissions: { ...f.permissions, modulo_formacao: !!c } }))} />
+                  <span>Administra a Formação<span className="block text-xs text-muted-foreground">Cursos, alunos, inscrições, presenças e avisos. Todos já têm a área do aluno.</span></span>
+                </label>
+              </div>
+
+              <div className="rounded-md border p-3 space-y-2">
+                <div className="flex items-center gap-2 text-sm font-medium"><HeartPulse className="w-4 h-4 text-primary" /> Atendimento</div>
+                <div className="grid sm:grid-cols-2 gap-2">
+                  {PAPEIS_ATENDIMENTO.map(r => (
+                    <label key={r.valor} className="flex items-start gap-2 text-sm cursor-pointer">
+                      <Checkbox className="mt-0.5" checked={form.atendimento_papeis.includes(r.valor)}
+                        onCheckedChange={c => setForm(f => ({
+                          ...f,
+                          atendimento_papeis: c ? Array.from(new Set([...f.atendimento_papeis, r.valor])) : f.atendimento_papeis.filter(x => x !== r.valor),
+                        }))} />
+                      <span>{r.rotulo}<span className="block text-xs text-muted-foreground">{r.ajuda}</span></span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-md border p-3 space-y-2">
+                <div className="flex items-center gap-2 text-sm font-medium"><HeartHandshake className="w-4 h-4 text-primary" /> Ações sociais</div>
+                <label className="flex items-start gap-2 text-sm cursor-pointer">
+                  <Checkbox className="mt-0.5" checked={form.permissions.modulo_projetos}
+                    onCheckedChange={c => setForm(f => ({ ...f, permissions: { ...f.permissions, modulo_projetos: !!c } }))} />
+                  <span>Opera as ações sociais<span className="block text-xs text-muted-foreground">Edições, escala, famílias, entregas e relatórios.</span></span>
+                </label>
+                <label className="flex items-start gap-2 text-sm cursor-pointer">
+                  <Checkbox className="mt-0.5" checked={form.permissions.modulo_saude}
+                    onCheckedChange={c => setForm(f => ({ ...f, permissions: { ...f.permissions, modulo_saude: !!c } }))} />
+                  <span>Registra atendimentos de saúde<span className="block text-xs text-muted-foreground">Dados sensíveis do Saúde no Lar, com consentimento LGPD.</span></span>
+                </label>
               </div>
             </section>
           </div>

@@ -1,0 +1,16 @@
+-- Aplicado no banco via migrações "chamamento_estrutura", "chamamento_matricula_turma", "chamamento_conta_valida",
+-- "funcoes_liberam_acessos" e "acoes_grupo_whatsapp". Resumo:
+--
+-- Chamamento (governanca): volunteer_cycles (ciclos bimestrais com datas de entrevistas, curso, estágio, avaliação e integração),
+--   volunteer_candidates (jornada: interesse → curso → estágio → avaliação → integração → voluntário; saídas colaborador,
+--   pausado, desligado), internship_records (ficha de acompanhamento das 8 semanas), volunteer_candidate_events (histórico).
+--   chamamento_avancar() valida cada etapa e automatiza: matrícula no curso do ciclo (turma padrão da Formação) e, na integração,
+--   papel de trabalhador + função definitiva. Quem opera: gestão e permissão Recepção (Secretaria de Acolhimento); o tutor
+--   registra o acompanhamento e a avaliação dos seus estagiários. chamamento_me_candidatar() e chamamento_de_interesse()
+--   trazem pessoas do site; minha_jornada() mostra a jornada à própria pessoa sem as anotações internas.
+--
+-- Funções liberam acessos: modulo_formacao → administrador da Formação; functions.atendimento_papeis → papéis no Atendimento;
+--   modulo_projetos / modulo_saude → Ações sociais. Gatilhos em worker_assignments, function_permissions, functions e people.
+--   A retirada automática está em 20261013001700_funcoes_retiram_acessos.sql (pendente).
+--
+-- projects.whatsapp_group_url: link do grupo de WhatsApp de cada ação social.

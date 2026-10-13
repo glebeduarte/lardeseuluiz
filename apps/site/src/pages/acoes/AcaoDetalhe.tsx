@@ -13,13 +13,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Pencil, ChevronRight, Check, X, Stethoscope, ExternalLink, UserMinus } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, ChevronRight, Check, X, Stethoscope, ExternalLink, UserMinus, MessageCircle } from "lucide-react";
 import {
   db, dataBR, hoje, EDICAO_LABEL, EDICAO_COR, CANDIDATURA_LABEL, CANDIDATURA_COR, useNomesPessoas,
   type Edicao, type EdicaoStatus, type CandidaturaStatus, type Familia,
 } from "@/lib/acoes";
 
-interface Projeto { id: string; name: string; slug: string | null; schedule: string | null; is_public: boolean; has_health_records: boolean; summary: string | null }
+interface Projeto { id: string; name: string; slug: string | null; schedule: string | null; is_public: boolean; has_health_records: boolean; summary: string | null; whatsapp_group_url: string | null }
 
 const formVazio = () => ({ title: "", starts_on: "", start_time: "", location: "", status: "planejada" as EdicaoStatus, volunteers_needed: "", goal: "", notes: "", repetir: "1" });
 
@@ -32,7 +32,7 @@ export default function AcaoDetalhe() {
   const { data: projeto } = useQuery({
     queryKey: ["acao", id],
     queryFn: async () => {
-      const { data, error } = await db.from("projects").select("id, name, slug, schedule, is_public, has_health_records, summary").eq("id", id).maybeSingle();
+      const { data, error } = await db.from("projects").select("id, name, slug, schedule, is_public, has_health_records, summary, whatsapp_group_url").eq("id", id).maybeSingle();
       if (error) throw error;
       return data as Projeto | null;
     },
@@ -115,11 +115,22 @@ export default function AcaoDetalhe() {
               </h1>
               <p className="text-sm text-muted-foreground">{projeto?.schedule || projeto?.summary}</p>
             </div>
-            {projeto?.is_public && projeto.slug && (
-              <Button variant="outline" size="sm" asChild>
-                <a href={`/projetos/${projeto.slug}`} target="_blank" rel="noopener noreferrer"><ExternalLink className="w-4 h-4 mr-2" /> Ver no site</a>
-              </Button>
-            )}
+            <div className="flex flex-wrap gap-2">
+              {projeto?.whatsapp_group_url ? (
+                <Button variant="outline" size="sm" asChild>
+                  <a href={projeto.whatsapp_group_url} target="_blank" rel="noopener noreferrer"><MessageCircle className="w-4 h-4 mr-2" /> Grupo do WhatsApp</a>
+                </Button>
+              ) : (
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/app/projetos"><MessageCircle className="w-4 h-4 mr-2" /> Cadastrar grupo do WhatsApp</Link>
+                </Button>
+              )}
+              {projeto?.is_public && projeto.slug && (
+                <Button variant="outline" size="sm" asChild>
+                  <a href={`/projetos/${projeto.slug}`} target="_blank" rel="noopener noreferrer"><ExternalLink className="w-4 h-4 mr-2" /> Ver no site</a>
+                </Button>
+              )}
+            </div>
           </div>
         </div>
 

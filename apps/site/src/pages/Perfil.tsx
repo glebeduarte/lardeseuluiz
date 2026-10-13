@@ -5,6 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { usePermissions, type ModulePermission } from "@/hooks/usePermissions";
 import MinhasAcoes from "@/components/acoes/MinhasAcoes";
+import { useMinhaJornada } from "@/components/site/JornadaVoluntario";
+import { ETAPA_COR, ETAPA_LABEL, ETAPAS_JORNADA, dataCurta, proximoPasso, semanaDoEstagio } from "@/lib/chamamento";
+import { db } from "@/lib/acoes";
 import { MolduraSimples, useAreasLsl, iniciaisLsl } from "@/compartilhado";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -17,7 +20,7 @@ import { toast } from "sonner";
 import {
   Camera, Mail, Phone, IdCard, CalendarDays, MapPin, ShieldCheck, Briefcase, KeyRound, Loader2, Pencil,
   GraduationCap, HeartPulse, Landmark, HeartHandshake, ChevronRight, BookOpen, CheckCircle2, Award, Users,
-  Bed, MessagesSquare, Crown, Save, Eye,
+  Bed, MessagesSquare, Crown, Save, Eye, Footprints, Check,
 } from "lucide-react";
 
 // Perfil único da plataforma: dados pessoais editáveis e o resumo de tudo o que a pessoa faz na Casa
@@ -114,6 +117,21 @@ export default function Perfil() {
   });
 
   const person = gov?.person;
+  const { data: jornada } = useMinhaJornada(!simulacao?.personId);
+  // Estagiários que a pessoa acompanha como tutora no Chamamento
+  const { data: estagiarios = [] } = useQuery({
+    queryKey: ["perfil-estagiarios", person?.id],
+    enabled: !!person?.id,
+    queryFn: async () => {
+      const { data } = await db.from("volunteer_candidates").select("id, etapa, estagio_inicio, person_id").eq("tutor_id", person!.id).in("etapa", ["estagio", "avaliacao", "integracao", "pausado"]);
+      const lista = (data ?? []) as { id: string; etapa: keyof typeof ETAPA_LABEL; estagio_inicio: string | null; person_id: string }[];
+      if (!lista.length) return [];
+      const { data: nomes } = await db.rpc("pessoas_basico", { p_ids: lista.map((x) => x.person_id) });
+      const mapa = Object.fromEntries(((nomes ?? []) as { id: string; full_name: string }[]).map((n) => [n.id, n.full_name]));
+      return lista.map((x) => ({ ...x, nome: mapa[x.person_id] ?? "Estagiário" }));
+    },
+  });
+  const temJornada = !!jornada || estagiarios.length > 0;
   useEffect(() => {
     if (!person) return;
     const a: Endereco = (person.address && typeof person.address === "object" ? person.address : {}) as Endereco;
@@ -257,6 +275,7 @@ export default function Perfil() {
                 {atendimento && <TabsTrigger value="atendimento">Atendimento</TabsTrigger>}
                 {temGovernanca && <TabsTrigger value="governanca">Governança</TabsTrigger>}
                 <TabsTrigger value="acoes">Ações sociais</TabsTrigger>
+                {temJornada && <TabsTrigger value="jornada">Voluntariado</TabsTrigger>}
               </TabsList>
             </div>
 
@@ -303,6 +322,11 @@ export default function Perfil() {
                   </Area>
                 )}
 
+                {jornada && !["desligado", "colaborador"].includes(jornada.etapa) && (
+                  <Area icone={Footprints} titulo="Jornada de voluntário" resumo={ETAPA_LABEL[jornada.etapa]} acao={() => irPara("jornada")}>
+                    <p className="text-sm text-muted-foreground">{proximoPasso(jornada)}</p>
+                  </Area>
+                )}
                 <Area icone={HeartHandshake} titulo="Ações sociais" href="/#eventos" resumo="Escalas e pedidos de participação" acao={() => irPara("acoes")}>
                   <p className="text-sm text-muted-foreground">Confirme as suas escalas e acompanhe os pedidos na aba Ações sociais.</p>
                 </Area>
@@ -551,6 +575,69 @@ export default function Perfil() {
                     </CardContent>
                   </Card>
                 </div>
+              </TabsContent>
+            )}
+
+            {/* ---------- Jornada de voluntário (Chamamento) ---------- */}
+            {temJornada && (
+              <TabsContent value="jornada" className="mt-4 space-y-6">
+                {jornada && (
+                  <Card>
+                    <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
+                      <div>
+                        <CardTitle className="font-['Playfair_Display'] text-lg flex items-center gap-2"><Footprints className="w-4 h-4 text-primary" /> Minha jornada de voluntário</CardTitle>
+                        <CardDescription>{jornada.ciclo?.nome ?? "Chamamento"} · desde {dataCurta(jornada.criado_em)}</CardDescription>
+                      </div>
+                      <Badge variant="outline" className={ETAPA_COR[jornada.etapa]}>{ETAPA_LABEL[jornada.etapa]}</Badge>
+                    </CardHeader>
+                    <CardContent className="space-y-5">
+                      <ol className="grid grid-cols-3 md:grid-cols-6 gap-3">
+                        {ETAPAS_JORNADA.map((e, i) => {
+                          const idx = ETAPAS_JORNADA.findIndex((x) => x.etapa === jornada.etapa);
+                          const feito = idx >= 0 && (i < idx || jornada.etapa === "voluntario");
+                          const atual = i === idx && jornada.etapa !== "voluntario";
+                          return (
+                            <li key={e.etapa} className="flex flex-col gap-1.5">
+                              <div className={`h-1.5 rounded-full ${feito ? "bg-primary" : atual ? "bg-[hsl(var(--accent))]" : "bg-muted"}`} />
+                              <div className={`text-xs font-semibold ${atual ? "text-foreground" : feito ? "text-primary" : "text-muted-foreground"}`}>{feito && <Check className="w-3 h-3 inline mr-1" />}{e.curto}</div>
+                            </li>
+                          );
+                        })}
+                      </ol>
+                      <p className="text-sm rounded-md bg-muted px-4 py-3">{proximoPasso(jornada)}</p>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                        <InfoLinha icone={GraduationCap} rotulo="Curso" valor={jornada.ciclo?.curso_em ? dataCurta(jornada.ciclo.curso_em) : null} />
+                        <InfoLinha icone={Footprints} rotulo="Estágio" valor={jornada.ciclo?.estagio_inicio ? `${dataCurta(jornada.ciclo.estagio_inicio)} a ${dataCurta(jornada.ciclo.estagio_fim)}` : null} />
+                        <InfoLinha icone={Users} rotulo="Tutor" valor={jornada.tutor} />
+                        <InfoLinha icone={CheckCircle2} rotulo="Presenças no estágio" valor={jornada.registros ? `${jornada.presencas} de ${jornada.registros}` : null} />
+                      </div>
+                      {jornada.ciclo?.curso_id && ["curso", "estagio"].includes(jornada.etapa) && (
+                        <Button variant="outline" size="sm" asChild><a href={`/formacao/course/${jornada.ciclo.curso_id}`}>Abrir o curso na Formação</a></Button>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+                {estagiarios.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="font-['Playfair_Display'] text-lg">Estagiários que acompanho</CardTitle>
+                      <CardDescription>Registre as presenças, o checkpoint da semana 4 e a avaliação final.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="divide-y divide-border">
+                        {estagiarios.map((x) => (
+                          <li key={x.id} className="py-3 flex items-center justify-between gap-3">
+                            <div className="min-w-0">
+                              <Link to={`/app/chamamento/${x.id}?aba=estagio`} className="font-medium hover:underline">{x.nome}</Link>
+                              {x.etapa === "estagio" && x.estagio_inicio && <div className="text-xs text-muted-foreground">Semana {semanaDoEstagio(x.estagio_inicio)} de 8</div>}
+                            </div>
+                            <Badge variant="outline" className={`text-xs ${ETAPA_COR[x.etapa]}`}>{ETAPA_LABEL[x.etapa]}</Badge>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                )}
               </TabsContent>
             )}
 

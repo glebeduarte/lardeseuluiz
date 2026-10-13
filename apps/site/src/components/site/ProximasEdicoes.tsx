@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { db, dataLongaBR, hoje, useMinhaPessoa, CANDIDATURA_LABEL, type Edicao, type CandidaturaStatus } from "@/lib/acoes";
 
 /** Próximas edições de uma ação social no site. Quem tem conta pede para participar e acompanha no perfil. */
-export default function ProximasEdicoes({ projetoId, slug }: { projetoId: string; slug: string }) {
+export default function ProximasEdicoes({ projetoId, slug, grupoWhatsapp }: { projetoId: string; slug: string; grupoWhatsapp?: string | null }) {
   const qc = useQueryClient();
   const { user, simulacao } = useAuth();
   const { data: eu } = useMinhaPessoa(user?.id, simulacao?.personId);
@@ -40,7 +40,17 @@ export default function ProximasEdicoes({ projetoId, slug }: { projetoId: string
     onSuccess: () => { setAberta(null); setMensagem(""); qc.invalidateQueries({ queryKey: ["site-minhas-candidaturas"] }); },
   });
 
-  if (edicoes.length === 0) return null;
+  const blocoGrupo = grupoWhatsapp ? (
+    <div className="pg-grupo">
+      <div>
+        <div className="pg-grupo__titulo">Grupo de WhatsApp da ação</div>
+        <div className="pg-edicao__info">Avisos, escalas e combinados de quem participa. Entre para acompanhar.</div>
+      </div>
+      <a href={grupoWhatsapp} target="_blank" rel="noopener noreferrer" className="ds-btn ds-btn-primary ds-btn-sm">Entrar no grupo</a>
+    </div>
+  ) : null;
+
+  if (edicoes.length === 0) return blocoGrupo;
   const voltar = encodeURIComponent(`/projetos/${slug}`);
 
   return (
@@ -84,6 +94,7 @@ export default function ProximasEdicoes({ projetoId, slug }: { projetoId: string
           );
         })}
       </div>
+      {blocoGrupo}
       {user && <p className="pg-edicao__info" style={{ marginTop: 12 }}>Seus pedidos e escalas aparecem em <Link to="/app/perfil" style={{ textDecoration: "underline" }}>Meu perfil</Link>.</p>}
     </div>
   );

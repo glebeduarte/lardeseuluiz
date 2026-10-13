@@ -7,8 +7,8 @@ import { HeartHandshake, Check } from "lucide-react";
 import { toast } from "sonner";
 import { db, dataLongaBR, CANDIDATURA_LABEL, CANDIDATURA_COR, type CandidaturaStatus } from "@/lib/acoes";
 
-type Escala = { id: string; task: string | null; shift: string | null; confirmed: boolean; edicao: string; data: string; hora: string | null; local: string | null; projeto: string };
-type Pedido = { id: string; status: CandidaturaStatus; edicao: string; data: string; projeto: string };
+type Escala = { id: string; task: string | null; shift: string | null; confirmed: boolean; edicao: string; data: string; hora: string | null; local: string | null; projeto: string; grupo?: string | null };
+type Pedido = { id: string; status: CandidaturaStatus; edicao: string; data: string; projeto: string; grupo?: string | null };
 
 /** "Minhas ações sociais" no perfil único: escalas para confirmar e pedidos de participação. */
 export default function MinhasAcoes({ simulandoOutraPessoa }: { simulandoOutraPessoa?: boolean }) {
@@ -57,6 +57,7 @@ export default function MinhasAcoes({ simulandoOutraPessoa }: { simulandoOutraPe
                   <div className="font-medium text-foreground">{e.projeto}</div>
                   <div className="text-xs text-muted-foreground">{dataLongaBR(e.data)}{e.hora ? ` · ${e.hora}` : ""}{e.local ? ` · ${e.local}` : ""}</div>
                   {(e.task || e.shift) && <div className="text-xs mt-1">{[e.task, e.shift].filter(Boolean).join(" · ")}</div>}
+                  {e.grupo && <a href={e.grupo} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline mt-1 inline-block">Grupo de WhatsApp da ação</a>}
                 </div>
                 {e.confirmed ? (
                   <Badge variant="outline" className="text-xs shrink-0 bg-emerald-100 text-emerald-800 border-emerald-300">Confirmado</Badge>

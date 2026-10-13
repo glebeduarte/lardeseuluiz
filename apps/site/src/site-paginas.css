@@ -27,6 +27,8 @@
 .pg-edicao__data { font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; color: hsl(var(--foreground)); }
 .pg-edicao__info { font-size: 0.85rem; color: hsl(var(--neutral-600)); margin-top: 2px; }
 .pg-edicao__status { font-size: 0.82rem; font-weight: 600; color: hsl(var(--secondary)); }
+.pg-grupo { display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-top: 20px; background: hsl(142 50% 95%); border: 1px solid hsl(142 45% 80%); border-radius: 16px; padding: 18px 22px; }
+.pg-grupo__titulo { font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; color: hsl(var(--foreground)); }
 .pg-edicao__msg { width: 100%; display: grid; gap: 10px; }
 @media (max-width: 720px) {
   .pg-form__linha { grid-template-columns: 1fr; }

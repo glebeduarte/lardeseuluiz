@@ -35,7 +35,7 @@ const Projeto = () => {
               {p.tags.map((t) => <span key={t} className="site-tag-pill">{t}</span>)}
             </div>
             <div className="pg-texto">{texto.split(/\n{2,}/).map((par, i) => <p key={i}>{par}</p>)}</div>
-            <ProximasEdicoes projetoId={p.id} slug={p.slug} />
+            <ProximasEdicoes projetoId={p.id} slug={p.slug} grupoWhatsapp={p.whatsapp_group_url} />
           </motion.div>
         </div>
       </section>
@@ -46,6 +46,9 @@ const Projeto = () => {
           <p className="atd-cta-final__sub">Toda a arrecadação volta para a comunidade. Você pode ajudar como voluntário, doando ou divulgando.</p>
           {p.accepts_volunteers && (
             <Link to={`/voluntariado`} className="atd-cta-final__btn" style={{ marginRight: 12 }}>Quero ser voluntário →</Link>
+          )}
+          {p.whatsapp_group_url && (
+            <a href={p.whatsapp_group_url} target="_blank" rel="noopener noreferrer" className="atd-cta-final__btn" style={{ marginRight: 12 }}>Entrar no grupo da ação</a>
           )}
           <a href={`https://wa.me/${WHATSAPP}?text=${msg}`} target="_blank" rel="noopener noreferrer" className="atd-cta-final__btn">Falar pelo WhatsApp</a>
         </div>

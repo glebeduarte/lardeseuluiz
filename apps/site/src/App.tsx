@@ -35,6 +35,8 @@ import AcoesSociais from "./pages/acoes/AcoesSociais";
 import AcaoDetalhe from "./pages/acoes/AcaoDetalhe";
 import EdicaoDetalhe from "./pages/acoes/EdicaoDetalhe";
 import Familias from "./pages/acoes/Familias";
+import Chamamento from "./pages/chamamento/Chamamento";
+import CandidatoChamamento from "./pages/chamamento/Candidato";
 import NotFound from "./pages/NotFound";
 import Agenda from "./pages/site/Agenda";
 import ACasa from "./pages/site/ACasa";
@@ -85,6 +87,8 @@ const App = () => (
             <Route path="/app/acoes/:id" element={<AcaoDetalhe />} />
             <Route path="/app/acoes/edicao/:id" element={<EdicaoDetalhe />} />
             <Route path="/app/familias" element={<Familias />} />
+            <Route path="/app/chamamento" element={<Chamamento />} />
+            <Route path="/app/chamamento/:id" element={<CandidatoChamamento />} />
             <Route path="/app/perfil" element={<Perfil />} />
             <Route path="/meu-painel" element={<MeuPainel />} />
             <Route path="/meu-painel/contribuicoes" element={<MinhasContribuicoes />} />

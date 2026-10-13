@@ -39,7 +39,7 @@ interface ProjectRow {
   coordinator_id: string | null;
   coordinator: { full_name: string } | null;
   slug: string | null; summary: string | null; content: string | null; cover_url: string | null;
-  tags: string[] | null; schedule: string | null; is_public: boolean; display_order: number; has_health_records: boolean;
+  tags: string[] | null; schedule: string | null; is_public: boolean; display_order: number; has_health_records: boolean; whatsapp_group_url: string | null;
 }
 
 interface PersonOpt { id: string; full_name: string; }
@@ -53,7 +53,7 @@ interface FormState {
   coordinator_id: string;
   // Página da ação no site (/projetos/:slug)
   slug: string; summary: string; content: string; cover_url: string; tags: string; schedule: string;
-  is_public: boolean; display_order: string; has_health_records: boolean;
+  is_public: boolean; display_order: string; has_health_records: boolean; whatsapp_group_url: string;
 }
 
 const slugify = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -61,7 +61,7 @@ const slugify = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, ""
 const emptyForm = (): FormState => ({
   name: "", description: "", status: "planejamento",
   started_at: "", ended_at: "", coordinator_id: "",
-  slug: "", summary: "", content: "", cover_url: "", tags: "", schedule: "", is_public: false, display_order: "100", has_health_records: false,
+  slug: "", summary: "", content: "", cover_url: "", tags: "", schedule: "", is_public: false, display_order: "100", has_health_records: false, whatsapp_group_url: "",
 });
 
 export default function Projetos() {
@@ -77,7 +77,7 @@ export default function Projetos() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("projects")
-        .select("id, name, description, status, started_at, ended_at, coordinator_id, slug, summary, content, cover_url, tags, schedule, is_public, display_order, has_health_records, coordinator:people!coordinator_id ( full_name )")
+        .select("id, name, description, status, started_at, ended_at, coordinator_id, slug, summary, content, cover_url, tags, schedule, is_public, display_order, has_health_records, whatsapp_group_url, coordinator:people!coordinator_id ( full_name )")
         .order("name");
       if (error) throw error;
       return data as unknown as ProjectRow[];
@@ -107,7 +107,7 @@ export default function Projetos() {
       ended_at: p.ended_at || "",
       coordinator_id: p.coordinator_id || "",
       slug: p.slug || "", summary: p.summary || "", content: p.content || "", cover_url: p.cover_url || "",
-      tags: (p.tags || []).join(", "), schedule: p.schedule || "", is_public: p.is_public, display_order: String(p.display_order ?? 100), has_health_records: !!p.has_health_records,
+      tags: (p.tags || []).join(", "), schedule: p.schedule || "", is_public: p.is_public, display_order: String(p.display_order ?? 100), has_health_records: !!p.has_health_records, whatsapp_group_url: p.whatsapp_group_url || "",
     });
     setDialogOpen(true);
   };
@@ -115,6 +115,8 @@ export default function Projetos() {
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!form.name.trim()) throw new Error("Nome é obrigatório");
+      if (form.whatsapp_group_url.trim() && !/^https:\/\/(chat\.whatsapp\.com|wa\.me|api\.whatsapp\.com)\//i.test(form.whatsapp_group_url.trim()))
+        throw new Error("O link do grupo precisa começar com https://chat.whatsapp.com/");
       const payload = {
         name: form.name.trim(),
         description: form.description.trim() || null,
@@ -131,6 +133,7 @@ export default function Projetos() {
         is_public: form.is_public,
         display_order: Number(form.display_order) || 100,
         has_health_records: form.has_health_records,
+        whatsapp_group_url: form.whatsapp_group_url.trim() || null,
       };
       if (editing) {
         const { error } = await supabase.from("projects").update(payload).eq("id", editing.id);
@@ -335,6 +338,11 @@ export default function Projetos() {
                   <Label>Etiquetas (separadas por vírgula)</Label>
                   <Input value={form.tags} onChange={e => setForm(f => ({ ...f, tags: e.target.value }))} />
                 </div>
+              </div>
+              <div className="grid gap-2">
+                <Label>Grupo de WhatsApp da ação</Label>
+                <Input placeholder="https://chat.whatsapp.com/..." value={form.whatsapp_group_url} onChange={e => setForm(f => ({ ...f, whatsapp_group_url: e.target.value }))} />
+                <p className="text-xs text-muted-foreground">Aparece na página da ação no site para quem quiser participar. Use o link de convite do grupo.</p>
               </div>
               <div className="grid gap-2 w-32">
                 <Label>Ordem no site</Label>

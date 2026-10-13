@@ -11,7 +11,7 @@ export type EventoSite = {
 };
 export type Projeto = {
   id: string; name: string; slug: string; summary: string | null; description: string | null; content: string | null;
-  cover_url: string | null; tags: string[]; schedule: string | null; accepts_volunteers: boolean; status: string;
+  cover_url: string | null; tags: string[]; schedule: string | null; accepts_volunteers: boolean; status: string; whatsapp_group_url: string | null;
 };
 
 export const hojeISO = () => {

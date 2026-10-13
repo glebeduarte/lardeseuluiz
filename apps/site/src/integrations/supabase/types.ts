@@ -500,6 +500,7 @@ export type Database = {
       }
       functions: {
         Row: {
+          atendimento_papeis: string[]
           category: Database["public"]["Enums"]["function_category"]
           created_at: string
           description: string | null
@@ -509,6 +510,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          atendimento_papeis?: string[]
           category: Database["public"]["Enums"]["function_category"]
           created_at?: string
           description?: string | null
@@ -518,6 +520,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          atendimento_papeis?: string[]
           category?: Database["public"]["Enums"]["function_category"]
           created_at?: string
           description?: string | null
@@ -737,6 +740,7 @@ export type Database = {
       projects: {
         Row: {
           accepts_volunteers: boolean
+          whatsapp_group_url: string | null
           has_health_records: boolean
           content: string | null
           cover_url: string | null
@@ -758,6 +762,7 @@ export type Database = {
         }
         Insert: {
           accepts_volunteers?: boolean
+          whatsapp_group_url?: string | null
           has_health_records?: boolean
           content?: string | null
           cover_url?: string | null
@@ -779,6 +784,7 @@ export type Database = {
         }
         Update: {
           accepts_volunteers?: boolean
+          whatsapp_group_url?: string | null
           has_health_records?: boolean
           content?: string | null
           cover_url?: string | null

@@ -6,7 +6,7 @@ import { MolduraSistema, useAreasLsl, type GrupoMenuLsl, type LinkLslProps } fro
 import {
   LayoutDashboard, DollarSign, FileText, Vote, Heart, Shield, Users, Building2,
   CalendarDays, Landmark, UserCheck,
-  Briefcase, Sparkles, Settings, ExternalLink, HeartHandshake, Home
+  Briefcase, Sparkles, Settings, ExternalLink, HeartHandshake, Home, UserPlus
 } from "lucide-react";
 
 import { usePermissions, type ModulePermission } from "@/hooks/usePermissions";
@@ -46,6 +46,7 @@ const navGroups: NavGroup[] = [
     label: "Pessoas",
     items: [
       { to: "/app/pessoas", icon: UserCheck, label: "Pessoas (unificado)", perm: "modulo_gestao" },
+      { to: "/app/chamamento", icon: UserPlus, label: "Chamamento", perm: "modulo_recepcao" },
       { to: "/app/associados", icon: UserCheck, label: "Associados", perm: "modulo_gestao" },
       { to: "/app/frequentadores", icon: Users, label: "Frequentadores", perm: "modulo_recepcao" },
     ],
