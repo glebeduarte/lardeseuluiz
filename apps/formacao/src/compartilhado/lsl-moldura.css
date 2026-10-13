@@ -125,7 +125,7 @@
   .lsl-barra__aba { padding: 0 10px; }
   .lsl-barra__aba span { display: none; }
   .lsl-barra__perfil { padding: 3px; }
-  .lsl-barra__perfil span { display: none; }
+  .lsl-barra__perfil > span:not(.lsl-avatar) { display: none; }
   .lsl-lateral { transform: translateX(-100%); width: 272px; transition: transform .2s ease; z-index: 55; }
   .lsl-lateral--aberta { transform: none; }
   .lsl-lateral--recolhida { width: 272px; }

@@ -1,0 +1,7 @@
+-- Aplicado no banco via migrações "plataforma_areas_e_resumo" e "perfil_edicao_propria".
+-- public.minhas_areas(): quais áreas (Governança, Formação, Atendimento) a conta logada pode abrir; usada pela barra de sistemas.
+-- public.meu_resumo(p_user): resumo de Formação (cursos, progresso, presenças, avaliações) e Atendimento (papéis, macas,
+--   diálogos, consulentes em tratamento) para o perfil único; p_user só vale para administradores (Visualizar como).
+-- governanca.people_limitar_edicao_propria: quem não é da gestão edita no perfil só nome, telefone, nascimento, endereço e foto
+--   (CPF, e-mail, vínculo de conta e observações internas ficam com a secretaria).
+-- trg_people_repassar_perfil passa a disparar também na data de nascimento.
