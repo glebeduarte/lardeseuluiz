@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-// Conteúdo dinâmico do site: palestras (Cadastro de Palestras), eventos publicados (/app/eventos)
+// Conteúdo dinâmico do site: palestras (Eventos › Agenda de palestras do mês), eventos publicados (/app/eventos)
 // e ações sociais (/app/projetos). Tudo é editado na área administrativa e aparece aqui sozinho.
 
 export type Palestra = { id: string; dia_semana: string; data: string; hora: string; palestrante: string; tema: string };

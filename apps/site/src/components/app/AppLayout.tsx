@@ -26,8 +26,7 @@ const navGroups: NavGroup[] = [
     items: [
       { to: "/app/secretarias", icon: Building2, label: "Secretarias", perm: "modulo_secretaria" },
       { to: "/app/projetos", icon: Briefcase, label: "Projetos sociais", perm: "modulo_projetos" },
-      { to: "/app/eventos", icon: CalendarDays, label: "Eventos", perm: "always" },
-      { to: "/app/palestras", icon: CalendarDays, label: "Palestras", perm: "modulo_gestao" },
+      { to: "/app/eventos", icon: CalendarDays, label: "Eventos e palestras", perm: "always" },
       { href: "/atendimento/", icon: ExternalLink, label: "Sistema de Macas", perm: "modulo_macas" },
       { href: "/formacao/admin", icon: ExternalLink, label: "Formação", perm: "modulo_formacao" },
     ],

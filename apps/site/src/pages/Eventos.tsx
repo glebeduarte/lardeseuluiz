@@ -2,6 +2,10 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import AppLayout from "@/components/app/AppLayout";
+import AgendaPalestrasMes from "@/components/app/AgendaPalestrasMes";
+import { usePermissions } from "@/hooks/usePermissions";
+import { useSearchParams } from "react-router-dom";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -165,6 +169,9 @@ export default function Eventos() {
   };
 
   const filtered = filterType === "all" ? events : events.filter((e) => e.event_type === filterType);
+  const { isAdmin, isGestor } = usePermissions();
+  const [params, setParams] = useSearchParams();
+  const aba = params.get("aba") === "palestras" ? "palestras" : "eventos";
 
   return (
     <AppLayout>
@@ -174,13 +181,25 @@ export default function Eventos() {
           <div>
             <h1 className="text-2xl font-bold font-['Playfair_Display'] text-foreground">Eventos e Ações</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Gerencie palestras, eventos e ações sociais visíveis no site.
+              Gerencie a agenda de palestras do mês, os eventos e as ações sociais visíveis no site.
             </p>
           </div>
-          <Button onClick={openCreate} className="gap-2">
-            <Plus className="w-4 h-4" /> Novo Evento
-          </Button>
+          {aba === "eventos" && (
+            <Button onClick={openCreate} className="gap-2">
+              <Plus className="w-4 h-4" /> Novo Evento
+            </Button>
+          )}
         </div>
+
+        <Tabs value={aba} onValueChange={(v) => setParams(v === "palestras" ? { aba: "palestras" } : {})}>
+          <TabsList>
+            <TabsTrigger value="eventos">Eventos e ações</TabsTrigger>
+            <TabsTrigger value="palestras">Agenda de palestras do mês</TabsTrigger>
+          </TabsList>
+          <TabsContent value="palestras" className="pt-4">
+            <AgendaPalestrasMes podeEditar={isAdmin || isGestor} />
+          </TabsContent>
+          <TabsContent value="eventos" className="pt-4 space-y-6">
 
         {/* Filters */}
         <div className="flex gap-2 flex-wrap">
@@ -267,6 +286,8 @@ export default function Eventos() {
             </div>
           </div>
         )}
+          </TabsContent>
+        </Tabs>
 
         {/* Dialog */}
         <Dialog open={dialogOpen} onOpenChange={(v) => { if (!v) closeDialog(); else setDialogOpen(true); }}>

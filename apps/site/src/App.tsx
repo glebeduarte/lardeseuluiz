@@ -26,7 +26,6 @@ import Eventos from "./pages/Eventos";
 import Stories from "./pages/Stories";
 import Associados from "./pages/Associados";
 import Frequentadores from "./pages/Frequentadores";
-import Palestras from "./pages/Palestras";
 import Pessoas from "./pages/Pessoas";
 import PessoaDetalhe from "./pages/PessoaDetalhe";
 import Funcoes from "./pages/Funcoes";
@@ -38,7 +37,6 @@ import ACasa from "./pages/site/ACasa";
 import Projeto from "./pages/site/Projeto";
 import Voluntariado from "./pages/site/Voluntariado";
 import Privacidade from "./pages/site/Privacidade";
-import RequireGestao from "./components/app/RequireGestao";
 import FaixaSimulacao from "./components/simulacao/FaixaSimulacao";
 import { Navigate } from "react-router-dom";
 
@@ -84,8 +82,8 @@ const App = () => (
             <Route path="/meu-painel/contribuicoes" element={<MinhasContribuicoes />} />
             <Route path="/meu-painel/assembleias" element={<MinhasAssembleias />} />
             <Route path="/meu-painel/meus-dados" element={<MeusDados />} />
-            <Route path="/palestras" element={<Navigate to="/app/palestras" replace />} />
-            <Route path="/app/palestras" element={<RequireGestao><Palestras /></RequireGestao>} />
+            <Route path="/palestras" element={<Navigate to="/app/eventos?aba=palestras" replace />} />
+            <Route path="/app/palestras" element={<Navigate to="/app/eventos?aba=palestras" replace />} />
             <Route path="/stories" element={<Stories />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
