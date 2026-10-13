@@ -1,0 +1,2 @@
+ALTER TABLE public.consulentes ADD COLUMN IF NOT EXISTS frequencia text NOT NULL DEFAULT 'semanal';
+ALTER TABLE public.consulentes ADD CONSTRAINT consulentes_frequencia_check CHECK (frequencia IN ('semanal','quinzenal'));

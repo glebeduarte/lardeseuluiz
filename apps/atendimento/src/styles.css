@@ -1,0 +1,226 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Lar de Seu Luiz — Design System v1.0
+ * https://lardeseuluiz.com.br/design
+ *
+ * Paleta derivada da logo: Azul Royal (confiança), Teal (cura),
+ * Dourado (luz/sabedoria), Vermelho (ação/atenção).
+ * Tipografia: Playfair Display (display) + DM Sans (corpo) + DM Mono (código).
+ * Grid base 8px. Raios 6 / 12 / 20 / 32.
+ */
+
+@theme inline {
+  /* Border radius — escala oficial */
+  --radius-sm: 6px;   /* inputs, badges */
+  --radius-md: 12px;  /* alerts, tabelas */
+  --radius-lg: 20px;  /* cards */
+  --radius-xl: 32px;  /* hero, painéis */
+  --radius-2xl: 40px;
+  --radius-3xl: 48px;
+  --radius-4xl: 56px;
+
+  /* Fontes */
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Inter", ui-serif, Georgia, serif;
+  --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "DM Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Cores semânticas mapeadas para Tailwind */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Brand tokens nomeados (utilitários bg-brand-blue, text-gold, etc.) */
+  --color-brand-blue: var(--brand-blue);
+  --color-brand-blue-dark: var(--brand-blue-dark);
+  --color-brand-blue-light: var(--brand-blue-light);
+  --color-brand-blue-muted: var(--brand-blue-muted);
+  --color-brand-teal: var(--brand-teal);
+  --color-brand-teal-dark: var(--brand-teal-dark);
+  --color-brand-teal-light: var(--brand-teal-light);
+  --color-brand-teal-muted: var(--brand-teal-muted);
+  --color-brand-gold: var(--brand-gold);
+  --color-brand-gold-dark: var(--brand-gold-dark);
+  --color-brand-gold-light: var(--brand-gold-light);
+  --color-brand-gold-muted: var(--brand-gold-muted);
+  --color-brand-red: var(--brand-red);
+  --color-brand-red-dark: var(--brand-red-dark);
+  --color-brand-red-light: var(--brand-red-light);
+  --color-brand-red-muted: var(--brand-red-muted);
+}
+
+:root {
+  /* Escala de espaçamento (grid 8px) — disponível como var(--s-N) */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-12: 48px;
+  --s-16: 64px;
+
+  --radius: 12px;
+
+  /* Brand — Azul Royal */
+  --brand-blue-dark: oklch(0.36 0.13 256);   /* #0D3F75 */
+  --brand-blue: oklch(0.47 0.16 257);        /* #1A5FA8 */
+  --brand-blue-light: oklch(0.62 0.14 256);  /* #3A7FC8 */
+  --brand-blue-muted: oklch(0.96 0.02 250);  /* #E8F1FB */
+
+  /* Brand — Teal */
+  --brand-teal-dark: oklch(0.40 0.07 188);   /* #0F5550 */
+  --brand-teal: oklch(0.52 0.09 188);        /* #1B7F79 */
+  --brand-teal-light: oklch(0.63 0.10 188);  /* #2FA39C */
+  --brand-teal-muted: oklch(0.96 0.02 185);  /* #E6F4F3 */
+
+  /* Brand — Dourado */
+  --brand-gold-dark: oklch(0.72 0.16 85);    /* #C49200 */
+  --brand-gold: oklch(0.84 0.17 88);         /* #F5B800 */
+  --brand-gold-light: oklch(0.88 0.15 90);   /* #FFCF40 */
+  --brand-gold-muted: oklch(0.98 0.04 95);   /* #FFF8E1 */
+
+  /* Brand — Vermelho */
+  --brand-red-dark: oklch(0.46 0.16 27);     /* #922B21 */
+  --brand-red: oklch(0.56 0.20 27);          /* #C0392B */
+  --brand-red-light: oklch(0.63 0.22 27);    /* #E74C3C */
+  --brand-red-muted: oklch(0.96 0.03 25);    /* #FDECEA */
+
+  /* Neutros */
+  --neutral-50: oklch(0.98 0.002 250);       /* #F8F9FA */
+  --neutral-500: oklch(0.74 0.012 250);      /* #ADB5BD */
+  --neutral-600: oklch(0.55 0.012 250);      /* #6C757D */
+  --neutral-800: oklch(0.32 0.013 250);      /* #343A40 */
+  --neutral-900: oklch(0.22 0.014 250);      /* #212529 */
+
+  /* Tokens semânticos — light */
+  --background: oklch(0.975 0.008 245); /* #F4F7FB soft blue-gray */
+  --foreground: var(--neutral-900);
+  --card: oklch(1 0 0);
+  --card-foreground: var(--neutral-900);
+  --popover: oklch(1 0 0);
+  --popover-foreground: var(--neutral-900);
+  --primary: var(--brand-blue);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: var(--brand-blue-muted);
+  --secondary-foreground: var(--brand-blue-dark);
+  --muted: oklch(0.96 0.004 250);
+  --muted-foreground: var(--neutral-600);
+  --accent: var(--brand-teal);
+  --accent-foreground: oklch(1 0 0);
+  --destructive: var(--brand-red);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.91 0.008 250);
+  --input: oklch(0.91 0.008 250);
+  --ring: var(--brand-blue);
+  --chart-1: var(--brand-blue);
+  --chart-2: var(--brand-teal);
+  --chart-3: var(--brand-gold);
+  --chart-4: var(--brand-red);
+  --chart-5: var(--brand-blue-light);
+
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: var(--neutral-900);
+  --sidebar-primary: var(--brand-blue);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: var(--brand-blue-muted);
+  --sidebar-accent-foreground: var(--brand-blue-dark);
+  --sidebar-border: oklch(0.91 0.008 250);
+  --sidebar-ring: var(--brand-blue);
+}
+
+.dark {
+  --background: var(--neutral-900);
+  --foreground: var(--neutral-50);
+  --card: var(--neutral-800);
+  --card-foreground: var(--neutral-50);
+  --popover: var(--neutral-800);
+  --popover-foreground: var(--neutral-50);
+  --primary: var(--brand-blue-light);
+  --primary-foreground: var(--neutral-900);
+  --secondary: oklch(0.28 0.04 256);
+  --secondary-foreground: var(--neutral-50);
+  --muted: oklch(0.26 0.012 250);
+  --muted-foreground: var(--neutral-500);
+  --accent: var(--brand-teal-light);
+  --accent-foreground: var(--neutral-900);
+  --destructive: var(--brand-red-light);
+  --destructive-foreground: var(--neutral-50);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: var(--brand-blue-light);
+  --chart-1: var(--brand-blue-light);
+  --chart-2: var(--brand-teal-light);
+  --chart-3: var(--brand-gold-light);
+  --chart-4: var(--brand-red-light);
+  --chart-5: var(--brand-teal);
+  --sidebar: var(--neutral-800);
+  --sidebar-foreground: var(--neutral-50);
+  --sidebar-primary: var(--brand-blue-light);
+  --sidebar-primary-foreground: var(--neutral-900);
+  --sidebar-accent: oklch(0.28 0.04 256);
+  --sidebar-accent-foreground: var(--neutral-50);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: var(--brand-blue-light);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    font-family: var(--font-sans);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv11";
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+
+  code, kbd, pre, samp, .font-mono {
+    font-family: var(--font-mono);
+  }
+}

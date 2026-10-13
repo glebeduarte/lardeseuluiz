@@ -1,0 +1,1 @@
+ALTER TABLE public.consulentes ADD COLUMN IF NOT EXISTS ideacao_criminosa boolean NOT NULL DEFAULT false;

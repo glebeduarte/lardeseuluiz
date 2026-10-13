@@ -1,0 +1,2 @@
+ALTER TABLE public.macas ADD COLUMN IF NOT EXISTS categoria text NOT NULL DEFAULT 'interna' CHECK (categoria IN ('interna','externa'));
+UPDATE public.macas SET categoria = CASE WHEN numero >= 10 THEN 'externa' ELSE 'interna' END;

@@ -1,0 +1,1 @@
+CREATE POLICY "profiles read by roled users" ON public.profiles FOR SELECT TO authenticated USING (public.has_any_role(auth.uid()));

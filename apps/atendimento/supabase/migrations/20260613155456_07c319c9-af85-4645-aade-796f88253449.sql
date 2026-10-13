@@ -1,0 +1,1 @@
+ALTER TABLE public.consulentes ADD COLUMN IF NOT EXISTS encaminhamento_maca_categoria text CHECK (encaminhamento_maca_categoria IN ('interna','externa'));

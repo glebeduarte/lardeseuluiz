@@ -1,0 +1,1 @@
+ALTER TABLE public.consulentes ALTER COLUMN telefone DROP NOT NULL; ALTER TABLE public.consulentes ALTER COLUMN data_nascimento DROP NOT NULL;

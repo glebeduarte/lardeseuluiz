@@ -1,0 +1,1 @@
+ALTER TABLE public.consulentes ADD COLUMN IF NOT EXISTS tratamento_distancia boolean NOT NULL DEFAULT false;

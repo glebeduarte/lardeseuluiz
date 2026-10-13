@@ -2,9 +2,9 @@
   "name": "lsl-plataforma",
   "private": true,
   "version": "0.0.0",
-  "description": "Plataforma unificada do Lar de Seu Luiz: site e Governança (apps/site), Formação (apps/formacao). Um só login e um só banco.",
+  "description": "Plataforma unificada do Lar de Seu Luiz: site e Governança (apps/site), Formação (apps/formacao), Atendimento (apps/atendimento). Um só login e um só banco.",
   "scripts": {
-    "install:apps": "npm install --prefix apps/site && npm install --prefix apps/formacao",
-    "build": "npm run build --prefix apps/site && npm run build --prefix apps/formacao && node scripts/montar-dist.mjs"
+    "install:apps": "npm install --prefix apps/site && npm install --prefix apps/formacao && npm install --prefix apps/atendimento",
+    "build": "npm run build --prefix apps/site && npm run build --prefix apps/formacao && npm run build --prefix apps/atendimento && node scripts/montar-dist.mjs"
   }
 }

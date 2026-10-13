@@ -1,0 +1,1 @@
+ALTER TABLE public.consulentes ADD COLUMN IF NOT EXISTS alta_at timestamptz, ADD COLUMN IF NOT EXISTS alta_by uuid;

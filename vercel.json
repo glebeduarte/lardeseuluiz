@@ -9,7 +9,11 @@
       "destination": "/formacao/index.html"
     },
     {
-      "source": "/((?!assets/|formacao/|.*\\.[a-z0-9]+$).*)",
+      "source": "/atendimento/((?!assets/|.*\\.[a-z0-9]+$).*)",
+      "destination": "/atendimento/index.html"
+    },
+    {
+      "source": "/((?!assets/|formacao/|atendimento/|.*\\.[a-z0-9]+$).*)",
       "destination": "/index.html"
     }
   ],
@@ -46,6 +50,15 @@
     },
     {
       "source": "/formacao/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/atendimento/assets/(.*)",
       "headers": [
         {
           "key": "Cache-Control",

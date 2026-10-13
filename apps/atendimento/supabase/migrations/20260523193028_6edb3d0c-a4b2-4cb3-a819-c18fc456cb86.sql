@@ -1,0 +1,1 @@
+ALTER TYPE public.presenca_status ADD VALUE 'atendimento_distancia';
