@@ -28,7 +28,10 @@ const PERMISSION_LABELS: Record<ModulePermission, { label: string; description: 
 };
 
 const ROLE_META: Record<string, { label: string; tone: string }> = {
-  trabalhador: { label: "Trabalhador", tone: "bg-primary/10 text-primary border-primary/20" },
+  trabalhador: { label: "Voluntário", tone: "bg-primary/10 text-primary border-primary/20" },
+  assistido: { label: "Assistido", tone: "bg-sky-100 text-sky-800 border-sky-300" },
+  beneficiario_social: { label: "Beneficiário social", tone: "bg-amber-100 text-amber-800 border-amber-300" },
+  doador: { label: "Doador", tone: "bg-emerald-100 text-emerald-800 border-emerald-300" },
   associado: { label: "Associado", tone: "bg-secondary/10 text-secondary border-secondary/20" },
   frequentador: { label: "Frequentador", tone: "bg-muted text-foreground border-border" },
 };
@@ -37,7 +40,7 @@ const formatDate = (d?: string | null) =>
   d ? new Date(d).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" }) : "—";
 
 const Perfil = () => {
-  const { user, loading: authLoading, roles } = useAuth();
+  const { user, loading: authLoading, roles, simulacao } = useAuth();
   const { isAdmin, isGestor, permissions, isLoading: permsLoading } = usePermissions();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -59,8 +62,11 @@ const Perfil = () => {
     setLoading(true);
 
     const [{ data: prof }, { data: peopleRows }] = await Promise.all([
-      supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle(),
-      supabase.from("people").select("*").eq("user_id", user.id).limit(1),
+      // "Visualizar como" uma pessoa: o perfil mostrado é o dela
+      supabase.from("profiles").select("*").eq("user_id", simulacao?.userId ?? user.id).maybeSingle(),
+      simulacao?.personId
+        ? supabase.from("people").select("*").eq("id", simulacao.personId).limit(1)
+        : supabase.from("people").select("*").eq("user_id", user.id).limit(1),
     ]);
 
     const p = peopleRows?.[0] || null;
@@ -91,7 +97,7 @@ const Perfil = () => {
     setLoading(false);
   };
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [user]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [user, simulacao]);
 
   const handleAvatar = async (file: File) => {
     if (!user || !person) {

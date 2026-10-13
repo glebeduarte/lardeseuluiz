@@ -23,7 +23,7 @@ const GESTOR_DEFAULTS: ModulePermission[] = [
 ];
 
 export function usePermissions(): PermissionsState {
-  const { user } = useAuth();
+  const { user, simulacao } = useAuth();
   const userId = user?.id;
 
   const { data, isLoading } = useQuery({
@@ -53,9 +53,10 @@ export function usePermissions(): PermissionsState {
     },
   });
 
-  const isAdmin = !!data?.isAdmin;
-  const isGestor = !!data?.isGestor;
-  const permissions = new Set<ModulePermission>(data?.perms || []);
+  // Durante o "Visualizar como", vale o papel e as permissões simulados
+  const isAdmin = simulacao ? simulacao.roles.includes("admin") : !!data?.isAdmin;
+  const isGestor = simulacao ? simulacao.roles.includes("gestor") : !!data?.isGestor;
+  const permissions = new Set<ModulePermission>((simulacao ? simulacao.permissions : data?.perms || []) as ModulePermission[]);
 
   const has = (p: ModulePermission) => permissions.has(p);
   const canAccess = (p: ModulePermission) => {
@@ -64,5 +65,5 @@ export function usePermissions(): PermissionsState {
     return permissions.has(p);
   };
 
-  return { isAdmin, isGestor, permissions, has, canAccess, isLoading };
+  return { isAdmin, isGestor, permissions, has, canAccess, isLoading: simulacao ? false : isLoading };
 }

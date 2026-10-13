@@ -1328,6 +1328,7 @@ export type Database = {
       person_role:
         | "trabalhador"
         | "frequentador"
+        | "assistido"
         | "beneficiario_social"
         | "doador"
       project_status: "planejamento" | "ativo" | "encerrado"

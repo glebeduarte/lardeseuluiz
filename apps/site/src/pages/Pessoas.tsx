@@ -15,13 +15,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Search, X, KeyRound, Briefcase } from "lucide-react";
 
-type PersonRoleKey = "trabalhador" | "frequentador" | "beneficiario_social" | "doador";
+type PersonRoleKey = "trabalhador" | "frequentador" | "assistido" | "beneficiario_social" | "doador";
 type Category = "fundador" | "efetivo" | "colaborador";
 type Status = "ativo" | "inadimplente" | "afastado" | "desligado";
 
 const ROLE_LABELS: Record<PersonRoleKey, string> = {
-  trabalhador: "Trabalhador",
+  trabalhador: "Voluntário",
   frequentador: "Frequentador",
+  assistido: "Assistido",
   beneficiario_social: "Beneficiário Social",
   doador: "Doador",
 };
@@ -29,6 +30,7 @@ const ROLE_LABELS: Record<PersonRoleKey, string> = {
 const ROLE_COLORS: Record<PersonRoleKey, string> = {
   trabalhador: "bg-primary/10 text-primary border-primary/30",
   frequentador: "bg-secondary/10 text-secondary border-secondary/30",
+  assistido: "bg-sky-100 text-sky-800 border-sky-300",
   beneficiario_social: "bg-amber-100 text-amber-800 border-amber-300",
   doador: "bg-emerald-100 text-emerald-800 border-emerald-300",
 };
@@ -71,7 +73,7 @@ interface FormState {
 
 const emptyForm = (): FormState => ({
   full_name: "", cpf: "", email: "", phone: "", birth_date: "", notes: "",
-  roles: { trabalhador: false, frequentador: false, beneficiario_social: false, doador: false },
+  roles: { trabalhador: false, frequentador: false, assistido: false, beneficiario_social: false, doador: false },
   has_membership: false,
   membership_category: "colaborador",
   membership_status: "ativo",

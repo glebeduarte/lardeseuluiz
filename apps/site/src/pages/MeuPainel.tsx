@@ -7,7 +7,7 @@ import { User } from "lucide-react";
 import AssociateLayout from "@/components/app/AssociateLayout";
 
 const MeuPainel = () => {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, simulacao } = useAuth();
   const navigate = useNavigate();
   const [person, setPerson] = useState<any>(null);
   const [membership, setMembership] = useState<any>(null);
@@ -23,7 +23,9 @@ const MeuPainel = () => {
     if (!user) return;
     const fetchData = async () => {
       setLoading(true);
-      const { data: personData } = await supabase.from("people").select("*").eq("user_id", user.id).maybeSingle();
+      const { data: personData } = simulacao?.personId
+        ? await supabase.from("people").select("*").eq("id", simulacao.personId).maybeSingle()
+        : await supabase.from("people").select("*").eq("user_id", user.id).maybeSingle();
       setPerson(personData);
 
       if (personData) {
@@ -40,7 +42,7 @@ const MeuPainel = () => {
       setLoading(false);
     };
     fetchData();
-  }, [user]);
+  }, [user, simulacao]);
 
   const fmtCurrency = (v: number) => `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
 

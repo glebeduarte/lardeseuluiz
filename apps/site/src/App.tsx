@@ -39,6 +39,7 @@ import Projeto from "./pages/site/Projeto";
 import Voluntariado from "./pages/site/Voluntariado";
 import Privacidade from "./pages/site/Privacidade";
 import RequireGestao from "./components/app/RequireGestao";
+import FaixaSimulacao from "./components/simulacao/FaixaSimulacao";
 import { Navigate } from "react-router-dom";
 
 const queryClient = new QueryClient();
@@ -50,6 +51,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <FaixaSimulacao />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/design" element={<Design />} />

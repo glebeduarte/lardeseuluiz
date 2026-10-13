@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { usePermissions, type ModulePermission } from "@/hooks/usePermissions";
+import VisualizarComo from "@/components/simulacao/VisualizarComo";
 
 interface NavItem { to?: string; href?: string; icon: any; label: string; perm?: ModulePermission | "always"; }
 interface NavGroup { label: string; items: NavItem[]; }
@@ -66,7 +67,7 @@ const getInitials = (email?: string | null) => {
 };
 
 export default function AppLayout({ children }: { children: ReactNode }) {
-  const { user, signOut } = useAuth();
+  const { user, signOut, simulacao } = useAuth();
   const { canAccess, isAdmin, isGestor } = usePermissions();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -81,7 +82,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     .map(g => ({ ...g, items: g.items.filter(i => i.perm === "always" || !i.perm || canAccess(i.perm)) }))
     .filter(g => g.items.length > 0);
 
-  const roleLabel = isAdmin ? "Administrador" : isGestor ? "Gestor" : "Trabalhador";
+  const roleLabel = simulacao ? `Vendo como ${simulacao.rotulo}` : isAdmin ? "Administrador" : isGestor ? "Gestor" : "Trabalhador";
 
 
   const renderNavItem = (l: NavItem, onClick?: () => void) => {
@@ -226,6 +227,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
         {/* Footer */}
         <div className="px-2 py-3 space-y-1 border-t border-white/10">
+          <VisualizarComo compacto={collapsed}
+            className={`w-full gap-2 ${collapsed ? "justify-center px-2" : "justify-start"} text-white/85 hover:bg-white/10 hover:text-white`} />
           <Tooltip delayDuration={collapsed ? 100 : 999999}>
             <TooltipTrigger asChild>
               <Button
