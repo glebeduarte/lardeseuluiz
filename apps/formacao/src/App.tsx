@@ -27,7 +27,7 @@ import EsdeCalendar from "./pages/EsdeCalendar";
 import DialogoFraternoRegistration from "./pages/DialogoFraternoRegistration";
 
 
-import MyAccount from "./pages/MyAccount";
+import PerfilUnico from "./pages/PerfilUnico";
 import NotFound from "./pages/NotFound";
 import WelcomePage from "./pages/WelcomePage";
 import CourseRegistrationPage from "./pages/CourseRegistrationPage";
@@ -78,7 +78,7 @@ const App = () => (
             <Route path="/explore" element={<ProtectedRoute><ExploreCourses /></ProtectedRoute>} />
             <Route path="/course/:id" element={<ProtectedRoute><CoursePage /></ProtectedRoute>} />
             <Route path="/lesson/:id" element={<ProtectedRoute><LessonPage /></ProtectedRoute>} />
-            <Route path="/my-account" element={<ProtectedRoute><MyAccount /></ProtectedRoute>} />
+            <Route path="/my-account" element={<ProtectedRoute><PerfilUnico /></ProtectedRoute>} />
             <Route path="/biblioteca" element={<BookCatalog />} />
             <Route path="/minha-frequencia" element={<ProtectedRoute><MyAttendancePage /></ProtectedRoute>} />
             <Route path="/avisos" element={<ProtectedRoute><AnnouncementsListPage /></ProtectedRoute>} />

@@ -1,0 +1,1 @@
+CREATE POLICY "Anyone can delete palestras" ON public.palestras FOR DELETE TO anon, authenticated USING (true);
