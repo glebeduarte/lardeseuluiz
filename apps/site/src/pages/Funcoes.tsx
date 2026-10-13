@@ -17,7 +17,7 @@ import { Plus, Pencil } from "lucide-react";
 type Category = "atendimento_espiritual" | "apoio_operacional" | "estrutura_organizacional";
 type Permission =
   | "modulo_macas" | "modulo_passes" | "modulo_dialogo" | "modulo_recepcao"
-  | "modulo_formacao" | "modulo_secretaria" | "modulo_projetos"
+  | "modulo_formacao" | "modulo_secretaria" | "modulo_projetos" | "modulo_saude"
   | "modulo_gestao" | "modulo_financeiro" | "modulo_admin";
 
 const CATEGORY_LABELS: Record<Category, string> = {
@@ -34,6 +34,7 @@ const PERMISSION_LABELS: Record<Permission, string> = {
   modulo_formacao: "Formação",
   modulo_secretaria: "Secretaria",
   modulo_projetos: "Projetos",
+  modulo_saude: "Saúde (dados sensíveis)",
   modulo_gestao: "Gestão",
   modulo_financeiro: "Financeiro",
   modulo_admin: "Administração",

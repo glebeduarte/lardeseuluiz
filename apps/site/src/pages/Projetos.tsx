@@ -13,7 +13,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, ArrowLeft } from "lucide-react";
+import { Link } from "react-router-dom";
 
 type Status = "planejamento" | "ativo" | "encerrado";
 
@@ -38,7 +39,7 @@ interface ProjectRow {
   coordinator_id: string | null;
   coordinator: { full_name: string } | null;
   slug: string | null; summary: string | null; content: string | null; cover_url: string | null;
-  tags: string[] | null; schedule: string | null; is_public: boolean; display_order: number;
+  tags: string[] | null; schedule: string | null; is_public: boolean; display_order: number; has_health_records: boolean;
 }
 
 interface PersonOpt { id: string; full_name: string; }
@@ -52,7 +53,7 @@ interface FormState {
   coordinator_id: string;
   // Página da ação no site (/projetos/:slug)
   slug: string; summary: string; content: string; cover_url: string; tags: string; schedule: string;
-  is_public: boolean; display_order: string;
+  is_public: boolean; display_order: string; has_health_records: boolean;
 }
 
 const slugify = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -60,7 +61,7 @@ const slugify = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, ""
 const emptyForm = (): FormState => ({
   name: "", description: "", status: "planejamento",
   started_at: "", ended_at: "", coordinator_id: "",
-  slug: "", summary: "", content: "", cover_url: "", tags: "", schedule: "", is_public: false, display_order: "100",
+  slug: "", summary: "", content: "", cover_url: "", tags: "", schedule: "", is_public: false, display_order: "100", has_health_records: false,
 });
 
 export default function Projetos() {
@@ -76,7 +77,7 @@ export default function Projetos() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("projects")
-        .select("id, name, description, status, started_at, ended_at, coordinator_id, slug, summary, content, cover_url, tags, schedule, is_public, display_order, coordinator:people!coordinator_id ( full_name )")
+        .select("id, name, description, status, started_at, ended_at, coordinator_id, slug, summary, content, cover_url, tags, schedule, is_public, display_order, has_health_records, coordinator:people!coordinator_id ( full_name )")
         .order("name");
       if (error) throw error;
       return data as unknown as ProjectRow[];
@@ -106,7 +107,7 @@ export default function Projetos() {
       ended_at: p.ended_at || "",
       coordinator_id: p.coordinator_id || "",
       slug: p.slug || "", summary: p.summary || "", content: p.content || "", cover_url: p.cover_url || "",
-      tags: (p.tags || []).join(", "), schedule: p.schedule || "", is_public: p.is_public, display_order: String(p.display_order ?? 100),
+      tags: (p.tags || []).join(", "), schedule: p.schedule || "", is_public: p.is_public, display_order: String(p.display_order ?? 100), has_health_records: !!p.has_health_records,
     });
     setDialogOpen(true);
   };
@@ -129,6 +130,7 @@ export default function Projetos() {
         schedule: form.schedule.trim() || null,
         is_public: form.is_public,
         display_order: Number(form.display_order) || 100,
+        has_health_records: form.has_health_records,
       };
       if (editing) {
         const { error } = await supabase.from("projects").update(payload).eq("id", editing.id);
@@ -164,7 +166,8 @@ export default function Projetos() {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold font-['Playfair_Display'] text-foreground">Projetos Sociais</h1>
+            <Link to="/app/acoes" className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1 mb-1"><ArrowLeft className="w-4 h-4" /> Ações sociais</Link>
+            <h1 className="text-2xl font-bold font-['Playfair_Display'] text-foreground">Cadastro dos projetos sociais</h1>
             <p className="text-sm text-muted-foreground">
               {filtered.length} de {projects.length} projeto{projects.length !== 1 ? "s" : ""}
             </p>
@@ -287,6 +290,14 @@ export default function Projetos() {
                 <Label>Encerramento</Label>
                 <Input type="date" value={form.ended_at} onChange={e => setForm(f => ({ ...f, ended_at: e.target.value }))} />
               </div>
+            </div>
+
+            <div className="flex items-center justify-between gap-3 border-t pt-4">
+              <div>
+                <Label>Registra atendimentos de saúde</Label>
+                <p className="text-xs text-muted-foreground">Libera a aba Saúde nas edições (dados sensíveis, com consentimento LGPD).</p>
+              </div>
+              <Switch checked={form.has_health_records} onCheckedChange={v => setForm(f => ({ ...f, has_health_records: v }))} />
             </div>
 
             <div className="border-t pt-4 grid gap-3">

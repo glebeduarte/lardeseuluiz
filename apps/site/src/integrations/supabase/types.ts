@@ -737,6 +737,7 @@ export type Database = {
       projects: {
         Row: {
           accepts_volunteers: boolean
+          has_health_records: boolean
           content: string | null
           cover_url: string | null
           display_order: number
@@ -757,6 +758,7 @@ export type Database = {
         }
         Insert: {
           accepts_volunteers?: boolean
+          has_health_records?: boolean
           content?: string | null
           cover_url?: string | null
           display_order?: number
@@ -777,6 +779,7 @@ export type Database = {
         }
         Update: {
           accepts_volunteers?: boolean
+          has_health_records?: boolean
           content?: string | null
           cover_url?: string | null
           display_order?: number
@@ -1322,6 +1325,7 @@ export type Database = {
         | "modulo_formacao"
         | "modulo_secretaria"
         | "modulo_projetos"
+        | "modulo_saude"
         | "modulo_gestao"
         | "modulo_financeiro"
         | "modulo_admin"
@@ -1531,6 +1535,7 @@ export const Constants = {
         "modulo_formacao",
         "modulo_secretaria",
         "modulo_projetos",
+        "modulo_saude",
         "modulo_gestao",
         "modulo_financeiro",
         "modulo_admin",

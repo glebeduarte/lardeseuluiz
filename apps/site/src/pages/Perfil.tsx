@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { usePermissions, type ModulePermission } from "@/hooks/usePermissions";
 import AppLayout from "@/components/app/AppLayout";
+import MinhasAcoes from "@/components/acoes/MinhasAcoes";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ const PERMISSION_LABELS: Record<ModulePermission, { label: string; description: 
   modulo_formacao: { label: "Formação", description: "Cursos e formação espiritual" },
   modulo_secretaria: { label: "Secretarias", description: "Gestão de secretarias" },
   modulo_projetos: { label: "Projetos", description: "Projetos sociais" },
+  modulo_saude: { label: "Saúde", description: "Atendimentos de saúde das ações (dados sensíveis)" },
   modulo_gestao: { label: "Gestão", description: "Visão gerencial da Casa" },
   modulo_financeiro: { label: "Financeiro", description: "Receitas, despesas e contribuições" },
   modulo_admin: { label: "Administração", description: "Usuários, permissões e LGPD" },
@@ -437,6 +439,8 @@ const Perfil = () => {
               )}
             </CardContent>
           </Card>
+
+          <MinhasAcoes simulandoOutraPessoa={!!simulacao?.personId} />
         </div>
       </div>
     </AppLayout>

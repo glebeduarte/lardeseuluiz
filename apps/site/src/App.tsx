@@ -31,6 +31,10 @@ import PessoaDetalhe from "./pages/PessoaDetalhe";
 import Funcoes from "./pages/Funcoes";
 import Perfil from "./pages/Perfil";
 import Projetos from "./pages/Projetos";
+import AcoesSociais from "./pages/acoes/AcoesSociais";
+import AcaoDetalhe from "./pages/acoes/AcaoDetalhe";
+import EdicaoDetalhe from "./pages/acoes/EdicaoDetalhe";
+import Familias from "./pages/acoes/Familias";
 import NotFound from "./pages/NotFound";
 import Agenda from "./pages/site/Agenda";
 import ACasa from "./pages/site/ACasa";
@@ -77,6 +81,10 @@ const App = () => (
             <Route path="/app/secretarias/:id" element={<SecretariaDetalhePage />} />
             <Route path="/app/configuracoes/funcoes" element={<Funcoes />} />
             <Route path="/app/projetos" element={<Projetos />} />
+            <Route path="/app/acoes" element={<AcoesSociais />} />
+            <Route path="/app/acoes/:id" element={<AcaoDetalhe />} />
+            <Route path="/app/acoes/edicao/:id" element={<EdicaoDetalhe />} />
+            <Route path="/app/familias" element={<Familias />} />
             <Route path="/app/perfil" element={<Perfil />} />
             <Route path="/meu-painel" element={<MeuPainel />} />
             <Route path="/meu-painel/contribuicoes" element={<MinhasContribuicoes />} />

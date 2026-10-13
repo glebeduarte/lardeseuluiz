@@ -20,6 +20,14 @@
 .pg-ok { font-size: 1.05rem; color: hsl(var(--secondary)); font-weight: 600; }
 .pg-lista dt { font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; color: hsl(var(--foreground)); margin-top: 24px; }
 .pg-lista dd { font-size: 0.95rem; color: hsl(var(--neutral-700)); line-height: 1.8; margin-top: 4px; }
+/* Próximas edições de uma ação social, com "Quero participar" */
+.pg-edicoes { display: grid; gap: 14px; margin-top: 8px; }
+.pg-edicoes__titulo { font-family: var(--font-display); font-size: 1.4rem; font-weight: 700; color: hsl(var(--foreground)); margin: 40px 0 16px; }
+.pg-edicao { display: flex; gap: 18px; align-items: center; justify-content: space-between; flex-wrap: wrap; background: white; border-radius: 16px; padding: 18px 22px; box-shadow: 0 2px 12px hsl(var(--foreground) / 0.06); border-left: 3px solid hsl(var(--secondary)); }
+.pg-edicao__data { font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; color: hsl(var(--foreground)); }
+.pg-edicao__info { font-size: 0.85rem; color: hsl(var(--neutral-600)); margin-top: 2px; }
+.pg-edicao__status { font-size: 0.82rem; font-weight: 600; color: hsl(var(--secondary)); }
+.pg-edicao__msg { width: 100%; display: grid; gap: 10px; }
 @media (max-width: 720px) {
   .pg-form__linha { grid-template-columns: 1fr; }
 }

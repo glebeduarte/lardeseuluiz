@@ -24,7 +24,7 @@ const CONTEXT_LABELS: Record<ContextType, string> = {
 const PERMISSION_LABELS: Record<string, string> = {
   modulo_macas: "Macas", modulo_passes: "Passes", modulo_dialogo: "Diálogo",
   modulo_recepcao: "Recepção", modulo_formacao: "Formação",
-  modulo_secretaria: "Secretaria", modulo_projetos: "Projetos",
+  modulo_secretaria: "Secretaria", modulo_projetos: "Projetos", modulo_saude: "Saúde",
   modulo_gestao: "Gestão", modulo_financeiro: "Financeiro", modulo_admin: "Admin",
 };
 

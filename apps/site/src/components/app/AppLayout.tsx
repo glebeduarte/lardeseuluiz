@@ -7,7 +7,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import {
   LayoutDashboard, DollarSign, FileText, Vote, Heart, Shield, Users, Building2,
   Menu, X, LogOut, ChevronsLeft, ChevronsRight, CalendarDays, UserCheck,
-  Briefcase, Sparkles, Settings, ExternalLink
+  Briefcase, Sparkles, Settings, ExternalLink, HeartHandshake, Home
 } from "lucide-react";
 
 import { usePermissions, type ModulePermission } from "@/hooks/usePermissions";
@@ -25,7 +25,8 @@ const navGroups: NavGroup[] = [
     label: "Operacional",
     items: [
       { to: "/app/secretarias", icon: Building2, label: "Secretarias", perm: "modulo_secretaria" },
-      { to: "/app/projetos", icon: Briefcase, label: "Projetos sociais", perm: "modulo_projetos" },
+      { to: "/app/acoes", icon: HeartHandshake, label: "Ações sociais", perm: "modulo_projetos" },
+      { to: "/app/familias", icon: Home, label: "Famílias atendidas", perm: "modulo_projetos" },
       { to: "/app/eventos", icon: CalendarDays, label: "Eventos e palestras", perm: "always" },
       { href: "/atendimento/", icon: ExternalLink, label: "Sistema de Macas", perm: "modulo_macas" },
       { href: "/formacao/admin", icon: ExternalLink, label: "Formação", perm: "modulo_formacao" },

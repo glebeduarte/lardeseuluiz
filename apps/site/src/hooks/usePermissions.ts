@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 export type ModulePermission =
   | "modulo_macas" | "modulo_passes" | "modulo_dialogo" | "modulo_recepcao"
-  | "modulo_formacao" | "modulo_secretaria" | "modulo_projetos"
+  | "modulo_formacao" | "modulo_secretaria" | "modulo_projetos" | "modulo_saude"
   | "modulo_gestao" | "modulo_financeiro" | "modulo_admin";
 
 interface PermissionsState {

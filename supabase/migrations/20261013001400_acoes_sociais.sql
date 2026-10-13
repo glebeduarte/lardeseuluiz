@@ -1,0 +1,23 @@
+-- Ações sociais (aplicado no banco via migrações "acoes_sociais_permissao_saude", "acoes_sociais_estrutura",
+-- "acoes_sociais_apoio_interface" e "acoes_sociais_voluntario_so_confirma"). Resumo da estrutura:
+--
+-- Permissão nova: governanca.module_permission 'modulo_saude' (dados de saúde, separada de modulo_projetos).
+-- projects.has_health_records: libera a aba Saúde nas edições do projeto (Saúde no Lar).
+--
+-- Tabelas (schema governanca):
+--   project_editions      cada dia/edição da ação (data, horário, local, situação, voluntários necessários, meta)
+--   families, family_members, project_families   famílias atendidas, membros e vínculo com cada ação (com consentimento LGPD)
+--   edition_applications  pedidos de participação feitos pelo site ou perfil (pendente, aprovada, recusada)
+--   edition_shifts        escala de voluntários (tarefa, turno, confirmou, presente)
+--   deliveries            entregas por edição (família ou avulso, itens, quantidade)
+--   health_records        atendimentos de saúde; gatilho exige consentimento 'dados_saude' concedido
+--
+-- Funções: opera_projeto(projeto), opera_acoes(), ve_saude(), projeto_da_edicao(edicao), relatorio_edicao(edicao),
+--   pessoas_basico(busca, ids) só nome e telefone para quem opera ações ou saúde,
+--   consentimento_saude(pessoa) e registrar_consentimento_saude(pessoa, obs) para quem tem modulo_saude,
+--   minhas_acoes() escalas e pedidos da própria pessoa (perfil único).
+--
+-- RLS: edições públicas aparecem no site quando o projeto é público e não cancelada; famílias só para quem opera ações;
+--   candidatura só em nome próprio e como pendente; escala gerida pela operação, e o voluntário só confirma a própria
+--   (gatilho escala_voluntario_so_confirma); entregas pela operação do projeto; saúde só com ve_saude e sem exclusão;
+--   volunteer_submissions do projeto visíveis para quem opera aquele projeto.

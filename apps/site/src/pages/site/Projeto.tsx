@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Link, useParams } from "react-router-dom";
 import SitePage from "@/components/site/SitePage";
 import { useProjeto } from "@/lib/site-dados";
+import ProximasEdicoes from "@/components/site/ProximasEdicoes";
 
 const WHATSAPP = "5584991432639";
 
@@ -34,6 +35,7 @@ const Projeto = () => {
               {p.tags.map((t) => <span key={t} className="site-tag-pill">{t}</span>)}
             </div>
             <div className="pg-texto">{texto.split(/\n{2,}/).map((par, i) => <p key={i}>{par}</p>)}</div>
+            <ProximasEdicoes projetoId={p.id} slug={p.slug} />
           </motion.div>
         </div>
       </section>
