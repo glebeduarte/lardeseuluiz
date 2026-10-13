@@ -33,7 +33,7 @@ export default function Entrar() {
     <ContaLayout titulo="Entrar" subtitulo="Uma conta para cursos, inscrições e áreas de trabalho da casa.">
       {params.get("migrado") && (
         <Aviso tipo="ok">
-          A plataforma mudou. Se você já tinha conta em algum sistema da casa, use "Esqueci minha senha" para criar uma senha nova.
+          A plataforma mudou. Se você já tinha cadastro em algum sistema da casa, clique em Criar conta e use o mesmo e-mail: seus dados serão reconhecidos.
         </Aviso>
       )}
       <form onSubmit={entrar} className="flex flex-col gap-4" noValidate>

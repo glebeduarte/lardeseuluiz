@@ -26,7 +26,7 @@ export default function RecuperarSenha() {
   }
 
   return (
-    <ContaLayout titulo="Criar ou trocar senha" subtitulo="Serve também para quem tinha conta nos sistemas antigos.">
+    <ContaLayout titulo="Trocar senha" subtitulo="Para quem já criou conta nesta plataforma. Quem tinha cadastro nos sistemas antigos deve usar Criar conta.">
       {enviado ? (
         <Aviso tipo="ok">
           Se houver uma conta com {email}, você vai receber um link para definir a senha. Confira também a caixa de spam.
