@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:formacao": "npm run build --prefix apps/formacao",
+    "build:plataforma": "npm run build && npm run build:formacao && rm -rf dist/formacao && cp -r apps/formacao/dist dist/formacao"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

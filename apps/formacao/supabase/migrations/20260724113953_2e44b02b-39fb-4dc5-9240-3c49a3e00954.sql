@@ -1,0 +1,1 @@
+ALTER TABLE public.lessons ADD COLUMN IF NOT EXISTS embed_url TEXT, ADD COLUMN IF NOT EXISTS embed_title TEXT;

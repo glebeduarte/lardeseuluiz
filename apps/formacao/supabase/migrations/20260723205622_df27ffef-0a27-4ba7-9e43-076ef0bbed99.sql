@@ -1,0 +1,1 @@
+CREATE POLICY "Admins can delete attendance records" ON public.attendance_records FOR DELETE USING (has_role(auth.uid(), 'admin'::app_role));

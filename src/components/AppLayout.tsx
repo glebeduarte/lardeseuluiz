@@ -39,7 +39,11 @@ export function AppLayout() {
           <NavLink to="/minha-area" className={item} end>
             <Home className="h-4 w-4" aria-hidden /> Minha área
           </NavLink>
-          {modulos.map((m) => (
+          {modulos.map((m) => m.externo ? (
+            <a key={m.rota} href={m.rota} className={item({ isActive: false })}>
+              <m.icone className="h-4 w-4" aria-hidden /> {m.nome}
+            </a>
+          ) : (
             <NavLink key={m.rota} to={m.rota} className={item}>
               <m.icone className="h-4 w-4" aria-hidden /> {m.nome}
             </NavLink>

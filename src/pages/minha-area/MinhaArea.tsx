@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Aviso } from "@/components/ContaLayout";
-import { SITUACAO_MATRICULA, useMinhasMatriculas } from "@/lib/formacao";
 
 const CARGO_NOME: Record<string, string> = { membro: "Membro", coordenador: "Coordenador", diretor: "Diretor" };
 
@@ -96,7 +95,7 @@ export default function MinhaArea() {
         </section>
       )}
 
-      <MeusCursos pessoaId={pessoa.id} />
+      <MeusCursos />
 
       <MeusDados />
       <MeusConsentimentos pessoaId={pessoa.id} />
@@ -244,31 +243,12 @@ function MeusConsentimentos({ pessoaId }: { pessoaId: string }) {
   );
 }
 
-function MeusCursos({ pessoaId }: { pessoaId: string }) {
-  const { data, isLoading } = useMinhasMatriculas(pessoaId);
-  const ativas = (data ?? []).filter((m) => m.situacao !== "cancelada" && m.situacao !== "recusada");
+function MeusCursos() {
   return (
     <section className="flex flex-col gap-3" aria-labelledby="cursos">
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 id="cursos" className="text-xl font-semibold">Meus cursos</h2>
-        <Link to="/cursos" className="text-sm text-primary hover:underline">Ver todos os cursos</Link>
-      </div>
-      {isLoading && <p className="text-sm text-muted-foreground">Carregando…</p>}
-      {!isLoading && ativas.length === 0 && <p className="text-sm text-muted-foreground">Você ainda não está inscrito em nenhum curso.</p>}
-      <ul className="grid gap-3 sm:grid-cols-2">
-        {ativas.map((m) => {
-          const acesso = m.situacao === "aprovada" || m.situacao === "concluida";
-          return (
-            <li key={m.id} className="rounded-lg border bg-card p-4 flex gap-3">
-              {(m.cursos.miniatura_url || m.cursos.capa_url) && <img src={m.cursos.miniatura_url || m.cursos.capa_url!} alt="" className="h-14 w-20 rounded object-cover shrink-0" />}
-              <div className="flex flex-col gap-1 min-w-0">
-                {acesso ? <Link to={`/formacao/curso/${m.curso_id}`} className="font-medium hover:underline">{m.cursos.titulo}</Link> : <span className="font-medium">{m.cursos.titulo}</span>}
-                <span className="text-xs text-muted-foreground">{SITUACAO_MATRICULA[m.situacao]}</span>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+      <h2 id="cursos" className="text-xl font-semibold">Meus cursos</h2>
+      <p className="text-sm text-muted-foreground">Seus cursos, aulas e presenças ficam na Área de Formação, com o mesmo login.</p>
+      <a href="/formacao/dashboard" className="text-sm text-primary hover:underline w-fit">Abrir a Área de Formação</a>
     </section>
   );
 }

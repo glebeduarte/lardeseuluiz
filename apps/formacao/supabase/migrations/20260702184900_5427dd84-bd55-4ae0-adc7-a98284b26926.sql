@@ -1,0 +1,1 @@
+ALTER TABLE public.attendance_links ADD COLUMN IF NOT EXISTS redirect_url TEXT;

@@ -1,0 +1,707 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+
+@layer base {
+  :root {
+    /* === Lar de Seu Luiz — Identidade Institucional === */
+    /* Azul institucional escuro #003c7f */
+    --brand-blue-dark: 211 100% 25%;
+    /* Azul institucional médio #0059b1 */
+    --brand-blue: 209 100% 35%;
+    /* Azul claro #e6f3ff */
+    --brand-blue-muted: 207 100% 95%;
+    /* Dourado #ffc116 */
+    --brand-gold: 43 100% 54%;
+    /* Dourado escuro #d99900 */
+    --brand-gold-dark: 42 100% 43%;
+    /* Dourado suave #fff8db */
+    --brand-gold-muted: 48 100% 93%;
+
+    /* Aliases compatíveis com componentes existentes */
+    --blue: 209 100% 35%;
+    --teal: 211 100% 25%;            /* mapeado para azul escuro institucional */
+    --yellow: 43 100% 54%;
+    --red: 0 72% 51%;
+    --blue-lt: 207 100% 95%;
+    --teal-lt: 207 100% 95%;
+    --bg: 214 33% 97%;
+    --bg2: 0 0% 100%;
+    --bg3: 220 13% 95%;
+    --text: 220 39% 11%;
+    --text-dim: 220 9% 30%;
+    --text-muted-custom: 220 9% 55%;
+    --border-custom: 220 13% 91%;
+
+    /* Tokens semânticos shadcn */
+    --background: 214 33% 97%;       /* #f5f7fa */
+    --foreground: 220 39% 11%;       /* #111827 */
+    --card: 0 0% 100%;
+    --card-foreground: 220 39% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 39% 11%;
+    --primary: 209 100% 35%;         /* brand-blue */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 13% 95%;
+    --secondary-foreground: 220 39% 11%;
+    --muted: 220 13% 95%;
+    --muted-foreground: 220 9% 46%;
+    --accent: 43 100% 54%;           /* dourado */
+    --accent-foreground: 211 100% 25%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 209 100% 35%;
+    --radius: 0.75rem;
+
+    --gradient-start: 209 100% 35%;
+    --gradient-end: 211 100% 25%;
+    --surface: 214 33% 97%;
+    --surface-hover: 220 13% 93%;
+    --success: 152 60% 40%;
+    --warning: 43 100% 54%;
+
+    /* Sidebar — azul institucional escuro */
+    --sidebar-background: 211 100% 25%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 43 100% 54%;
+    --sidebar-primary-foreground: 211 100% 25%;
+    --sidebar-accent: 211 80% 30%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 211 60% 35%;
+    --sidebar-ring: 43 100% 54%;
+  }
+
+  .dark {
+    --background: 213 40% 8%;
+    --foreground: 213 20% 95%;
+    --card: 213 40% 11%;
+    --card-foreground: 213 20% 95%;
+    --popover: 213 40% 11%;
+    --popover-foreground: 213 20% 95%;
+    --primary: 205 70% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 213 35% 16%;
+    --secondary-foreground: 213 20% 95%;
+    --muted: 213 35% 16%;
+    --muted-foreground: 214 15% 60%;
+    --accent: 38 78% 60%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 6 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 213 30% 20%;
+    --input: 213 30% 20%;
+    --ring: 205 70% 50%;
+    
+    --gradient-start: 205 70% 50%;
+    --gradient-end: 168 60% 42%;
+    --surface: 213 40% 13%;
+    --surface-hover: 213 40% 18%;
+    --success: 152 60% 46%;
+    --warning: 38 78% 65%;
+
+    --sidebar-background: 213 40% 10%;
+    --sidebar-foreground: 213 20% 90%;
+    --sidebar-primary: 205 70% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 205 40% 22%;
+    --sidebar-accent-foreground: 205 60% 75%;
+    --sidebar-border: 213 30% 20%;
+    --sidebar-ring: 205 70% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'DM Sans', sans-serif;
+    overflow-x: hidden;
+  }
+
+  html {
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
+    @apply font-bold tracking-tight;
+  }
+}
+
+@layer utilities {
+  .font-body {
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .gradient-primary {
+    background: linear-gradient(120deg, hsl(var(--brand-blue)) 0%, hsl(var(--brand-blue-dark)) 100%);
+  }
+
+  .gradient-admin {
+    background: linear-gradient(120deg, hsl(var(--brand-blue-dark)) 0%, hsl(var(--brand-blue)) 100%);
+  }
+
+  .gradient-gold {
+    background: linear-gradient(120deg, hsl(var(--brand-gold)) 0%, hsl(var(--brand-gold-dark)) 100%);
+  }
+
+  .gradient-text {
+    background: linear-gradient(120deg, hsl(var(--blue)) 0%, hsl(var(--teal)) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .glass {
+    background: hsl(var(--background) / 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .card-hover {
+    @apply transition-all duration-200;
+  }
+
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 28px rgba(33, 118, 174, 0.13);
+  }
+
+  .shadow-card {
+    box-shadow: 0 2px 16px rgba(33, 118, 174, 0.08);
+  }
+
+  .shadow-card-hover {
+    box-shadow: 0 6px 28px rgba(33, 118, 174, 0.13);
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .animate-fade-up {
+    animation: fadeUp 0.5s ease-out forwards;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.4s ease-out forwards;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.3s ease-out forwards;
+  }
+
+  .animate-slide-in-right {
+    animation: slideInRight 0.4s ease-out forwards;
+  }
+
+  .glow {
+    box-shadow: 0 0 40px hsl(var(--primary) / 0.3);
+  }
+
+  .glow-sm {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.2);
+  }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.2); }
+}
+
+.animate-pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* ===== Guide Content (Design System — Aulas tipo Guia) ===== */
+
+.guide-content .section-kicker {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  color: hsl(var(--primary));
+  margin-bottom: 8px;
+}
+
+.guide-content .section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(28px, 5vw, 42px);
+  font-weight: 900;
+  letter-spacing: -1px;
+  color: hsl(var(--foreground));
+  line-height: 1.15;
+  margin-bottom: 8px;
+}
+
+.guide-content .section-subtitle {
+  font-size: 17px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 12px;
+}
+
+.guide-content .badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 100px;
+  padding: 4px 14px;
+  font-size: 10px;
+  font-weight: 700;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+.guide-content .badge-time {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 100px;
+  padding: 4px 14px;
+  font-size: 10px;
+  font-weight: 600;
+  background: hsl(var(--foreground) / 0.06);
+  color: hsl(var(--muted-foreground));
+}
+
+.guide-content .badge-outline {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 100px;
+  padding: 4px 14px;
+  font-size: 10px;
+  font-weight: 600;
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--muted-foreground));
+}
+
+.guide-content hr {
+  border: none;
+  height: 2px;
+  background: hsl(var(--primary) / 0.25);
+  margin: 20px 0 28px;
+}
+
+.guide-content h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  font-weight: 800;
+  margin-top: 36px;
+  margin-bottom: 12px;
+  color: hsl(var(--foreground));
+}
+
+.guide-content h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 16px;
+  font-weight: 700;
+  margin-top: 24px;
+  margin-bottom: 8px;
+  color: hsl(var(--foreground));
+}
+
+.guide-content p {
+  font-size: 15px;
+  line-height: 1.7;
+  color: hsl(var(--foreground) / 0.85);
+  margin-bottom: 12px;
+}
+
+.guide-content strong {
+  font-weight: 700;
+  color: hsl(var(--foreground));
+}
+
+.guide-content ol, .guide-content ul {
+  padding-left: 20px;
+  margin-bottom: 16px;
+}
+
+.guide-content li {
+  font-size: 15px;
+  line-height: 1.7;
+  color: hsl(var(--foreground) / 0.85);
+  margin-bottom: 6px;
+}
+
+/* Callouts */
+.guide-content .callout {
+  border-radius: 12px;
+  padding: 16px 20px;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 20px 0;
+}
+
+.guide-content .callout strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+
+.guide-content .callout p {
+  font-size: 14px;
+  margin-bottom: 0;
+}
+
+.guide-content .callout-tip {
+  background: hsl(190 80% 42% / 0.08);
+  border: 1px solid hsl(190 80% 42% / 0.20);
+}
+
+.guide-content .callout-tip strong {
+  color: hsl(190 80% 42%);
+}
+
+.guide-content .callout-exercise {
+  background: hsl(152 60% 40% / 0.08);
+  border: 1px solid hsl(152 60% 40% / 0.20);
+}
+
+.guide-content .callout-exercise strong {
+  color: hsl(152 60% 40%);
+}
+
+.guide-content .callout-warn {
+  background: hsl(var(--warning) / 0.08);
+  border: 1px solid hsl(var(--warning) / 0.20);
+}
+
+.guide-content .callout-warn strong {
+  color: hsl(var(--warning));
+}
+
+/* Callout variant aliases (used in lessons 12+) */
+.guide-content .callout.concept {
+  background: hsl(var(--card));
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid hsl(var(--border));
+  border-left: 4px solid hsl(var(--primary));
+}
+
+.guide-content .callout.concept strong {
+  color: hsl(var(--primary));
+}
+
+.guide-content .callout.tip {
+  background: hsl(190 80% 42% / 0.08);
+  border: 1px solid hsl(190 80% 42% / 0.20);
+}
+
+.guide-content .callout.tip strong {
+  color: hsl(190 80% 42%);
+}
+
+.guide-content .callout.exercise {
+  background: hsl(152 60% 40% / 0.08);
+  border: 1px solid hsl(152 60% 40% / 0.20);
+}
+
+.guide-content .callout.exercise strong {
+  color: hsl(152 60% 40%);
+}
+
+.guide-content .callout.warning {
+  background: hsl(var(--warning) / 0.08);
+  border: 1px solid hsl(var(--warning) / 0.20);
+}
+
+.guide-content .callout.warning strong {
+  color: hsl(var(--warning));
+}
+
+.guide-content .callout.affirmation {
+  background: hsl(var(--primary) / 0.06);
+  border: 1px solid hsl(var(--primary) / 0.15);
+  border-radius: 12px;
+  padding: 20px 24px;
+  text-align: center;
+}
+
+.guide-content .callout.affirmation strong {
+  color: hsl(var(--primary));
+  font-size: 14px;
+}
+
+/* Ethical notice */
+.guide-content .ethical-notice {
+  background: hsl(var(--warning) / 0.08);
+  border: 1px solid hsl(var(--warning) / 0.20);
+  border-radius: 12px;
+  padding: 16px 20px;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 20px 0;
+}
+
+.guide-content .ethical-notice p {
+  font-size: 14px;
+  margin-bottom: 0;
+  color: hsl(var(--foreground) / 0.75);
+}
+
+/* Cards */
+.guide-content .card {
+  background: hsl(var(--card));
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+  border: 1px solid hsl(var(--border));
+}
+
+.guide-content .card.card-accent {
+  border-left: 4px solid hsl(var(--primary));
+}
+
+.guide-content .card h3 {
+  margin-top: 0;
+}
+
+.guide-content .card p:last-child {
+  margin-bottom: 0;
+}
+
+/* Prompt Block */
+.guide-content .prompt-block {
+  background: hsl(var(--card));
+  border-left: 4px solid hsl(var(--primary));
+  border-radius: 0 12px 12px 0;
+  padding: 16px 20px;
+  font-family: 'DM Sans', monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 20px 0;
+  position: relative;
+  white-space: pre-wrap;
+}
+
+/* Code Block */
+.guide-content .code-block {
+  background: hsl(213 40% 10%);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin: 20px 0;
+  position: relative;
+  overflow-x: auto;
+}
+
+.guide-content .code-block .code-block-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: hsl(0 0% 100% / 0.4);
+  display: block;
+  margin-bottom: 8px;
+}
+
+.guide-content .code-block .code-text {
+  font-family: 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 13px;
+  color: hsl(0 0% 100% / 0.9);
+  line-height: 1.6;
+}
+
+/* Toggle (details/summary) */
+.guide-content details.toggle {
+  background: hsl(var(--card));
+  border-radius: 12px;
+  margin: 20px 0;
+  border: 1px solid hsl(var(--border));
+  overflow: hidden;
+}
+
+.guide-content details.toggle summary {
+  padding: 14px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  color: hsl(var(--foreground));
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.guide-content details.toggle summary::-webkit-details-marker {
+  display: none;
+}
+
+.guide-content details.toggle summary::before {
+  content: '▸';
+  font-size: 12px;
+  transition: transform 0.2s;
+}
+
+.guide-content details.toggle[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.guide-content details.toggle .toggle-content {
+  padding: 0 20px 16px;
+}
+
+/* Table */
+.guide-content .table-wrap {
+  overflow-x: auto;
+  margin: 20px 0;
+  border-radius: 12px;
+  border: 1px solid hsl(var(--border));
+}
+
+.guide-content table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.guide-content table th {
+  background: hsl(var(--muted));
+  padding: 10px 16px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: left;
+  color: hsl(var(--muted-foreground));
+}
+
+.guide-content table td {
+  padding: 10px 16px;
+  border-top: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground) / 0.85);
+}
+
+/* Checklist */
+.guide-content .checklist {
+  list-style: none;
+  padding-left: 0;
+}
+
+.guide-content .checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.guide-content .checklist .checklist-box {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 2px solid hsl(var(--border));
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.guide-content .checklist li.checked .checklist-box {
+  background: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+}
+
+.guide-content .checklist li.checked .checklist-text {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+/* Ecosystem Tags */
+.guide-content .skills-ecosystem {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.guide-content .skills-ecosystem-tag {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: hsl(var(--foreground) / 0.8);
+}
+
+/* Affirmation block */
+.guide-content .affirmation-block {
+  background: hsl(var(--primary) / 0.06);
+  border: 1px solid hsl(var(--primary) / 0.15);
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin: 24px 0;
+  text-align: center;
+}
+
+.guide-content .affirmation-block p {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-style: italic;
+  font-weight: 600;
+  color: hsl(var(--primary));
+  margin-bottom: 0;
+}
+
+/* Blockquote styling for guide */
+.guide-content blockquote {
+  background: hsl(var(--muted));
+  border-left: 3px solid hsl(var(--primary));
+  border-radius: 0 12px 12px 0;
+  padding: 16px 20px;
+  margin: 20px 0;
+  font-style: normal;
+}
+
+.guide-content blockquote p {
+  font-size: 14px;
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 0;
+}

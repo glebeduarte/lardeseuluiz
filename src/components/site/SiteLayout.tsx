@@ -6,11 +6,11 @@ import { useSiteConfig } from "@/lib/site";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const LINKS = [
+const LINKS: { to: string; rotulo: string; externo?: boolean }[] = [
   { to: "/#programacao", rotulo: "Horários" },
   { to: "/agenda", rotulo: "Agenda" },
   { to: "/atendimentos", rotulo: "Atendimentos" },
-  { to: "/cursos", rotulo: "Cursos" },
+  { to: "/formacao/", rotulo: "Cursos", externo: true },
   { to: "/#acoes", rotulo: "Ações sociais" },
   { to: "/a-casa", rotulo: "A casa" },
   { to: "/#contato", rotulo: "Contato" },
@@ -42,7 +42,9 @@ export function SiteLayout({ children }: { children: ReactNode }) {
             </span>
           </Link>
           <nav className="hidden lg:flex items-center gap-1" aria-label="Principal">
-            {LINKS.map((l) => (
+            {LINKS.map((l) => l.externo ? (
+              <a key={l.to} href={l.to} className="rounded-md px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted">{l.rotulo}</a>
+            ) : (
               <NavLink key={l.to} to={l.to} className="rounded-md px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted">
                 {l.rotulo}
               </NavLink>
@@ -65,7 +67,9 @@ export function SiteLayout({ children }: { children: ReactNode }) {
         </div>
         <nav className={cn("lg:hidden border-t", aberto ? "block" : "hidden")} aria-label="Principal (celular)">
           <div className="container flex flex-col py-2">
-            {LINKS.map((l) => (
+            {LINKS.map((l) => l.externo ? (
+              <a key={l.to} href={l.to} className="py-2.5 text-sm">{l.rotulo}</a>
+            ) : (
               <Link key={l.to} to={l.to} onClick={() => setAberto(false)} className="py-2.5 text-sm">
                 {l.rotulo}
               </Link>

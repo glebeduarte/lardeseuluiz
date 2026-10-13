@@ -8,12 +8,15 @@ export type Modulo = {
   /** Aparece para quem tem qualquer uma destas permissões. Vazio: todos os voluntários. */
   permissoes: string[];
   disponivel: boolean;
+  /** Sistema servido à parte (outro app no mesmo domínio): abre com link comum. */
+  externo?: boolean;
 };
 
 /** Módulos da plataforma. Cada um aparece no menu só para quem tem permissão. */
 export const MODULOS: Modulo[] = [
   {
-    rota: "/formacao/gestao",
+    rota: "/formacao/admin",
+    externo: true,
     nome: "Formação",
     descricao: "Cursos, alunos, presenças e calendário",
     icone: BookOpen,
