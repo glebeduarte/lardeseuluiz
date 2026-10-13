@@ -10,6 +10,7 @@ const LINKS = [
   { to: "/#programacao", rotulo: "Horários" },
   { to: "/agenda", rotulo: "Agenda" },
   { to: "/atendimentos", rotulo: "Atendimentos" },
+  { to: "/cursos", rotulo: "Cursos" },
   { to: "/#acoes", rotulo: "Ações sociais" },
   { to: "/a-casa", rotulo: "A casa" },
   { to: "/#contato", rotulo: "Contato" },

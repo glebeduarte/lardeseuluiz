@@ -13,12 +13,12 @@ export type Modulo = {
 /** Módulos da plataforma. Cada um aparece no menu só para quem tem permissão. */
 export const MODULOS: Modulo[] = [
   {
-    rota: "/formacao",
+    rota: "/formacao/gestao",
     nome: "Formação",
-    descricao: "Cursos, turmas e presenças",
+    descricao: "Cursos, alunos, presenças e calendário",
     icone: BookOpen,
-    permissoes: ["formacao.gerir", "formacao.acompanhar", "formacao.evangelizacao"],
-    disponivel: false,
+    permissoes: ["formacao.gerir", "formacao.acompanhar"],
+    disponivel: true,
   },
   {
     rota: "/atendimento",
