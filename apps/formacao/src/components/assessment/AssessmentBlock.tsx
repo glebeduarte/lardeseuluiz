@@ -141,7 +141,7 @@ export function AssessmentBlock({ assessment }: Props) {
             <div className="flex items-center gap-2 mb-1">
               <h3 className="font-semibold text-foreground">{assessment.title}</h3>
               <Badge variant="outline" className="text-xs">Avaliação</Badge>
-              {hasPassed && <Badge className="bg-green-100 text-green-700 border-green-200 text-xs">Aprovado</Badge>}
+              {hasPassed && <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300 text-xs">Aprovado</Badge>}
             </div>
             {assessment.description && (
               <p className="text-sm text-muted-foreground mb-3">{assessment.description}</p>
@@ -201,9 +201,9 @@ export function AssessmentBlock({ assessment }: Props) {
                       <span className="font-medium text-foreground">Tentativa {att.attempt_number}</span>
                       <span className="font-bold text-foreground">{att.score}%</span>
                       {att.passed ? (
-                        <Badge className="bg-green-100 text-green-700 border-green-200 text-[10px] px-1.5 py-0">Aprovado</Badge>
+                        <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300 text-[10px] px-1.5 py-0">Aprovado</Badge>
                       ) : (
-                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Reprovado</Badge>
+                        <Badge variant="destructive" className="text-[10px] px-1.5 py-0">Reprovado</Badge>
                       )}
                     </div>
                     <div className="flex items-center gap-3 text-muted-foreground">

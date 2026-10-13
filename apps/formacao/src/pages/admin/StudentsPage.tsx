@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { enrollUserInCourse } from '@/lib/enrollments';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { CabecalhoPagina } from '@/compartilhado';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -297,9 +298,9 @@ export default function StudentsPage() {
   };
 
   const getProgressColor = (pct: number) => {
-    if (pct === 100) return 'text-teal';
+    if (pct === 100) return 'text-emerald-700';
     if (pct >= 50) return 'text-primary';
-    if (pct > 0) return 'text-accent';
+    if (pct > 0) return 'text-amber-700';
     return 'text-muted-foreground';
   };
 
@@ -320,7 +321,7 @@ export default function StudentsPage() {
 
   const SortableHeader = ({ column, children, className }: { column: SortKey; children: React.ReactNode; className?: string }) => (
     <TableHead className={className}>
-      <button onClick={() => handleSort(column)} className="flex items-center gap-0.5 hover:text-white/80 transition-colors w-full text-left">
+      <button onClick={() => handleSort(column)} className="flex items-center gap-0.5 hover:text-foreground transition-colors w-full text-left">
         {children}
         <SortIcon column={column} />
       </button>
@@ -329,12 +330,9 @@ export default function StudentsPage() {
 
   // Avatar color generator
   const getAvatarGradient = (name: string) => {
+    // Avatar sem gradiente: fundo azul suave do padrão único (mantém a assinatura da função)
     const gradients = [
-      'from-blue-500 to-teal-500',
-      'from-teal-500 to-primary',
-      'from-accent to-orange-500',
-      'from-primary to-blue-600',
-      'from-purple-500 to-primary',
+      'from-primary/10 to-primary/10',
     ];
     const idx = name.charCodeAt(0) % gradients.length;
     return gradients[idx];
@@ -349,10 +347,24 @@ export default function StudentsPage() {
 
   return (
     <DashboardLayout>
-      <PageHero title="Alunos" description="Gerencie os alunos e acompanhe seu progresso" />
-      <div className="p-4 sm:p-6 md:p-7 space-y-5">
+      <CabecalhoPagina
+        titulo="Alunos"
+        descricao="Gerencie os alunos e acompanhe seu progresso"
+        acoes={
+          <div className="flex items-center gap-2 flex-wrap">
+            {selectedIds.size > 0 && (
+              <Button variant="outline" size="sm" className="gap-2" onClick={bulkConvertType} disabled={convertingType}>
+                <RefreshCw className={`h-3.5 w-3.5 ${convertingType ? 'animate-spin' : ''}`} />
+                Converter ({selectedIds.size})
+              </Button>
+            )}
+            <ExportStudents students={students} courses={courses} defaultCourseFilter={selectedCourse} />
+          </div>
+        }
+      />
+      <div className="space-y-6">
         {/* KPIs */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <MiniKPI
             icon={Users}
             label="Total de alunos"
@@ -381,24 +393,11 @@ export default function StudentsPage() {
           />
         </div>
 
-        {/* Header */}
-        <div className="flex justify-end gap-2 flex-wrap">
-          <div className="flex items-center gap-2 flex-wrap">
-            {selectedIds.size > 0 && (
-              <Button variant="outline" size="sm" className="gap-2" onClick={bulkConvertType} disabled={convertingType}>
-                <RefreshCw className={`h-3.5 w-3.5 ${convertingType ? 'animate-spin' : ''}`} />
-                Converter ({selectedIds.size})
-              </Button>
-            )}
-            <ExportStudents students={students} courses={courses} defaultCourseFilter={selectedCourse} />
-          </div>
-        </div>
-
         {/* Toolbar */}
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1 max-w-[320px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Buscar por nome ou email..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10 focus:ring-primary/10 focus:border-primary" />
+            <Input placeholder="Buscar por nome ou email..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" />
           </div>
           <Select value={selectedCourse} onValueChange={setSelectedCourse}>
             <SelectTrigger className="w-full sm:w-[250px]">
@@ -409,47 +408,46 @@ export default function StudentsPage() {
               {courses.map(c => <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>)}
             </SelectContent>
           </Select>
-          <div className="bg-muted/50 border border-border rounded-xl px-4 py-2 flex items-center gap-2 shrink-0">
+          <div className="bg-muted border rounded-md px-3 py-1.5 flex items-center gap-2 shrink-0">
             <span className="text-xs text-muted-foreground">Exibindo</span>
-            <span className="text-lg font-display font-bold text-foreground tabular-nums">{filteredAndSortedStudents.length}</span>
+            <span className="text-sm font-bold text-foreground tabular-nums">{filteredAndSortedStudents.length}</span>
           </div>
         </div>
 
         {/* Table */}
-        <Card className="shadow-card border-border rounded-2xl overflow-hidden hidden sm:block">
-          <CardContent className="p-0 overflow-x-auto">
+        <div className="rounded-lg border bg-card overflow-x-auto hidden sm:block">
             <Table className="min-w-[900px] table-fixed">
               <TableHeader>
-                <TableRow className="bg-foreground hover:bg-foreground">
-                  <TableHead className="w-10 text-white/80">
+                <TableRow>
+                  <TableHead className="w-10">
                     <Checkbox checked={allVisibleSelected} onCheckedChange={toggleSelectAll} />
                   </TableHead>
-                  <SortableHeader column="full_name"><span className="text-white/80 text-[10px] uppercase tracking-[0.1em]">Aluno</span></SortableHeader>
-                  <SortableHeader column="email" className="hidden md:table-cell"><span className="text-white/80 text-[10px] uppercase tracking-[0.1em]">E-mail</span></SortableHeader>
-                  <SortableHeader column="phone" className="hidden lg:table-cell"><span className="text-white/80 text-[10px] uppercase tracking-[0.1em]">Telefone</span></SortableHeader>
-                  <SortableHeader column="user_type"><span className="text-white/80 text-[10px] uppercase tracking-[0.1em]">Tipo</span></SortableHeader>
-                  <SortableHeader column="enrollments_count"><span className="text-white/80 text-[10px] uppercase tracking-[0.1em]">Cursos</span></SortableHeader>
-                  <SortableHeader column="averageProgress"><span className="text-white/80 text-[10px] uppercase tracking-[0.1em]">Progresso</span></SortableHeader>
-                  <SortableHeader column="lastAccess" className="hidden lg:table-cell"><span className="text-white/80 text-[10px] uppercase tracking-[0.1em]">Último Acesso</span></SortableHeader>
-                  <SortableHeader column="is_active"><span className="text-white/80 text-[10px] uppercase tracking-[0.1em]">Status</span></SortableHeader>
-                  <TableHead className="w-12 bg-foreground"></TableHead>
+                  <SortableHeader column="full_name"><span>Aluno</span></SortableHeader>
+                  <SortableHeader column="email" className="hidden md:table-cell"><span>E-mail</span></SortableHeader>
+                  <SortableHeader column="phone" className="hidden lg:table-cell"><span>Telefone</span></SortableHeader>
+                  <SortableHeader column="user_type"><span>Tipo</span></SortableHeader>
+                  <SortableHeader column="enrollments_count"><span>Cursos</span></SortableHeader>
+                  <SortableHeader column="averageProgress"><span>Progresso</span></SortableHeader>
+                  <SortableHeader column="lastAccess" className="hidden lg:table-cell"><span>Último Acesso</span></SortableHeader>
+                  <SortableHeader column="is_active"><span>Status</span></SortableHeader>
+                  <TableHead className="w-12"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loading ? (
                   [...Array(5)].map((_, i) => <TableRow key={i}><TableCell colSpan={10}><div className="h-12 bg-muted/50 rounded animate-pulse" /></TableCell></TableRow>)
                 ) : filteredAndSortedStudents.length === 0 ? (
-                  <TableRow><TableCell colSpan={10} className="text-center py-12"><User className="h-12 w-12 mx-auto text-muted-foreground mb-4" /><p className="text-muted-foreground">Nenhum aluno encontrado</p></TableCell></TableRow>
+                  <TableRow><TableCell colSpan={10} className="text-center py-8 text-muted-foreground"><User className="h-8 w-8 mx-auto text-muted-foreground mb-2" /><p>Nenhum aluno encontrado</p></TableCell></TableRow>
                 ) : (
                   filteredAndSortedStudents.map((student, idx) => (
                     <TableRow
                       key={student.id}
-                      className={`transition-colors duration-150 ${selectedIds.has(student.id) ? 'bg-blue-lt' : idx % 2 === 1 ? 'bg-muted/30' : ''} hover:bg-muted/50`}
+                      className={`transition-colors duration-150 ${selectedIds.has(student.id) ? 'bg-primary/5' : ''} hover:bg-muted/50`}
                     >
                       <TableCell><Checkbox checked={selectedIds.has(student.id)} onCheckedChange={() => toggleSelect(student.id)} /></TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <div className={`h-8 w-8 rounded-full bg-gradient-to-br ${getAvatarGradient(student.full_name)} flex items-center justify-center text-white font-bold text-xs flex-shrink-0`}>
+                          <div className={`h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs flex-shrink-0`}>
                             {student.full_name.charAt(0).toUpperCase()}
                           </div>
                            <div className="min-w-0">
@@ -464,25 +462,25 @@ export default function StudentsPage() {
                       <TableCell className="text-muted-foreground hidden md:table-cell text-sm break-all">{student.email}</TableCell>
                       <TableCell className="text-muted-foreground hidden lg:table-cell text-sm">{student.phone || '—'}</TableCell>
                       <TableCell>
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${student.user_type === 'trabalhador' ? 'bg-teal/10 text-teal' : 'bg-primary/10 text-primary'}`}>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium border ${student.user_type === 'trabalhador' ? 'bg-sky-100 text-sky-800 border-sky-300' : 'bg-primary/10 text-primary border-primary/20'}`}>
                           {student.user_type === 'trabalhador' ? 'Trabalhador' : 'Frequentador'}
                         </span>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary" className="font-display">{student.enrollments_count}</Badge>
+                        <Badge variant="outline" className="bg-muted text-muted-foreground border-border">{student.enrollments_count}</Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <div className="w-[70px] h-[5px] bg-muted rounded-full overflow-hidden">
-                            <div className={`h-full rounded-full transition-all ${student.averageProgress === 100 ? 'bg-teal' : student.averageProgress >= 50 ? 'bg-primary' : 'bg-accent'}`} style={{ width: `${student.averageProgress}%` }} />
+                            <div className={`h-full rounded-full transition-all ${student.averageProgress === 100 ? 'bg-emerald-500' : student.averageProgress >= 50 ? 'bg-primary' : 'bg-amber-500'}`} style={{ width: `${student.averageProgress}%` }} />
                           </div>
-                          <span className={`text-xs font-display font-bold ${getProgressColor(student.averageProgress)}`}>{student.averageProgress}%</span>
+                          <span className={`text-xs font-bold ${getProgressColor(student.averageProgress)}`}>{student.averageProgress}%</span>
                         </div>
                       </TableCell>
                       <TableCell className="text-muted-foreground hidden lg:table-cell text-sm">{formatLastAccess(student.lastAccess)}</TableCell>
                       <TableCell>
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                          student.is_active ? 'bg-[#E8F8F0] text-[#1A7A50]' : 'bg-muted text-muted-foreground'
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium border ${
+                          student.is_active ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-muted text-muted-foreground border-border'
                         }`}>
                           {student.is_active ? 'Ativo' : 'Inativo'}
                         </span>
@@ -506,8 +504,7 @@ export default function StudentsPage() {
                 )}
               </TableBody>
             </Table>
-          </CardContent>
-        </Card>
+        </div>
 
         {/* Pagination info */}
         {!loading && filteredAndSortedStudents.length > 0 && (
@@ -519,16 +516,16 @@ export default function StudentsPage() {
         {/* Mobile Card Layout */}
         <div className="block sm:hidden space-y-3">
           {loading ? (
-            <div className="space-y-3">{[1, 2, 3].map(i => <div key={i} className="h-24 bg-muted/50 rounded-xl animate-pulse" />)}</div>
+            <div className="space-y-3">{[1, 2, 3].map(i => <div key={i} className="h-24 bg-muted/50 rounded-lg animate-pulse" />)}</div>
           ) : filteredAndSortedStudents.length === 0 ? (
             <div className="text-center py-12"><User className="h-12 w-12 mx-auto text-muted-foreground mb-4" /><p className="text-muted-foreground">Nenhum aluno encontrado</p></div>
           ) : (
             filteredAndSortedStudents.map((student) => (
-              <Card key={student.id} className="shadow-card border-border">
+              <Card key={student.id}>
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
                     <Checkbox checked={selectedIds.has(student.id)} onCheckedChange={() => toggleSelect(student.id)} className="mt-1" />
-                    <div className={`h-10 w-10 rounded-full bg-gradient-to-br ${getAvatarGradient(student.full_name)} flex items-center justify-center text-white font-bold text-sm flex-shrink-0`}>
+                    <div className={`h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm flex-shrink-0`}>
                       {student.full_name.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -554,16 +551,16 @@ export default function StudentsPage() {
                         </DropdownMenu>
                       </div>
                       <div className="flex items-center flex-wrap gap-x-3 gap-y-1 mt-2">
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${student.user_type === 'trabalhador' ? 'bg-teal/10 text-teal' : 'bg-primary/10 text-primary'}`}>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full border ${student.user_type === 'trabalhador' ? 'bg-sky-100 text-sky-800 border-sky-300' : 'bg-primary/10 text-primary border-primary/20'}`}>
                           {student.user_type === 'trabalhador' ? 'Trabalhador' : 'Frequentador'}
                         </span>
                         <div className="flex items-center gap-1.5">
                           <div className="w-12 h-[5px] bg-muted rounded-full overflow-hidden">
-                            <div className={`h-full rounded-full ${student.averageProgress === 100 ? 'bg-teal' : 'bg-primary'}`} style={{ width: `${student.averageProgress}%` }} />
+                            <div className={`h-full rounded-full ${student.averageProgress === 100 ? 'bg-emerald-500' : 'bg-primary'}`} style={{ width: `${student.averageProgress}%` }} />
                           </div>
-                          <span className="text-xs font-display font-bold">{student.averageProgress}%</span>
+                          <span className="text-xs font-bold">{student.averageProgress}%</span>
                         </div>
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${student.is_active ? 'bg-[#E8F8F0] text-[#1A7A50]' : 'bg-muted text-muted-foreground'}`}>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full border ${student.is_active ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-muted text-muted-foreground border-border'}`}>
                           {student.is_active ? 'Ativo' : 'Inativo'}
                         </span>
                       </div>
@@ -578,18 +575,18 @@ export default function StudentsPage() {
 
       {/* Dialogs */}
       <Dialog open={enrollmentsDialogOpen} onOpenChange={setEnrollmentsDialogOpen}>
-        <DialogContent className="max-w-lg"><DialogHeader><DialogTitle className="font-display">Cursos de {selectedStudent?.full_name}</DialogTitle></DialogHeader>
+        <DialogContent className="max-w-lg"><DialogHeader><DialogTitle className="font-['Playfair_Display']">Cursos de {selectedStudent?.full_name}</DialogTitle></DialogHeader>
           <div className="space-y-3 py-4">
             {loadingEnrollments ? <div className="space-y-2">{[1,2,3].map(i => <div key={i} className="h-12 bg-muted/50 rounded animate-pulse" />)}</div>
             : studentEnrollments.length === 0 ? <p className="text-center text-muted-foreground py-8">Nenhum curso</p>
             : studentEnrollments.map(enrollment => {
               const cp = selectedStudent?.courses.find(c => c.courseId === enrollment.course.id);
               return (
-                <div key={enrollment.id} className="p-3 bg-muted/20 rounded-xl space-y-2">
+                <div key={enrollment.id} className="p-3 bg-muted/40 border rounded-lg space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="font-medium text-sm">{enrollment.course.title}</span>
                     <div className="flex items-center gap-2">
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full ${enrollment.status === 'approved' ? 'bg-teal/10 text-teal' : enrollment.status === 'pending' ? 'bg-accent/10 text-accent' : 'bg-destructive/10 text-destructive'}`}>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full border ${enrollment.status === 'approved' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : enrollment.status === 'pending' ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-destructive/10 text-destructive border-destructive/30'}`}>
                         {enrollment.status === 'approved' ? 'Aprovado' : enrollment.status === 'pending' ? 'Pendente' : 'Rejeitado'}
                       </span>
                       <Button variant="ghost" size="icon" onClick={() => removeEnrollment(enrollment.id)} className="h-8 w-8 text-destructive"><Trash2 className="h-4 w-4" /></Button>
@@ -598,7 +595,7 @@ export default function StudentsPage() {
                   {cp && enrollment.status === 'approved' && (
                     <div className="flex items-center gap-3">
                       <div className="flex-1 h-[5px] bg-muted rounded-full overflow-hidden"><div className="h-full bg-primary rounded-full" style={{ width: `${cp.progressPercent}%` }} /></div>
-                      <span className="text-xs font-display font-bold">{cp.completedLessons}/{cp.totalLessons} ({cp.progressPercent}%)</span>
+                      <span className="text-xs font-bold">{cp.completedLessons}/{cp.totalLessons} ({cp.progressPercent}%)</span>
                     </div>
                   )}
                 </div>
@@ -609,7 +606,7 @@ export default function StudentsPage() {
       </Dialog>
 
       <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
-        <DialogContent><DialogHeader><DialogTitle className="font-display">Atribuir Curso</DialogTitle></DialogHeader>
+        <DialogContent><DialogHeader><DialogTitle className="font-['Playfair_Display']">Atribuir Curso</DialogTitle></DialogHeader>
           <div className="space-y-4 py-4">
             <p className="text-sm text-muted-foreground">Selecione um curso para {selectedStudent?.full_name}</p>
             <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
@@ -619,7 +616,7 @@ export default function StudentsPage() {
             {availableCourses.length === 0 && <p className="text-sm text-muted-foreground">Todos os cursos já atribuídos.</p>}
             <div className="flex justify-end gap-3">
               <Button variant="outline" onClick={() => setAssignDialogOpen(false)}>Cancelar</Button>
-              <Button onClick={assignCourse} disabled={!selectedCourseId || assigningCourse} className="gradient-primary text-white">{assigningCourse ? 'Atribuindo...' : 'Atribuir'}</Button>
+              <Button onClick={assignCourse} disabled={!selectedCourseId || assigningCourse}>{assigningCourse ? 'Atribuindo...' : 'Atribuir'}</Button>
             </div>
           </div>
         </DialogContent>
@@ -628,7 +625,7 @@ export default function StudentsPage() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="font-display">Remover Aluno</AlertDialogTitle>
+            <AlertDialogTitle className="font-['Playfair_Display']">Remover Aluno</AlertDialogTitle>
             <AlertDialogDescription>Tem certeza que deseja remover <strong>{studentToDelete?.full_name}</strong>? Todas as matrículas e progresso serão perdidos.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -643,14 +640,14 @@ export default function StudentsPage() {
       <AlertDialog open={resetPwDialogOpen} onOpenChange={setResetPwDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="font-display">Redefinir senha</AlertDialogTitle>
+            <AlertDialogTitle className="font-['Playfair_Display']">Redefinir senha</AlertDialogTitle>
             <AlertDialogDescription>
               A senha de <strong>{studentToResetPw?.full_name}</strong> ({studentToResetPw?.email}) será alterada para <strong>LSL@estudo2026</strong>. O aluno poderá alterá-la depois. Deseja continuar?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={resettingPw}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={resetToDefaultPassword} disabled={resettingPw} className="gradient-primary text-white">
+            <AlertDialogAction onClick={resetToDefaultPassword} disabled={resettingPw}>
               {resettingPw ? 'Redefinindo...' : 'Redefinir senha'}
             </AlertDialogAction>
           </AlertDialogFooter>

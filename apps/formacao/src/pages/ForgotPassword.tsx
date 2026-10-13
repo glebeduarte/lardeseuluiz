@@ -9,7 +9,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowLeft, Mail } from 'lucide-react';
 import { z } from 'zod';
 import logoLarSeuLuiz from '@/assets/logo-lar-seu-luiz.png';
-import larBackground from '@/assets/lar-seu-luiz-background.jpg';
 
 const emailSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -54,33 +53,13 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen flex bg-background">
-      <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12 relative overflow-hidden">
-        <img 
-          src={larBackground} 
-          alt="Lar de Seu Luiz" 
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-primary/60" />
-        <div className="relative z-10 text-center text-primary-foreground">
-          <div className="mb-8 flex justify-center">
-            <div className="p-4 bg-primary-foreground/20 rounded-2xl backdrop-blur-sm">
-              <img src={logoLarSeuLuiz} alt="Lar de Seu Luiz" className="h-24 w-24 object-contain rounded-lg" />
-            </div>
-          </div>
-          <h1 className="text-3xl font-display font-bold mb-2">Área de Formação</h1>
-          <h2 className="text-2xl font-display font-semibold mb-4 opacity-95">Lar de Seu Luiz</h2>
-          <p className="text-lg opacity-90 max-w-md">Secretaria de Formação</p>
-        </div>
-      </div>
-
-      <div className="flex-1 flex items-center justify-center p-8">
-        <Card className="w-full max-w-md border-border/50 bg-card shadow-lg animate-fade-up">
+    // Página fora da moldura: cartão centralizado com o logo, no padrão único
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md rounded-2xl border bg-card shadow-sm">
           <CardHeader className="text-center">
-            <div className="lg:hidden mb-4 flex justify-center">
-              <img src={logoLarSeuLuiz} alt="Lar de Seu Luiz" className="h-16 w-16 object-contain rounded-lg" />
-            </div>
-            <CardTitle className="text-2xl font-display">
+            <img src={logoLarSeuLuiz} alt="Lar de Seu Luiz" className="mx-auto mb-3 h-14 w-14 object-contain rounded-xl" />
+            <p className="text-xs text-muted-foreground mb-1">Área de Formação · Lar de Seu Luiz · Secretaria de Formação</p>
+            <CardTitle className="font-['Playfair_Display'] text-2xl">
               {emailSent ? 'Email Enviado' : 'Recuperar Senha'}
             </CardTitle>
             <CardDescription>
@@ -130,7 +109,7 @@ export default function ForgotPassword() {
                   {error && <p className="text-sm text-destructive">{error}</p>}
                 </div>
 
-                <Button type="submit" className="w-full gradient-primary" disabled={loading}>
+                <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                   Enviar Link de Recuperação
                 </Button>
@@ -145,7 +124,6 @@ export default function ForgotPassword() {
             )}
           </CardContent>
         </Card>
-      </div>
     </div>
   );
 }

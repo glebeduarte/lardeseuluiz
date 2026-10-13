@@ -118,7 +118,7 @@ export function ImageUpload({
           <div className="absolute inset-0 bg-background/60 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
             <Button
               type="button"
-              variant="secondary"
+              variant="outline"
               size="sm"
               onClick={() => inputRef.current?.click()}
               disabled={uploading}

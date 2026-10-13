@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { CabecalhoPagina } from '@/compartilhado';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -123,12 +124,8 @@ export default function EnrollmentsPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-4 sm:p-6 md:p-7 space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-3xl font-display font-bold">Inscrições</h1>
-          <p className="text-muted-foreground mt-1">Gerencie as solicitações de inscrição</p>
-        </div>
+      <CabecalhoPagina titulo="Inscrições" descricao="Gerencie as solicitações de inscrição" />
+      <div className="space-y-6">
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -139,7 +136,7 @@ export default function EnrollmentsPage() {
                 <span className="hidden sm:inline">Pendentes</span>
                 <span className="sm:hidden">Pend.</span>
                 {pendingCount > 0 && (
-                  <Badge className="ml-1 bg-warning text-warning-foreground text-[10px] px-1.5">{pendingCount}</Badge>
+                  <Badge variant="outline" className="ml-1 bg-amber-100 text-amber-800 border-amber-300 text-[10px] px-1.5">{pendingCount}</Badge>
                 )}
               </TabsTrigger>
               <TabsTrigger value="approved" className="gap-1.5 text-xs sm:text-sm">
@@ -165,20 +162,20 @@ export default function EnrollmentsPage() {
                 ))}
               </div>
             ) : filteredEnrollments.length === 0 ? (
-              <Card className="bg-card/50 border-border/50">
-                <CardContent className="p-12 text-center">
-                  <ClipboardList className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <Card>
+                <CardContent className="py-8 text-center">
+                  <ClipboardList className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
                   <p className="text-muted-foreground">Nenhuma inscrição encontrada</p>
                 </CardContent>
               </Card>
             ) : (
               <div className="space-y-3">
                 {filteredEnrollments.map((enrollment) => (
-                  <Card key={enrollment.id} className="bg-card/50 border-border/50">
+                  <Card key={enrollment.id}>
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0 space-y-1">
-                          <p className="font-medium truncate">{enrollment.user.full_name}</p>
+                          <p className="font-['Playfair_Display'] font-semibold truncate">{enrollment.user.full_name}</p>
                           <p className="text-sm text-muted-foreground truncate">{enrollment.user.email}</p>
                           <p className="text-sm text-muted-foreground">{enrollment.course.title}</p>
                           <div className="flex items-center gap-2 flex-wrap">
@@ -188,12 +185,13 @@ export default function EnrollmentsPage() {
                               })}
                             </span>
                             <Badge
+                              variant={enrollment.status === 'rejected' ? 'destructive' : 'outline'}
                               className={
                                 enrollment.status === 'approved'
-                                  ? 'bg-success/20 text-success'
+                                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
                                   : enrollment.status === 'pending'
-                                  ? 'bg-warning/20 text-warning'
-                                  : 'bg-destructive/20 text-destructive'
+                                  ? 'bg-amber-100 text-amber-800 border-amber-300'
+                                  : ''
                               }
                             >
                               {enrollment.status === 'approved'
@@ -208,7 +206,6 @@ export default function EnrollmentsPage() {
                           <div className="flex gap-2 shrink-0">
                             <Button
                               size="sm"
-                              className="bg-success hover:bg-success/90"
                               onClick={() => updateEnrollmentStatus(enrollment.id, 'approved')}
                             >
                               <Check className="h-4 w-4" />

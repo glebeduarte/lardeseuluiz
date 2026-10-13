@@ -46,10 +46,10 @@ function InfoBox({ page }: { page: RegPage }) {
   if (items.length === 0) return null;
 
   return (
-    <div className="rounded-xl border border-primary/15 bg-card/80 backdrop-blur-sm p-5 space-y-4">
+    <div className="rounded-lg border bg-card p-5 space-y-4">
       {items.map(({ icon: Icon, label, sub }) => (
         <div key={sub} className="flex items-center gap-3">
-          <div className="p-2 rounded-full bg-primary/10">
+          <div className="p-2 rounded-lg bg-primary/10">
             <Icon className="h-5 w-5 text-primary" />
           </div>
           <div>
@@ -66,16 +66,16 @@ function CoursesPreview({ courses, showCovers }: { courses: CourseMini[]; showCo
   if (courses.length === 0) return null;
   return (
     <div className="space-y-3">
-      <h3 className="font-semibold text-foreground flex items-center gap-2">
+      <h3 className="font-['Playfair_Display'] font-semibold text-foreground flex items-center gap-2">
         <BookOpen className="h-4 w-4 text-primary" /> Cursos incluídos
       </h3>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {courses.map((c) => {
           const img = c.thumbnail_url || c.cover_url;
           return (
-            <div key={c.id} className="rounded-lg overflow-hidden border border-border bg-card/85 backdrop-blur-sm">
+            <div key={c.id} className="rounded-lg overflow-hidden border bg-card">
               {showCovers && (
-                <div className="aspect-[4/5] bg-gradient-to-br from-primary/20 to-secondary/20">
+                <div className="aspect-[4/5] bg-muted">
                   {img && <img src={img} alt={`Capa do curso ${c.title}`} loading="lazy" className="w-full h-full object-cover" />}
                 </div>
               )}
@@ -152,9 +152,9 @@ function RegistrationForm({ page, courses, onSuccess }: { page: RegPage; courses
   };
 
   return (
-    <Card className="shadow-xl border-primary/10 bg-card/95 backdrop-blur-sm">
+    <Card className="rounded-2xl border bg-card shadow-sm">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl">Inscreva-se Gratuitamente</CardTitle>
+        <CardTitle className="font-['Playfair_Display'] text-2xl">Inscreva-se Gratuitamente</CardTitle>
         <CardDescription>
           Preencha seus dados para se inscrever{courses.length > 1 ? ' nos cursos desta turma' : courses[0] ? ` no curso ${courses[0].title}` : ''}
         </CardDescription>
@@ -195,12 +195,12 @@ function RegistrationForm({ page, courses, onSuccess }: { page: RegPage; courses
 
 function ThankYouCard({ page }: { page: RegPage }) {
   return (
-    <Card className="shadow-xl border-primary/10 bg-card/95 backdrop-blur-sm">
+    <Card className="rounded-2xl border bg-card shadow-sm">
       <CardHeader className="space-y-3 text-center">
         <div className="mx-auto p-3 rounded-full bg-primary/10 w-fit">
           <CheckCircle2 className="h-10 w-10 text-primary" />
         </div>
-        <CardTitle className="text-2xl">Inscrição confirmada!</CardTitle>
+        <CardTitle className="font-['Playfair_Display'] text-2xl">Inscrição confirmada!</CardTitle>
         <CardDescription>
           {page.thanks_text ||
             'Recebemos sua inscrição. Verifique seu e-mail para confirmar a conta e acessar a área do aluno.'}
@@ -277,7 +277,7 @@ export default function PublicRegistrationPage() {
 
   if (loading || !page) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -286,29 +286,23 @@ export default function PublicRegistrationPage() {
   const heroCover = courses.find((c) => c.cover_url)?.cover_url;
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {heroCover ? (
-        <>
-          <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${heroCover})` }} />
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, rgba(255,255,255,0.97) 0%, rgba(255,255,255,0.88) 45%, rgba(255,255,255,0.5) 75%, rgba(255,255,255,0.2) 100%)' }} />
-        </>
-      ) : (
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-secondary/10" />
-      )}
-
-      <div className="relative z-10 container mx-auto px-4 py-8">
-        <div className="flex flex-col items-start mb-8">
-          <img src={logo} alt="Lar de Seu Luiz" className="h-20 w-auto object-contain mb-4" />
-          <h1 className="text-2xl md:text-3xl font-bold text-primary text-left">
+    // Página pública fora da moldura: cabeçalho branco com o logo e conteúdo em max-w-5xl
+    <div className="min-h-screen bg-background">
+      <header className="bg-card border-b">
+        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center gap-3">
+          <img src={logo} alt="Lar de Seu Luiz" className="h-10 w-10 rounded-lg object-contain" />
+          <h1 className="font-['Playfair_Display'] text-lg font-semibold text-foreground leading-tight">
             Área de Formação do Lar de Seu Luiz
           </h1>
         </div>
+      </header>
 
-        <div className="max-w-5xl grid md:grid-cols-2 gap-8">
+      <div className="max-w-5xl mx-auto px-4 py-8">
+        <div className="grid md:grid-cols-2 gap-8">
           <div className="space-y-6">
             <div>
-              <h2 className="text-3xl font-bold text-foreground mb-2">{page.title}</h2>
-              {page.subtitle && <p className="text-xl text-primary font-medium">{page.subtitle}</p>}
+              <h2 className="font-['Playfair_Display'] text-2xl sm:text-3xl font-bold text-foreground mb-2">{page.title}</h2>
+              {page.subtitle && <p className="text-lg text-primary font-medium">{page.subtitle}</p>}
             </div>
 
             {page.free_text && (
@@ -326,7 +320,7 @@ export default function PublicRegistrationPage() {
           )}
         </div>
 
-        <div className="text-left mt-12 text-sm text-muted-foreground">
+        <div className="text-left mt-12 text-xs text-muted-foreground">
           <p>Lar de Seu Luiz</p>
         </div>
       </div>

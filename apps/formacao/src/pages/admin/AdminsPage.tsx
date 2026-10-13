@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { CabecalhoPagina } from '@/compartilhado';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -167,19 +168,20 @@ export default function AdminsPage() {
 
   return (
     <DashboardLayout>
-      <PageHero title="Administradores" description="Gerencie os administradores da plataforma" />
-      <div className="p-4 sm:p-6 md:p-7 space-y-6">
-        {/* Header */}
-        <div className="flex justify-end">
-          <Button onClick={() => setAddDialogOpen(true)} className="gradient-primary">
+      <CabecalhoPagina
+        titulo="Administradores"
+        descricao="Gerencie os administradores da plataforma"
+        acoes={
+          <Button onClick={() => setAddDialogOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Adicionar Admin
           </Button>
-        </div>
+        }
+      />
+      <div className="space-y-6">
 
         {/* Table */}
-        <Card className="bg-card/50 border-border/50 overflow-hidden">
-          <CardContent className="p-0 overflow-x-auto">
+        <div className="rounded-lg border bg-card overflow-x-auto">
             <Table className="min-w-[500px]">
               <TableHeader>
                 <TableRow>
@@ -200,8 +202,8 @@ export default function AdminsPage() {
                   ))
                 ) : admins.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-12">
-                      <UserCog className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                      <UserCog className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
                       <p className="text-muted-foreground">Nenhum administrador</p>
                     </TableCell>
                   </TableRow>
@@ -210,13 +212,13 @@ export default function AdminsPage() {
                     <TableRow key={admin.id}>
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <div className="h-9 w-9 rounded-full gradient-primary flex items-center justify-center text-primary-foreground shrink-0">
+                          <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
                             <Shield className="h-4 w-4" />
                           </div>
                           <div>
                             <span className="font-medium">{admin.full_name}</span>
                             {admin.id === user?.id && (
-                              <Badge variant="secondary" className="ml-2">
+                              <Badge variant="outline" className="bg-muted text-muted-foreground border-border ml-2">
                                 Você
                               </Badge>
                             )}
@@ -247,8 +249,7 @@ export default function AdminsPage() {
                 )}
               </TableBody>
             </Table>
-          </CardContent>
-        </Card>
+        </div>
       </div>
 
       {/* Add Admin Dialog */}
@@ -275,7 +276,7 @@ export default function AdminsPage() {
             <Button variant="outline" onClick={() => setAddDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={promoteToAdmin} className="gradient-primary" disabled={addingAdmin}>
+            <Button onClick={promoteToAdmin} disabled={addingAdmin}>
               {addingAdmin && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
               Adicionar
             </Button>

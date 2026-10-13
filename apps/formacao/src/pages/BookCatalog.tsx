@@ -62,9 +62,9 @@ export default function BookCatalog() {
   return (
     <DashboardLayout>
       <PageHero title="Biblioteca" description="Acervo de obras recomendadas para estudo e leitura." variant="student" />
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <div className="space-y-6">
         {/* Search + Author filter */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -104,7 +104,7 @@ export default function BookCatalog() {
           </div>
         ) : (
           <>
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-sm text-muted-foreground mb-3">
               {filtered.length} {filtered.length === 1 ? 'livro encontrado' : 'livros encontrados'}
             </p>
 
@@ -118,7 +118,7 @@ export default function BookCatalog() {
                   <Wrapper
                     key={book.id}
                     {...wrapperProps}
-                    className="group rounded-xl border border-border bg-card overflow-hidden transition-all hover:shadow-md hover:border-primary/30"
+                    className="group rounded-lg border bg-card overflow-hidden transition-all hover:shadow-sm hover:border-primary/30"
                   >
                     {book.cover_url ? (
                       <div className="aspect-[4/3] w-full overflow-hidden bg-muted">
@@ -133,13 +133,13 @@ export default function BookCatalog() {
                         />
                       </div>
                     ) : (
-                      <div className="aspect-[4/3] w-full bg-gradient-to-br from-muted to-muted/60 flex items-center justify-center">
+                      <div className="aspect-[4/3] w-full bg-muted flex items-center justify-center">
                         <span className="text-muted-foreground text-xs">Sem capa</span>
                       </div>
                     )}
                     <div className="p-5">
                       <div className="flex items-start justify-between gap-2 mb-2">
-                        <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors leading-tight">
+                        <h3 className="font-['Playfair_Display'] font-semibold text-foreground group-hover:text-primary transition-colors leading-tight">
                           {book.title}
                         </h3>
                         {book.pdf_url && (
@@ -155,12 +155,12 @@ export default function BookCatalog() {
                       )}
                       <div className="flex flex-wrap gap-1">
                         {(book.tags || []).slice(0, 3).map((tag) => (
-                          <Badge key={tag} variant="secondary" className="text-[10px] px-1.5 py-0">
+                          <Badge key={tag} variant="outline" className="text-[10px] px-1.5 py-0 bg-muted text-muted-foreground border-border">
                             {tag}
                           </Badge>
                         ))}
                         {(book.tags || []).length > 3 && (
-                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-muted text-muted-foreground border-border">
                             +{(book.tags || []).length - 3}
                           </Badge>
                         )}
@@ -173,8 +173,8 @@ export default function BookCatalog() {
 
             {filtered.length === 0 && (
               <div className="text-center py-16 text-muted-foreground">
-                <p className="text-lg">Nenhum livro encontrado.</p>
-                <p className="text-sm mt-1">Tente ajustar sua busca ou filtro.</p>
+                <p className="text-sm font-medium">Nenhum livro encontrado.</p>
+                <p className="text-xs mt-1">Tente ajustar sua busca ou filtro.</p>
               </div>
             )}
           </>

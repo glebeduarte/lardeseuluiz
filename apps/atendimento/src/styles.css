@@ -26,8 +26,8 @@
 
   /* Fontes */
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Inter", ui-serif, Georgia, serif;
-  --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-display: "Playfair Display", Georgia, serif;
   --font-mono: "DM Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
   /* Cores semânticas mapeadas para Tailwind */
@@ -95,31 +95,31 @@
   --s-12: 48px;
   --s-16: 64px;
 
-  --radius: 12px;
+  --radius: 0.875rem; /* igual à Governança */
 
   /* Brand — Azul Royal */
-  --brand-blue-dark: oklch(0.36 0.13 256);   /* #0D3F75 */
-  --brand-blue: oklch(0.47 0.16 257);        /* #1A5FA8 */
-  --brand-blue-light: oklch(0.62 0.14 256);  /* #3A7FC8 */
-  --brand-blue-muted: oklch(0.96 0.02 250);  /* #E8F1FB */
+  --brand-blue-dark: #003c7f;
+  --brand-blue: #0059b1;
+  --brand-blue-light: #4a8fd6;
+  --brand-blue-muted: #e6f3ff;
 
   /* Brand — Teal */
-  --brand-teal-dark: oklch(0.40 0.07 188);   /* #0F5550 */
-  --brand-teal: oklch(0.52 0.09 188);        /* #1B7F79 */
-  --brand-teal-light: oklch(0.63 0.10 188);  /* #2FA39C */
-  --brand-teal-muted: oklch(0.96 0.02 185);  /* #E6F4F3 */
+  --brand-teal-dark: #003c7f;   /* teal unificado ao azul institucional */
+  --brand-teal: #0059b1;
+  --brand-teal-light: #4a8fd6;
+  --brand-teal-muted: #e6f3ff;
 
   /* Brand — Dourado */
-  --brand-gold-dark: oklch(0.72 0.16 85);    /* #C49200 */
-  --brand-gold: oklch(0.84 0.17 88);         /* #F5B800 */
-  --brand-gold-light: oklch(0.88 0.15 90);   /* #FFCF40 */
-  --brand-gold-muted: oklch(0.98 0.04 95);   /* #FFF8E1 */
+  --brand-gold-dark: #d99900;
+  --brand-gold: #ffc116;
+  --brand-gold-light: #ffe08a;
+  --brand-gold-muted: #fff8db;
 
   /* Brand — Vermelho */
-  --brand-red-dark: oklch(0.46 0.16 27);     /* #922B21 */
-  --brand-red: oklch(0.56 0.20 27);          /* #C0392B */
-  --brand-red-light: oklch(0.63 0.22 27);    /* #E74C3C */
-  --brand-red-muted: oklch(0.96 0.03 25);    /* #FDECEA */
+  --brand-red-dark: #b91c1c;
+  --brand-red: #dc2626;
+  --brand-red-light: #ef4444;
+  --brand-red-muted: #fef2f2;
 
   /* Neutros */
   --neutral-50: oklch(0.98 0.002 250);       /* #F8F9FA */
@@ -129,24 +129,24 @@
   --neutral-900: oklch(0.22 0.014 250);      /* #212529 */
 
   /* Tokens semânticos — light */
-  --background: oklch(0.975 0.008 245); /* #F4F7FB soft blue-gray */
-  --foreground: var(--neutral-900);
+  --background: #f5f7fa;
+  --foreground: #111827;
   --card: oklch(1 0 0);
   --card-foreground: var(--neutral-900);
   --popover: oklch(1 0 0);
   --popover-foreground: var(--neutral-900);
   --primary: var(--brand-blue);
   --primary-foreground: oklch(1 0 0);
-  --secondary: var(--brand-blue-muted);
+  --secondary: var(--brand-gold);
   --secondary-foreground: var(--brand-blue-dark);
-  --muted: oklch(0.96 0.004 250);
-  --muted-foreground: var(--neutral-600);
-  --accent: var(--brand-teal);
-  --accent-foreground: oklch(1 0 0);
+  --muted: #eef1f6;
+  --muted-foreground: #6b7280;
+  --accent: var(--brand-gold);
+  --accent-foreground: var(--brand-blue-dark);
   --destructive: var(--brand-red);
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.91 0.008 250);
-  --input: oklch(0.91 0.008 250);
+  --border: #e5e7eb;
+  --input: #dde1e7;
   --ring: var(--brand-blue);
   --chart-1: var(--brand-blue);
   --chart-2: var(--brand-teal);
@@ -154,8 +154,8 @@
   --chart-4: var(--brand-red);
   --chart-5: var(--brand-blue-light);
 
-  --sidebar: oklch(1 0 0);
-  --sidebar-foreground: var(--neutral-900);
+  --sidebar: #003c7f;
+  --sidebar-foreground: #ffffff;
   --sidebar-primary: var(--brand-blue);
   --sidebar-primary-foreground: oklch(1 0 0);
   --sidebar-accent: var(--brand-blue-muted);
@@ -217,7 +217,7 @@
 
   h1, h2, h3, .font-display {
     font-family: var(--font-display);
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
   }
 
   code, kbd, pre, samp, .font-mono {

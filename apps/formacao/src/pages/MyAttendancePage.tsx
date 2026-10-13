@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { CabecalhoPagina } from '@/compartilhado';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
@@ -86,11 +87,8 @@ export default function MyAttendancePage() {
 
   return (
     <DashboardLayout>
+      <CabecalhoPagina titulo="Minha Frequência" descricao="Acompanhe sua presença nas aulas do ESDE" />
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">Minha Frequência</h1>
-          <p className="text-sm text-muted-foreground mt-1">Acompanhe sua presença nas aulas do ESDE</p>
-        </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-12">
@@ -102,34 +100,34 @@ export default function MyAttendancePage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Card>
                 <CardContent className="pt-6 flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <BookOpen className="h-6 w-6 text-primary" />
+                  <div className="h-11 w-11 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <BookOpen className="h-5 w-5 text-primary" />
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{totalLessons}</p>
-                    <p className="text-sm text-muted-foreground">Aulas realizadas</p>
+                    <p className="text-xs text-muted-foreground">Aulas realizadas</p>
                   </div>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="pt-6 flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-xl bg-success/10 flex items-center justify-center">
-                    <CalendarCheck className="h-6 w-6 text-success" />
+                  <div className="h-11 w-11 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <CalendarCheck className="h-5 w-5 text-primary" />
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{attended}</p>
-                    <p className="text-sm text-muted-foreground">Minhas presenças</p>
+                    <p className="text-xs text-muted-foreground">Minhas presenças</p>
                   </div>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="pt-6 flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-xl bg-accent/10 flex items-center justify-center">
-                    <Percent className="h-6 w-6 text-accent" />
+                  <div className="h-11 w-11 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Percent className="h-5 w-5 text-primary" />
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{percentage}%</p>
-                    <p className="text-sm text-muted-foreground">Meu percentual</p>
+                    <p className="text-xs text-muted-foreground">Meu percentual</p>
                   </div>
                 </CardContent>
               </Card>
@@ -140,12 +138,10 @@ export default function MyAttendancePage() {
               {data.map((item) => (
                 <div
                   key={item.lesson_id}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg border border-border ${
-                    item.confirmed_at ? 'bg-success/5' : 'bg-card'
-                  }`}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg border bg-card"
                 >
                   {item.confirmed_at ? (
-                    <CheckCircle className="h-5 w-5 text-success flex-shrink-0" />
+                    <CheckCircle className="h-5 w-5 text-emerald-700 flex-shrink-0" />
                   ) : (
                     <Circle className="h-5 w-5 text-muted-foreground/40 flex-shrink-0" />
                   )}
@@ -157,7 +153,7 @@ export default function MyAttendancePage() {
                     <p className="text-xs text-muted-foreground">{item.module_title}</p>
                   </div>
                   {item.confirmed_at && (
-                    <Badge variant="outline" className="bg-success/10 text-success border-success/20 text-xs flex-shrink-0">
+                    <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300 text-xs flex-shrink-0">
                       Presente
                     </Badge>
                   )}
@@ -166,7 +162,7 @@ export default function MyAttendancePage() {
 
               {data.length === 0 && (
                 <Card>
-                  <CardContent className="py-12 text-center text-muted-foreground">
+                  <CardContent className="py-8 text-center text-muted-foreground">
                     Nenhuma aula encontrada no ESDE.
                   </CardContent>
                 </Card>

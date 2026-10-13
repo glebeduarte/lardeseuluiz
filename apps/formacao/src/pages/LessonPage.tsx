@@ -3,6 +3,7 @@ import DOMPurify from 'dompurify';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -150,7 +151,7 @@ export default function LessonPage() {
       <DashboardLayout>
         <div className="space-y-6">
           <Skeleton className="h-8 w-48" />
-          <Skeleton className="aspect-video w-full rounded-xl" />
+          <Skeleton className="aspect-video w-full rounded-lg" />
           <Skeleton className="h-32 w-full" />
         </div>
       </DashboardLayout>
@@ -161,7 +162,7 @@ export default function LessonPage() {
     return (
       <DashboardLayout>
         <div className="text-center py-20">
-          <h2 className="text-2xl font-bold">Aula não encontrada</h2>
+          <h2 className="font-['Playfair_Display'] text-2xl font-bold">Aula não encontrada</h2>
           <Button className="mt-4" onClick={() => navigate('/dashboard')}>Voltar</Button>
         </div>
       </DashboardLayout>
@@ -172,10 +173,10 @@ export default function LessonPage() {
     const ext = (name.split('.').pop() || '').toLowerCase();
     const mime = (type || '').toLowerCase();
     if (ext === 'pdf' || mime.includes('pdf')) return { Icon: FileText, label: 'PDF', color: 'text-destructive', bg: 'bg-destructive/10' };
-    if (['xls', 'xlsx', 'csv'].includes(ext) || mime.includes('sheet') || mime.includes('excel')) return { Icon: FileSpreadsheet, label: ext.toUpperCase(), color: 'text-success', bg: 'bg-success/10' };
-    if (['ppt', 'pptx'].includes(ext) || mime.includes('presentation')) return { Icon: Presentation, label: ext.toUpperCase(), color: 'text-warning', bg: 'bg-warning/10' };
+    if (['xls', 'xlsx', 'csv'].includes(ext) || mime.includes('sheet') || mime.includes('excel')) return { Icon: FileSpreadsheet, label: ext.toUpperCase(), color: 'text-emerald-700', bg: 'bg-emerald-100' };
+    if (['ppt', 'pptx'].includes(ext) || mime.includes('presentation')) return { Icon: Presentation, label: ext.toUpperCase(), color: 'text-amber-700', bg: 'bg-amber-100' };
     if (['doc', 'docx'].includes(ext) || mime.includes('word')) return { Icon: FileType, label: ext.toUpperCase(), color: 'text-primary', bg: 'bg-primary/10' };
-    if (['zip', 'rar', '7z'].includes(ext)) return { Icon: FileArchive, label: ext.toUpperCase(), color: 'text-accent', bg: 'bg-accent/10' };
+    if (['zip', 'rar', '7z'].includes(ext)) return { Icon: FileArchive, label: ext.toUpperCase(), color: 'text-accent-foreground', bg: 'bg-accent/20' };
     return { Icon: FileText, label: ext ? ext.toUpperCase() : 'FILE', color: 'text-primary', bg: 'bg-primary/10' };
   };
 
@@ -187,10 +188,11 @@ export default function LessonPage() {
   const modulePercent = moduleLessons.length > 0 ? Math.round((moduleCompletedCount / moduleLessons.length) * 100) : 0;
 
   return (
-    <DashboardLayout>
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-0 min-h-[calc(100vh-58px)]">
+    // Player da aula em largura total (com a lista de aulas à direita), dentro da moldura padrão
+    <DashboardLayout larguraTotal>
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-0 min-h-[calc(100vh-44px)]">
         {/* Main Content */}
-        <div className="p-4 sm:p-6 lg:p-7 space-y-5 pb-[140px] md:pb-7">
+        <div className="p-4 sm:p-6 lg:p-8 space-y-5 pb-[100px] md:pb-8">
           {/* Breadcrumb + back (desktop) */}
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-1.5 text-[12px] text-muted-foreground min-w-0 flex-1">
@@ -224,17 +226,17 @@ export default function LessonPage() {
 
           {/* Module progress mini bar */}
           {moduleLessons.length > 0 && moduleLessonIndex >= 0 && (
-            <div className="bg-card border border-border rounded-xl px-3.5 py-2.5 flex items-center gap-3">
-              <div className="text-[11px] uppercase tracking-wider font-bold text-primary whitespace-nowrap">
+            <div className="bg-card border rounded-lg px-4 py-2.5 flex items-center gap-3">
+              <div className="text-xs font-semibold text-primary whitespace-nowrap">
                 Aula {moduleLessonIndex + 1}<span className="text-muted-foreground">/{moduleLessons.length}</span>
               </div>
               <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-primary to-teal transition-all duration-500"
+                  className="h-full rounded-full bg-primary transition-all duration-500"
                   style={{ width: `${((moduleLessonIndex + 1) / moduleLessons.length) * 100}%` }}
                 />
               </div>
-              <span className="text-[11px] font-semibold text-muted-foreground whitespace-nowrap">
+              <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
                 {moduleCompletedCount}/{moduleLessons.length} ✓
               </span>
             </div>
@@ -242,7 +244,7 @@ export default function LessonPage() {
 
           {/* Video Player */}
           {lesson.video_url ? (
-            <div className="aspect-video w-full rounded-xl overflow-hidden bg-black border border-border relative">
+            <div className="aspect-video w-full rounded-lg overflow-hidden bg-black border relative">
               <iframe
                 src={getVideoEmbedUrl(lesson.video_url)}
                 className="w-full h-full"
@@ -260,7 +262,7 @@ export default function LessonPage() {
           {lesson.embed_url && /^https:\/\//i.test(lesson.embed_url) && (
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-3 flex-wrap">
-                <p className="text-[10px] uppercase tracking-[0.13em] text-primary font-bold">
+                <p className="text-xs font-semibold text-primary">
                   {lesson.embed_title || 'Conteúdo interativo'}
                 </p>
                 <a
@@ -272,7 +274,7 @@ export default function LessonPage() {
                   Abrir em nova aba <ExternalLink className="h-3 w-3" />
                 </a>
               </div>
-              <div className="w-full rounded-xl overflow-hidden bg-black border border-border" style={{ aspectRatio: '16 / 10' }}>
+              <div className="w-full rounded-lg overflow-hidden bg-black border" style={{ aspectRatio: '16 / 10' }}>
                 <iframe
                   src={lesson.embed_url}
                   className="w-full h-full"
@@ -288,10 +290,10 @@ export default function LessonPage() {
 
           {/* Title + Meta */}
           <div>
-            <h1 className="text-[22px] md:text-[26px] font-display font-bold leading-tight">{lesson.title}</h1>
+            <h1 className="font-['Playfair_Display'] text-2xl font-bold leading-tight text-foreground">{lesson.title}</h1>
             <div className="flex gap-4 text-xs text-muted-foreground mt-2 pb-4 border-b border-border flex-wrap">
               {currentModule && <span>📂 {currentModule.title}</span>}
-              {isCompleted && <span className="text-teal font-semibold">✓ Concluída</span>}
+              {isCompleted && <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300 text-xs">✓ Concluída</Badge>}
             </div>
           </div>
 
@@ -311,16 +313,16 @@ export default function LessonPage() {
               variant={isCompleted ? 'outline' : 'default'}
               onClick={toggleComplete}
               disabled={marking}
-              className={`w-full sm:w-auto h-12 text-[15px] font-semibold transition-all ${
+              className={`w-full sm:w-auto font-semibold transition-all ${
                 isCompleted
-                  ? 'border-teal text-teal hover:bg-teal-lt'
-                  : 'gradient-primary text-white hover:scale-[1.02] shadow-card-hover'
+                  ? 'border-emerald-300 text-emerald-800 hover:bg-emerald-50'
+                  : ''
               }`}
             >
               {marking ? (
-                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
-                <CheckCircle className={`h-5 w-5 mr-2 ${isCompleted ? '' : 'animate-scale-in'}`} />
+                <CheckCircle className="h-4 w-4 mr-2" />
               )}
               {isCompleted ? 'Aula concluída — desmarcar' : 'Marcar aula como concluída'}
             </Button>
@@ -329,7 +331,7 @@ export default function LessonPage() {
           {/* Attachments — MOBILE/TABLET only (desktop shows them in sidebar) */}
           {attachments.length > 0 && (
             <div className="lg:hidden pt-5 border-t border-border">
-              <p className="text-[10px] uppercase tracking-[0.13em] text-primary font-bold mb-3">Materiais de Apoio</p>
+              <p className="font-['Playfair_Display'] text-sm font-semibold text-foreground mb-3">Materiais de Apoio</p>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                 {attachments.map(att => {
                   const meta = getAttachmentMeta(att.name, att.type);
@@ -340,7 +342,7 @@ export default function LessonPage() {
                       href={att.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group relative aspect-square flex flex-col items-center justify-center gap-2 p-3 bg-card border border-border rounded-xl hover:border-primary hover:shadow-md transition-all"
+                      className="group relative aspect-square flex flex-col items-center justify-center gap-2 p-3 bg-card border rounded-lg hover:border-primary hover:shadow-sm transition-all"
                     >
                       <div className={`flex items-center justify-center w-14 h-14 rounded-lg ${meta.bg}`}>
                         <Icon className={`h-8 w-8 ${meta.color}`} strokeWidth={1.75} />
@@ -368,7 +370,7 @@ export default function LessonPage() {
             ) : <div />}
 
             {nextLesson ? (
-              <Button size="default" className="gradient-primary text-white" onClick={() => navigate(`/lesson/${nextLesson.id}`)}>
+              <Button size="default" onClick={() => navigate(`/lesson/${nextLesson.id}`)}>
                 Próxima Aula <ArrowRight className="h-4 w-4 ml-1.5" />
               </Button>
             ) : (
@@ -382,7 +384,7 @@ export default function LessonPage() {
         {/* Sidebar - Course Content */}
         <div className="hidden lg:block border-l border-border bg-card overflow-y-auto">
           <div className="px-4 py-3 border-b border-border">
-            <p className="text-[10px] uppercase tracking-[0.12em] text-primary font-bold">Conteúdo do Curso</p>
+            <p className="font-['Playfair_Display'] text-sm font-semibold text-foreground">Conteúdo do Curso</p>
           </div>
 
           {allModules.map((mod, modIdx) => {
@@ -410,12 +412,12 @@ export default function LessonPage() {
                       onClick={() => navigate(`/lesson/${l.id}`)}
                       className={`w-full flex items-center gap-2 px-4 py-2 pl-7 text-left text-xs transition-all border-b border-border/30 ${
                         isCurrent
-                          ? 'bg-blue-lt text-primary font-medium border-r-2 border-r-primary'
+                          ? 'bg-primary/10 text-primary font-medium border-r-2 border-r-primary'
                           : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
                       }`}
                     >
                       {isLCompleted ? (
-                        <span className="text-teal">✓</span>
+                        <span className="text-emerald-700">✓</span>
                       ) : isCurrent ? (
                         <span className="text-primary">●</span>
                       ) : (
@@ -432,7 +434,7 @@ export default function LessonPage() {
           {/* Attachments */}
           {attachments.length > 0 && (
             <div className="p-4 border-t border-border">
-              <p className="text-[10px] uppercase tracking-[0.13em] text-primary font-bold mb-3">Materiais de Apoio</p>
+              <p className="font-['Playfair_Display'] text-sm font-semibold text-foreground mb-3">Materiais de Apoio</p>
               <div className="grid grid-cols-2 gap-2.5">
                 {attachments.map(att => {
                   const meta = getAttachmentMeta(att.name, att.type);
@@ -443,7 +445,7 @@ export default function LessonPage() {
                       href={att.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group relative aspect-square flex flex-col items-center justify-center gap-2 p-3 bg-card border border-border rounded-xl hover:border-primary hover:shadow-md transition-all"
+                      className="group relative aspect-square flex flex-col items-center justify-center gap-2 p-3 bg-card border rounded-lg hover:border-primary hover:shadow-sm transition-all"
                     >
                       <div className={`flex items-center justify-center w-14 h-14 rounded-lg ${meta.bg}`}>
                         <Icon className={`h-8 w-8 ${meta.color}`} strokeWidth={1.75} />
@@ -463,8 +465,8 @@ export default function LessonPage() {
 
         {/* Mobile fixed bottom nav: Anterior / posição / Próxima */}
         <div
-          className="fixed left-0 right-0 z-30 md:hidden bg-card/95 backdrop-blur-lg border-t border-border px-3 py-2"
-          style={{ bottom: 'calc(60px + env(safe-area-inset-bottom))' }}
+          className="fixed left-0 right-0 z-30 md:hidden bg-card border-t px-3 py-2"
+          style={{ bottom: 0, paddingBottom: 'calc(8px + env(safe-area-inset-bottom))' }}
         >
           <div className="flex items-center gap-2">
             <Button
@@ -478,7 +480,7 @@ export default function LessonPage() {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div className="text-center px-1">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Aula</p>
+              <p className="text-[10px] text-muted-foreground font-medium">Aula</p>
               <p className="text-[12px] font-semibold leading-tight">
                 {moduleLessonIndex >= 0 ? `${moduleLessonIndex + 1} de ${moduleLessons.length}` : ''}
               </p>
@@ -487,7 +489,7 @@ export default function LessonPage() {
               <Button
                 size="default"
                 onClick={() => navigate(`/lesson/${nextLesson.id}`)}
-                className="flex-1 h-11 gradient-primary text-white"
+                className="flex-1 h-11"
                 aria-label="Próxima aula"
               >
                 Próxima <ArrowRight className="h-4 w-4 ml-1" />
@@ -496,7 +498,7 @@ export default function LessonPage() {
               <Button
                 size="default"
                 onClick={() => currentModule && navigate(`/course/${currentModule.course_id}`)}
-                className="flex-1 h-11 gradient-primary text-white"
+                className="flex-1 h-11"
               >
                 Finalizar <CheckCircle className="h-4 w-4 ml-1" />
               </Button>
@@ -507,8 +509,8 @@ export default function LessonPage() {
         {/* Mobile sidebar toggle (FAB) — acima da barra de aulas mobile */}
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="fixed right-4 lg:hidden h-12 w-12 rounded-full gradient-primary text-white flex items-center justify-center shadow-lg z-40"
-          style={{ bottom: 'calc(140px + env(safe-area-inset-bottom))' }}
+          className="fixed right-4 lg:hidden h-12 w-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md z-40"
+          style={{ bottom: 'calc(80px + env(safe-area-inset-bottom))' }}
           aria-label="Conteúdo do curso"
         >
           {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -520,7 +522,7 @@ export default function LessonPage() {
             <div className="absolute inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
             <div className="absolute right-0 top-0 bottom-0 w-80 bg-card border-l border-border overflow-y-auto">
               <div className="flex items-center justify-between p-4 border-b border-border">
-                <p className="text-[10px] uppercase tracking-[0.12em] text-primary font-bold">Conteúdo do Curso</p>
+                <p className="font-['Playfair_Display'] text-sm font-semibold text-foreground">Conteúdo do Curso</p>
                 <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)}>
                   <X className="h-5 w-5" />
                 </Button>
@@ -537,8 +539,8 @@ export default function LessonPage() {
                       const isCurrent = l.id === id;
                       const isLCompleted = completedLessons.has(l.id);
                       return (
-                        <button key={l.id} onClick={() => { navigate(`/lesson/${l.id}`); setSidebarOpen(false); }} className={`w-full flex items-center gap-2 px-4 py-2 pl-7 text-left text-xs ${isCurrent ? 'bg-blue-lt text-primary font-medium' : 'text-muted-foreground hover:text-foreground'}`}>
-                          {isLCompleted ? <span className="text-teal">✓</span> : isCurrent ? <span className="text-primary">●</span> : <span>○</span>}
+                        <button key={l.id} onClick={() => { navigate(`/lesson/${l.id}`); setSidebarOpen(false); }} className={`w-full flex items-center gap-2 px-4 py-2 pl-7 text-left text-xs ${isCurrent ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:text-foreground'}`}>
+                          {isLCompleted ? <span className="text-emerald-700">✓</span> : isCurrent ? <span className="text-primary">●</span> : <span>○</span>}
                           <span className="truncate">{l.title}</span>
                         </button>
                       );
@@ -548,7 +550,7 @@ export default function LessonPage() {
               })}
               {attachments.length > 0 && (
                 <div className="p-4">
-                  <p className="text-[10px] uppercase tracking-[0.13em] text-primary font-bold mb-3">Materiais de Apoio</p>
+                  <p className="font-['Playfair_Display'] text-sm font-semibold text-foreground mb-3">Materiais de Apoio</p>
                   <div className="grid grid-cols-2 gap-2.5">
                     {attachments.map(att => {
                       const meta = getAttachmentMeta(att.name, att.type);
@@ -559,7 +561,7 @@ export default function LessonPage() {
                           href={att.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="group relative aspect-square flex flex-col items-center justify-center gap-2 p-3 bg-card border border-border rounded-xl hover:border-primary hover:shadow-md transition-all"
+                          className="group relative aspect-square flex flex-col items-center justify-center gap-2 p-3 bg-card border rounded-lg hover:border-primary hover:shadow-sm transition-all"
                         >
                           <div className={`flex items-center justify-center w-14 h-14 rounded-lg ${meta.bg}`}>
                             <Icon className={`h-8 w-8 ${meta.color}`} strokeWidth={1.75} />

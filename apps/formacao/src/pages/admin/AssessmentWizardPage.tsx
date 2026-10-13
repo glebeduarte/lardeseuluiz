@@ -12,6 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { PageHero } from '@/components/layout/PageHero';
+import { CabecalhoPagina } from '@/compartilhado';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, ArrowRight, Check, Plus, Trash2, ChevronDown, ChevronRight, Sparkles, Loader2, RefreshCw, AlertCircle, GripVertical, Lock } from 'lucide-react';
@@ -493,10 +494,10 @@ export default function AssessmentWizardPage() {
               <span className="text-xs font-bold text-muted-foreground">#{qi + 1}</span>
               <Badge variant="outline">{QUESTION_TYPE_LABELS[q.question_type]}</Badge>
               {q.ai_generated && (
-                <Badge variant="secondary" className="gap-1"><Sparkles className="h-3 w-3" /> IA</Badge>
+                <Badge variant="outline" className="bg-muted text-muted-foreground border-border gap-1"><Sparkles className="h-3 w-3" /> IA</Badge>
               )}
               {q.needs_review && (
-                <Badge className="bg-amber-100 text-amber-700 border-amber-200 gap-1">
+                <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 gap-1">
                   <AlertCircle className="h-3 w-3" /> Revisar
                 </Badge>
               )}
@@ -512,7 +513,7 @@ export default function AssessmentWizardPage() {
                 </Button>
               )}
               {q.needs_review && (
-                <Button variant="outline" size="sm" className="text-green-600 gap-1" onClick={() => markReviewed(qi)}>
+                <Button variant="outline" size="sm" className="text-emerald-700 gap-1" onClick={() => markReviewed(qi)}>
                   <Check className="h-4 w-4" /> Aprovada
                 </Button>
               )}
@@ -669,22 +670,24 @@ export default function AssessmentWizardPage() {
 
   return (
     <DashboardLayout>
+      <CabecalhoPagina
+        titulo={isEdit ? 'Editar Avaliação' : 'Nova Avaliação'}
+        descricao={isEdit ? 'Edite as configurações e questões da avaliação' : 'Configure uma nova avaliação para o curso'}
+        acoes={
+          <>
+            {hasAttempts && (
+              <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 gap-1">
+                <Lock className="h-3 w-3" /> Questões bloqueadas (há tentativas)
+              </Badge>
+            )}
+            <Button variant="outline" onClick={() => navigate('/admin/assessments')}>
+              <ArrowLeft className="h-4 w-4 mr-2" /> Voltar
+            </Button>
+          </>
+        }
+      />
       <div className="space-y-6">
-        <PageHero
-          title={isEdit ? 'Editar Avaliação' : 'Nova Avaliação'}
-          description={isEdit ? 'Edite as configurações e questões da avaliação' : 'Configure uma nova avaliação para o curso'}
-        />
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/admin/assessments')}>
-            <ArrowLeft className="h-4 w-4 mr-2" /> Voltar
-          </Button>
-          {hasAttempts && (
-            <Badge variant="outline" className="text-amber-600 border-amber-300 gap-1">
-              <Lock className="h-3 w-3" /> Questões bloqueadas (há tentativas)
-            </Badge>
-          )}
-        </div>
+        <div className="max-w-4xl space-y-6">
 
         {/* Step Indicator */}
         <div className="flex items-center gap-2 overflow-x-auto pb-2">
@@ -693,10 +696,10 @@ export default function AssessmentWizardPage() {
               key={s}
               onClick={() => i <= step && setStep(i)}
               disabled={i > step}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
-                i === step ? 'bg-primary text-primary-foreground' :
-                i < step ? 'bg-primary/10 text-primary cursor-pointer' :
-                'bg-muted text-muted-foreground cursor-not-allowed'
+              className={`flex items-center gap-2 px-4 py-2 rounded-md border text-sm font-medium transition-colors whitespace-nowrap ${
+                i === step ? 'bg-primary text-primary-foreground border-primary' :
+                i < step ? 'bg-primary/10 text-primary border-primary/20 cursor-pointer' :
+                'bg-muted text-muted-foreground border-border cursor-not-allowed'
               }`}
             >
               {i < step ? <Check className="h-4 w-4" /> : <span className="h-5 w-5 rounded-full border-2 border-current flex items-center justify-center text-xs">{i + 1}</span>}
@@ -708,7 +711,7 @@ export default function AssessmentWizardPage() {
         {/* Step 1: Course Selection */}
         {step === 0 && (
           <Card>
-            <CardHeader><CardTitle>Selecionar Curso</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="font-['Playfair_Display'] text-lg">Selecionar Curso</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">Escolha em qual curso esta avaliação será criada.</p>
               <div className="grid gap-2">
@@ -716,7 +719,7 @@ export default function AssessmentWizardPage() {
                   <button
                     key={c.id}
                     onClick={() => setSelectedCourseId(c.id)}
-                    className={`text-left p-4 rounded-xl border transition-colors ${
+                    className={`text-left p-4 rounded-lg border transition-colors ${
                       selectedCourseId === c.id ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/30'
                     }`}
                   >
@@ -732,7 +735,7 @@ export default function AssessmentWizardPage() {
         {step === 1 && (
           <Card>
             <CardHeader>
-              <CardTitle>Definir Escopo</CardTitle>
+              <CardTitle className="font-['Playfair_Display'] text-lg">Definir Escopo</CardTitle>
               <p className="text-sm text-muted-foreground">{selectedLessonIds.size} aula(s) selecionada(s)</p>
             </CardHeader>
             <CardContent className="space-y-2">
@@ -740,7 +743,7 @@ export default function AssessmentWizardPage() {
                 const allSelected = mod.lessons.every(l => selectedLessonIds.has(l.id));
                 const someSelected = mod.lessons.some(l => selectedLessonIds.has(l.id));
                 return (
-                  <div key={mod.id} className="border rounded-xl overflow-hidden">
+                  <div key={mod.id} className="border rounded-lg overflow-hidden">
                     <div className="flex items-center gap-3 p-3 bg-muted/30">
                       <Checkbox
                         checked={allSelected}
@@ -773,7 +776,7 @@ export default function AssessmentWizardPage() {
         {/* Step 3: Configuration */}
         {step === 2 && (
           <Card>
-            <CardHeader><CardTitle>Configurar Avaliação</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="font-['Playfair_Display'] text-lg">Configurar Avaliação</CardTitle></CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="title">Nome da Avaliação *</Label>
@@ -827,7 +830,7 @@ export default function AssessmentWizardPage() {
           <div className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="font-['Playfair_Display'] text-lg flex items-center gap-2">
                   <Sparkles className="h-5 w-5 text-primary" />
                   Gerar Questões com IA
                 </CardTitle>
@@ -841,7 +844,7 @@ export default function AssessmentWizardPage() {
                   {selectedLessonIds.size > 0 ? (
                     <div className="flex flex-wrap gap-1.5">
                       {modules.flatMap(m => m.lessons).filter(l => selectedLessonIds.has(l.id)).map(l => (
-                        <Badge key={l.id} variant="secondary" className="text-xs">{l.title}</Badge>
+                        <Badge key={l.id} variant="outline" className="text-xs">{l.title}</Badge>
                       ))}
                     </div>
                   ) : (
@@ -907,14 +910,14 @@ export default function AssessmentWizardPage() {
               <CardHeader>
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div>
-                    <CardTitle>Questões ({questions.length})</CardTitle>
+                    <CardTitle className="font-['Playfair_Display'] text-lg">Questões ({questions.length})</CardTitle>
                     {needsReviewCount > 0 && (
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
-                        <p className="text-sm text-amber-600 flex items-center gap-1">
+                        <p className="text-sm text-amber-700 flex items-center gap-1">
                           <AlertCircle className="h-4 w-4" />
                           {needsReviewCount} questão(ões) pendente(s) de revisão
                         </p>
-                        <Button variant="outline" size="sm" className="text-green-600 gap-1" onClick={() => {
+                        <Button variant="outline" size="sm" className="text-emerald-700 gap-1" onClick={() => {
                           setQuestions(prev => prev.map(q => ({ ...q, needs_review: false })));
                         }}>
                           <Check className="h-4 w-4" /> Aprovar Todas
@@ -922,7 +925,7 @@ export default function AssessmentWizardPage() {
                       </div>
                     )}
                     {hasAttempts && (
-                      <p className="text-sm text-amber-600 flex items-center gap-1 mt-1">
+                      <p className="text-sm text-amber-700 flex items-center gap-1 mt-1">
                         <Lock className="h-4 w-4" />
                         Questões bloqueadas — já existem tentativas registradas
                       </p>
@@ -936,7 +939,7 @@ export default function AssessmentWizardPage() {
                       <Button size="sm" variant="outline" onClick={() => addQuestion('ordering')}><Plus className="h-4 w-4 mr-1" /> Ordenação</Button>
                       <Button size="sm" variant="outline" onClick={() => addQuestion('fill_blank')}><Plus className="h-4 w-4 mr-1" /> Lacuna</Button>
                       <Button size="sm" variant="outline" onClick={() => addQuestion('essay')}><Plus className="h-4 w-4 mr-1" /> Dissertativa</Button>
-                      <Button size="sm" variant="secondary" onClick={() => setStep(3)} className="gap-1"><Sparkles className="h-4 w-4" /> Gerar mais com IA</Button>
+                      <Button size="sm" variant="outline" onClick={() => setStep(3)} className="gap-1"><Sparkles className="h-4 w-4" /> Gerar mais com IA</Button>
                     </div>
                   )}
                 </div>
@@ -951,7 +954,7 @@ export default function AssessmentWizardPage() {
         {/* Step 6: Position */}
         {step === 5 && (
           <Card>
-            <CardHeader><CardTitle>Posicionamento no Curso</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="font-['Playfair_Display'] text-lg">Posicionamento no Curso</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label>Onde a avaliação aparecerá?</Label>
@@ -1009,7 +1012,7 @@ export default function AssessmentWizardPage() {
           <div className="flex items-center gap-2">
             {step === STEPS.length - 1 ? (
               <>
-                {needsReviewCount > 0 && <span className="text-xs text-amber-600 mr-2">{needsReviewCount} questão(ões) pendente(s) de revisão</span>}
+                {needsReviewCount > 0 && <span className="text-xs text-amber-700 mr-2">{needsReviewCount} questão(ões) pendente(s) de revisão</span>}
                 {isEdit && (
                   <Button variant="outline" onClick={archiveAssessment} disabled={saving} className="text-muted-foreground">
                     Arquivar

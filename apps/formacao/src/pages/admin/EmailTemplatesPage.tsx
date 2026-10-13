@@ -17,6 +17,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Mail, Edit, Eye, Save, X, Code, Variable, Send, Search, Users, Filter, CheckCircle, History, RefreshCw, Clock, BarChart3, Loader2, AlertTriangle } from 'lucide-react';
 import { PageHero } from '@/components/layout/PageHero';
+import { CabecalhoPagina } from '@/compartilhado';
 import { Progress } from '@/components/ui/progress';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { format } from 'date-fns';
@@ -386,17 +387,17 @@ export default function EmailTemplatesPage() {
   };
 
   const getStatusBadge = (campaign: EmailCampaign) => {
-    if (campaign.status === 'sent') return <Badge className="bg-green-600 text-white">Enviado</Badge>;
-    if (campaign.status === 'partial') return <Badge className="bg-yellow-600 text-white">Parcial</Badge>;
+    if (campaign.status === 'sent') return <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300">Enviado</Badge>;
+    if (campaign.status === 'partial') return <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">Parcial</Badge>;
     return <Badge variant="destructive">Falhou</Badge>;
   };
 
   return (
     <DashboardLayout>
-      <PageHero title="Comunicação" description="Envie e-mails e gerencie templates de comunicação" />
-      <div className="p-4 sm:p-6 md:p-7 space-y-6">
+      <CabecalhoPagina titulo="Comunicação" descricao="Envie e-mails e gerencie templates de comunicação" />
+      <div className="space-y-6">
         {/* Daily Usage Card */}
-        <Card className="bg-card/50 border-border/50">
+        <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -446,7 +447,7 @@ export default function EmailTemplatesPage() {
           {/* COMPOSE TAB */}
           <TabsContent value="compose" className="space-y-6">
             {/* Variables reference */}
-            <Card className="bg-card/50 border-border/50">
+            <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <Variable className="h-4 w-4 text-primary" />
@@ -474,10 +475,10 @@ export default function EmailTemplatesPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Left: Compose Form */}
               <div className="space-y-4">
-                <Card className="bg-card/50 border-border/50">
+                <Card>
                   <CardHeader>
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg flex items-center gap-2">
+                      <CardTitle className="font-['Playfair_Display'] text-lg flex items-center gap-2">
                         <Send className="h-5 w-5 text-primary" />
                         Compor E-mail
                       </CardTitle>
@@ -531,9 +532,9 @@ export default function EmailTemplatesPage() {
               </div>
 
               {/* Right: Recipients */}
-              <Card className="bg-card/50 border-border/50">
+              <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
+                  <CardTitle className="font-['Playfair_Display'] text-lg flex items-center gap-2">
                     <Filter className="h-5 w-5 text-primary" />
                     Destinatários
                   </CardTitle>
@@ -573,7 +574,7 @@ export default function EmailTemplatesPage() {
                       <Checkbox checked={allSelected} onCheckedChange={toggleSelectAll} />
                       <span className="text-sm font-medium">Selecionar todos</span>
                     </div>
-                    <Badge variant="secondary">{filteredStudents.length} aluno(s)</Badge>
+                    <Badge variant="outline" className="bg-muted text-muted-foreground border-border">{filteredStudents.length} aluno(s)</Badge>
                   </div>
                   <div className="max-h-[400px] overflow-y-auto space-y-1">
                     {loadingStudents ? (
@@ -646,13 +647,13 @@ export default function EmailTemplatesPage() {
             {loadingCampaigns ? (
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
-                  <Card key={i} className="bg-card/50 border-border/50 animate-pulse">
+                  <Card key={i} className="animate-pulse">
                     <CardContent className="p-4"><div className="h-16 bg-muted rounded" /></CardContent>
                   </Card>
                 ))}
               </div>
             ) : campaigns.length === 0 ? (
-              <Card className="bg-card/50 border-border/50">
+              <Card>
                 <CardContent className="p-8 text-center">
                   <Mail className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <p className="text-muted-foreground">Nenhuma campanha enviada ainda.</p>
@@ -662,7 +663,7 @@ export default function EmailTemplatesPage() {
             ) : (
               <div className="space-y-3">
                 {campaigns.map((campaign) => (
-                  <Card key={campaign.id} className="bg-card/50 border-border/50">
+                  <Card key={campaign.id}>
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
@@ -680,7 +681,7 @@ export default function EmailTemplatesPage() {
                               {campaign.recipients_count} destinatário(s)
                             </span>
                             <span className="flex items-center gap-1">
-                              <CheckCircle className="h-3 w-3 text-green-500" />
+                              <CheckCircle className="h-3 w-3 text-emerald-600" />
                               {campaign.sent_count} enviado(s)
                             </span>
                             {campaign.failed_count > 0 && (
@@ -762,7 +763,7 @@ export default function EmailTemplatesPage() {
             {loadingTemplates ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[1, 2, 3].map((i) => (
-                  <Card key={i} className="bg-card/50 border-border/50 animate-pulse">
+                  <Card key={i} className="animate-pulse">
                     <CardHeader><div className="h-6 bg-muted rounded w-3/4" /></CardHeader>
                     <CardContent><div className="h-20 bg-muted rounded" /></CardContent>
                   </Card>
@@ -771,7 +772,7 @@ export default function EmailTemplatesPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {templates.map((template) => (
-                  <Card key={template.id} className="bg-card/50 border-border/50">
+                  <Card key={template.id}>
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
@@ -779,7 +780,7 @@ export default function EmailTemplatesPage() {
                             <Mail className="h-5 w-5 text-primary" />
                           </div>
                           <div>
-                            <CardTitle className="text-lg">{template.name}</CardTitle>
+                            <CardTitle className="font-['Playfair_Display'] text-lg">{template.name}</CardTitle>
                             <Badge variant={template.is_active ? 'default' : 'secondary'} className="mt-1">
                               {template.is_active ? 'Ativo' : 'Inativo'}
                             </Badge>

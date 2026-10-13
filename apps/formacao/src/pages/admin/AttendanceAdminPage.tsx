@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { PageHero } from '@/components/layout/PageHero';
+import { CabecalhoPagina } from '@/compartilhado';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -276,7 +277,7 @@ export default function AttendanceAdminPage() {
   const getFrequencyColor = (count: number, total: number) => {
     if (total === 0) return 'text-muted-foreground';
     const pct = (count / total) * 100;
-    if (pct >= 75) return 'text-success';
+    if (pct >= 75) return 'text-emerald-700';
     if (pct >= 50) return 'text-accent';
     return 'text-destructive';
   };
@@ -291,8 +292,8 @@ export default function AttendanceAdminPage() {
 
   return (
     <DashboardLayout>
-      <PageHero title="Presenças" description="Gerencie a frequência das aulas do ESDE" />
-      <div className="p-4 sm:p-6 space-y-6">
+      <CabecalhoPagina titulo="Presenças" descricao="Gerencie a frequência das aulas do ESDE" />
+      <div className="space-y-6">
 
         {loading ? (
           <div className="flex items-center justify-center py-12">
@@ -300,14 +301,14 @@ export default function AttendanceAdminPage() {
           </div>
         ) : lessons.length === 0 ? (
           <Card>
-            <CardContent className="py-12 text-center text-muted-foreground">
+            <CardContent className="py-8 text-center text-muted-foreground">
               Nenhuma aula encontrada. Cadastre aulas no curso ESDE primeiro.
             </CardContent>
           </Card>
         ) : (() => {
           const courseTitles = ['ESDE I', 'ESDE II'].filter((t) => lessons.some((l) => l.course_title === t));
           const renderTable = (rows: LessonWithAttendance[]) => (
-            <div className="overflow-x-auto rounded-lg border border-border">
+            <div className="rounded-lg border bg-card overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-muted/50 border-b border-border">
@@ -326,7 +327,7 @@ export default function AttendanceAdminPage() {
                       </td>
                     </tr>
                   ) : rows.map((lesson, i) => (
-                    <tr key={lesson.id} className={`border-b border-border last:border-0 ${i % 2 === 0 ? 'bg-card' : 'bg-muted/40'}`}>
+                    <tr key={lesson.id} className="border-b border-border last:border-0">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-semibold">
@@ -349,7 +350,7 @@ export default function AttendanceAdminPage() {
                       </td>
                       <td className="px-4 py-3 text-center">
                         {lesson.active_link ? (
-                          <Badge variant="outline" className="bg-success/10 text-success border-success/20 gap-1">
+                          <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300 gap-1">
                             <Clock className="h-3 w-3" />
                             {getRemainingTime(lesson.active_link.expires_at)}
                           </Badge>
@@ -533,7 +534,7 @@ export default function AttendanceAdminPage() {
               </div>
 
               {selectedLesson.active_link && (
-                <div className="flex items-center gap-2 text-sm text-success">
+                <div className="flex items-center gap-2 text-sm text-emerald-700">
                   <Clock className="h-4 w-4" />
                   Link ativo — expira em {getRemainingTime(selectedLesson.active_link.expires_at)}
                 </div>

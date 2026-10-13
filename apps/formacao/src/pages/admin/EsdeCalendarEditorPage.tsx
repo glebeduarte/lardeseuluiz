@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { PageHero } from '@/components/layout/PageHero';
+import { CabecalhoPagina } from '@/compartilhado';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -40,14 +41,15 @@ const COURSE_OPTIONS: { code: string; label: string }[] = [
 ];
 
 const moduloColors: Record<string, string> = {
-  'Módulo I': 'bg-primary/10 text-primary border-primary/20',
-  'Módulo II': 'bg-accent/10 text-accent border-accent/20',
-  'Módulo III': 'bg-success/10 text-success border-success/20',
-  'Módulo IV': 'bg-warning/10 text-warning border-warning/20',
-  'Módulo V': 'bg-destructive/10 text-destructive border-destructive/20',
-  'Módulo VI': 'bg-primary/10 text-primary border-primary/20',
-  'Módulo VII': 'bg-accent/10 text-accent border-accent/20',
-  'Módulo VIII': 'bg-success/10 text-success border-success/20',
+  // Mesmas cores por módulo do calendário público (paleta do padrão único)
+  'Módulo I': 'bg-primary/10 text-primary border-primary/30',
+  'Módulo II': 'bg-accent/20 text-accent-foreground border-accent/40',
+  'Módulo III': 'bg-emerald-100 text-emerald-800 border-emerald-300',
+  'Módulo IV': 'bg-amber-100 text-amber-800 border-amber-300',
+  'Módulo V': 'bg-sky-100 text-sky-800 border-sky-300',
+  'Módulo VI': 'bg-primary/10 text-primary border-primary/30',
+  'Módulo VII': 'bg-accent/20 text-accent-foreground border-accent/40',
+  'Módulo VIII': 'bg-emerald-100 text-emerald-800 border-emerald-300',
 };
 
 const emptyEntry = (courseCode: string): Omit<Entry, 'id'> => ({
@@ -145,12 +147,12 @@ export default function EsdeCalendarEditorPage() {
 
   return (
     <DashboardLayout>
-      <PageHero
-        title="Editor dos Calendários de Formação"
-        description="Edite, adicione ou remova aulas, feriados, recessos e encontros extras dos cronogramas públicos."
+      <CabecalhoPagina
+        titulo="Editor dos Calendários de Formação"
+        descricao="Edite, adicione ou remova aulas, feriados, recessos e encontros extras dos cronogramas públicos."
       />
 
-      <div className="container mx-auto px-4 py-6 space-y-4">
+      <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
           <div className="flex items-center gap-3">
             <Label className="text-sm">Curso:</Label>
@@ -168,8 +170,8 @@ export default function EsdeCalendarEditorPage() {
               {entries.length} {entries.length === 1 ? 'entrada' : 'entradas'}
             </p>
           </div>
-          <Button onClick={openNew} className="gap-2">
-            <Plus className="h-4 w-4" /> Nova entrada
+          <Button onClick={openNew}>
+            <Plus className="h-4 w-4 mr-2" /> Nova entrada
           </Button>
         </div>
 
@@ -178,8 +180,8 @@ export default function EsdeCalendarEditorPage() {
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
         ) : (
-          <Card className="overflow-hidden">
-            <div className="overflow-x-auto">
+          <div className="rounded-lg border bg-card overflow-x-auto">
+            <div>
               <table className="w-full text-sm">
                 <thead className="bg-muted/50 border-b border-border">
                   <tr>
@@ -216,7 +218,7 @@ export default function EsdeCalendarEditorPage() {
                       </td>
                       <td className="px-3 py-2 text-muted-foreground">{e.facilitador || '—'}</td>
                       <td className="px-3 py-2">
-                        <Badge variant="secondary" className="capitalize text-xs">{e.tipo}</Badge>
+                        <Badge variant="outline" className="bg-muted text-muted-foreground border-border capitalize text-xs">{e.tipo}</Badge>
                       </td>
                       <td className="px-3 py-2 text-right">
                         <div className="flex items-center justify-end gap-1">
@@ -240,7 +242,7 @@ export default function EsdeCalendarEditorPage() {
                 </tbody>
               </table>
             </div>
-          </Card>
+          </div>
         )}
       </div>
 

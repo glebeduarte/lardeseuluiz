@@ -136,16 +136,16 @@ export function CourseStudentProgress({
   );
 
   const getProgressColor = (percent: number) => {
-    if (percent === 100) return 'text-success';
+    if (percent === 100) return 'text-emerald-700';
     if (percent >= 50) return 'text-primary';
-    if (percent > 0) return 'text-warning';
+    if (percent > 0) return 'text-amber-700';
     return 'text-muted-foreground';
   };
 
   const getProgressBadgeClass = (percent: number) => {
-    if (percent === 100) return 'bg-success/20 text-success';
-    if (percent > 0) return 'bg-primary/20 text-primary';
-    return 'bg-muted text-muted-foreground';
+    if (percent === 100) return 'bg-emerald-100 text-emerald-800 border-emerald-300';
+    if (percent > 0) return 'bg-sky-100 text-sky-800 border-sky-300';
+    return 'bg-muted text-muted-foreground border-border';
   };
 
   return (
@@ -172,12 +172,12 @@ export function CourseStudentProgress({
 
           {/* Stats */}
           <div className="flex gap-3">
-            <Badge variant="secondary" className="text-sm">
+            <Badge variant="outline" className="text-sm bg-muted text-muted-foreground border-border">
               <Users className="h-3 w-3 mr-1" />
               {students.length} alunos matriculados
             </Badge>
             {students.length > 0 && (
-              <Badge variant="secondary" className="text-sm">
+              <Badge variant="outline" className="text-sm bg-muted text-muted-foreground border-border">
                 <CheckCircle className="h-3 w-3 mr-1" />
                 {students.filter((s) => s.progressPercent === 100).length} concluíram
               </Badge>
@@ -208,7 +208,7 @@ export function CourseStudentProgress({
                     <CardContent className="p-4">
                         <div className="flex items-start gap-3">
                          {/* Avatar */}
-                         <div className="h-9 w-9 rounded-full gradient-primary flex items-center justify-center text-primary-foreground font-medium flex-shrink-0 text-sm">
+                         <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium flex-shrink-0 text-sm">
                            {student.studentName.charAt(0).toUpperCase()}
                          </div>
 
@@ -220,7 +220,7 @@ export function CourseStudentProgress({
                            </p>
                            <div className="flex items-center gap-2 mt-1">
                              {student.progressPercent === 100 ? (
-                               <CheckCircle className="h-3.5 w-3.5 text-success shrink-0" />
+                               <CheckCircle className="h-3.5 w-3.5 text-emerald-700 shrink-0" />
                              ) : (
                                <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                              )}
@@ -229,7 +229,7 @@ export function CourseStudentProgress({
                              >
                                {student.completedLessons}/{student.totalLessons}
                              </span>
-                             <Badge className={`${getProgressBadgeClass(student.progressPercent)} text-[10px] px-1.5 py-0`}>
+                             <Badge variant="outline" className={`${getProgressBadgeClass(student.progressPercent)} text-[10px] px-1.5 py-0`}>
                                {student.progressPercent}%
                              </Badge>
                            </div>

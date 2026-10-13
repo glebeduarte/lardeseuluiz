@@ -51,14 +51,14 @@ function CourseInfo({ course }: { course: CourseData }) {
       label: 'Gratuito',
       sub: 'Sem custo de inscrição',
       bg: 'bg-accent/20',
-      color: 'text-accent',
+      color: 'text-accent-foreground',
     },
     {
       icon: Users,
       label: `Para ${audienceLabel.toLowerCase()}`,
       sub: 'Público destinado',
-      bg: 'bg-secondary/20',
-      color: 'text-secondary-foreground',
+      bg: 'bg-muted',
+      color: 'text-muted-foreground',
     },
     course.facilitator && {
       icon: User,
@@ -72,9 +72,9 @@ function CourseInfo({ course }: { course: CourseData }) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold text-foreground mb-2">{course.title}</h2>
+        <h2 className="font-['Playfair_Display'] text-2xl sm:text-3xl font-bold text-foreground mb-2">{course.title}</h2>
         {course.description && (
-          <p className="text-xl text-primary font-medium">{course.description}</p>
+          <p className="text-lg text-primary font-medium">{course.description}</p>
         )}
       </div>
 
@@ -85,7 +85,7 @@ function CourseInfo({ course }: { course: CourseData }) {
       <div className="space-y-4">
         {infoItems.map(({ icon: Icon, label, sub, bg, color }) => (
           <div key={label} className="flex items-center gap-3 text-foreground">
-            <div className={`p-2 rounded-full ${bg}`}>
+            <div className={`p-2 rounded-lg ${bg}`}>
               <Icon className={`h-5 w-5 ${color}`} />
             </div>
             <div>
@@ -101,9 +101,9 @@ function CourseInfo({ course }: { course: CourseData }) {
 
 function ClosedCard({ courseTitle }: { courseTitle: string }) {
   return (
-    <Card className="shadow-xl border-primary/10 bg-card/95 backdrop-blur-sm">
+    <Card className="rounded-2xl border bg-card shadow-sm">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl">Inscrições Encerradas</CardTitle>
+        <CardTitle className="font-['Playfair_Display'] text-2xl">Inscrições Encerradas</CardTitle>
         <CardDescription>
           As inscrições para o curso {courseTitle} foram encerradas pois a turma está lotada.
         </CardDescription>
@@ -205,9 +205,9 @@ function RegistrationForm({ course }: { course: CourseData }) {
   };
 
   return (
-    <Card className="shadow-xl border-primary/10 bg-card/95 backdrop-blur-sm">
+    <Card className="rounded-2xl border bg-card shadow-sm">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl">Inscreva-se Gratuitamente</CardTitle>
+        <CardTitle className="font-['Playfair_Display'] text-2xl">Inscreva-se Gratuitamente</CardTitle>
         <CardDescription>Preencha seus dados para se inscrever no curso {course.title}</CardDescription>
       </CardHeader>
       <CardContent>
@@ -277,44 +277,37 @@ export default function CourseRegistrationPage() {
 
   if (loading || !course) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Background: cover image with white gradient from left */}
-      {course.cover_url ? (
-        <>
-          <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url(${course.cover_url})` }} />
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, rgba(255,255,255,0.97) 0%, rgba(255,255,255,0.85) 40%, rgba(255,255,255,0.4) 70%, rgba(255,255,255,0.1) 100%)' }} />
-        </>
-      ) : (
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-secondary/10" />
-      )}
+    // Página pública fora da moldura: cabeçalho branco com o logo e conteúdo em max-w-5xl
+    <div className="min-h-screen bg-background">
+      <header className="bg-card border-b">
+        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center gap-3">
+          <img src={logo} alt="Lar de Seu Luiz" className="h-10 w-10 rounded-lg object-contain" />
+          <h1 className="font-['Playfair_Display'] text-lg font-semibold text-foreground leading-tight">
+            Área de Formação do Lar de Seu Luiz
+          </h1>
+        </div>
+      </header>
 
-      <div className="relative z-10 min-h-screen">
-        <div className="container mx-auto px-4 py-8">
-          {/* Header with original logo */}
-          <div className="flex flex-col items-start mb-8">
-            <img src={logo} alt="Lar de Seu Luiz" className="h-20 w-auto object-contain mb-4" />
-            <h1 className="text-2xl md:text-3xl font-bold text-primary text-left">
-              Área de Formação do Lar de Seu Luiz
-            </h1>
-          </div>
+      <div className="max-w-5xl mx-auto px-4 py-8">
+        {/* Capa do curso (quando houver), como imagem do conteúdo */}
+        {course.cover_url && (
+          <img src={course.cover_url} alt={`Capa do curso ${course.title}`} className="w-full max-h-64 object-cover rounded-lg border mb-8" />
+        )}
 
-          {/* Content */}
-          <div className="max-w-4xl grid md:grid-cols-2 gap-8">
-            <CourseInfo course={course} />
-            {course.enrollment_open ? <RegistrationForm course={course} /> : <ClosedCard courseTitle={course.title} />}
-          </div>
+        <div className="grid md:grid-cols-2 gap-8">
+          <CourseInfo course={course} />
+          {course.enrollment_open ? <RegistrationForm course={course} /> : <ClosedCard courseTitle={course.title} />}
+        </div>
 
-          {/* Footer */}
-          <div className="text-left mt-12 text-sm text-muted-foreground">
-            <p>Lar de Seu Luiz</p>
-          </div>
+        <div className="text-left mt-12 text-xs text-muted-foreground">
+          <p>Lar de Seu Luiz</p>
         </div>
       </div>
     </div>

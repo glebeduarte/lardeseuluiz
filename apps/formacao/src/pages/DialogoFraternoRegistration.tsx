@@ -9,7 +9,6 @@ import { useToast } from '@/hooks/use-toast';
 import { enrollUserInCourse } from '@/lib/enrollments';
 import { Calendar, Clock, MapPin, BookOpen, Users } from 'lucide-react';
 import logo from '@/assets/logo-lar-seu-luiz.png';
-import backgroundImage from '@/assets/esde-background.jpg';
 
 // TODO: Substituir pelo ID real do curso de Diálogo Fraterno quando criado
 const DIALOGO_FRATERNO_COURSE_ID = '';
@@ -110,35 +109,32 @@ export default function DialogoFraternoRegistration() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Background Image */}
-      <div 
-        className="absolute inset-0 bg-cover bg-left md:bg-right bg-no-repeat"
-        style={{ backgroundImage: `url(${backgroundImage})` }}
-      />
-      
-      {/* Content */}
-      <div className="relative z-10 min-h-screen">
-        <div className="container mx-auto px-4 py-8">
-          {/* Header - Aligned Left */}
-          <div className="flex flex-col items-start mb-8">
-            <img 
-              src={logo} 
-              alt="Lar de Seu Luiz" 
-              className="h-20 w-20 rounded-full object-cover mb-4 shadow-lg"
-            />
-            <h1 className="text-2xl md:text-3xl font-bold text-primary text-left">
+    // Página pública fora da moldura: cabeçalho branco com o logo e conteúdo em max-w-5xl
+    <div className="min-h-screen bg-background">
+      <header className="bg-card border-b">
+        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center gap-3">
+          <img
+            src={logo}
+            alt="Lar de Seu Luiz"
+            className="h-10 w-10 rounded-lg object-contain"
+          />
+          <div className="min-w-0">
+            <h1 className="font-['Playfair_Display'] text-lg font-semibold text-foreground leading-tight">
               Área de Formação do Lar de Seu Luiz
             </h1>
-            <p className="text-muted-foreground">Secretaria de Formação</p>
+            <p className="text-xs text-muted-foreground">Secretaria de Formação</p>
           </div>
+        </div>
+      </header>
 
-          <div className="max-w-4xl grid md:grid-cols-2 gap-8">
+      <div>
+        <div className="max-w-5xl mx-auto px-4 py-8">
+          <div className="grid md:grid-cols-2 gap-8">
             {/* Course Info */}
             <div className="space-y-6">
               <div>
-              <h2 className="text-3xl font-bold text-foreground mb-2">Diálogo Fraterno</h2>
-                <p className="text-xl text-primary font-medium">
+              <h2 className="font-['Playfair_Display'] text-2xl sm:text-3xl font-bold text-foreground mb-2">Diálogo Fraterno</h2>
+                <p className="text-lg text-primary font-medium">
                   Atualização e Reciclagem
                 </p>
               </div>
@@ -150,7 +146,7 @@ export default function DialogoFraternoRegistration() {
 
               <div className="space-y-4">
                 <div className="flex items-center gap-3 text-foreground">
-                  <div className="p-2 rounded-full bg-primary/10">
+                  <div className="p-2 rounded-lg bg-primary/10">
                     <Calendar className="h-5 w-5 text-primary" />
                   </div>
                   <div>
@@ -160,7 +156,7 @@ export default function DialogoFraternoRegistration() {
                 </div>
 
                 <div className="flex items-center gap-3 text-foreground">
-                  <div className="p-2 rounded-full bg-primary/10">
+                  <div className="p-2 rounded-lg bg-primary/10">
                     <Clock className="h-5 w-5 text-primary" />
                   </div>
                   <div>
@@ -170,7 +166,7 @@ export default function DialogoFraternoRegistration() {
                 </div>
 
                 <div className="flex items-center gap-3 text-foreground">
-                  <div className="p-2 rounded-full bg-primary/10">
+                  <div className="p-2 rounded-lg bg-primary/10">
                     <MapPin className="h-5 w-5 text-primary" />
                   </div>
                   <div>
@@ -180,8 +176,8 @@ export default function DialogoFraternoRegistration() {
                 </div>
 
                 <div className="flex items-center gap-3 text-foreground">
-                  <div className="p-2 rounded-full bg-accent/20">
-                    <BookOpen className="h-5 w-5 text-accent" />
+                  <div className="p-2 rounded-lg bg-accent/20">
+                    <BookOpen className="h-5 w-5 text-accent-foreground" />
                   </div>
                   <div>
                     <p className="font-medium">Gratuito</p>
@@ -190,8 +186,8 @@ export default function DialogoFraternoRegistration() {
                 </div>
 
                 <div className="flex items-center gap-3 text-foreground">
-                  <div className="p-2 rounded-full bg-blue-500/20">
-                    <Users className="h-5 w-5 text-blue-600" />
+                  <div className="p-2 rounded-lg bg-sky-100">
+                    <Users className="h-5 w-5 text-sky-800" />
                   </div>
                   <div>
                     <p className="font-medium">Exclusivo para trabalhadores</p>
@@ -202,9 +198,9 @@ export default function DialogoFraternoRegistration() {
             </div>
 
             {/* Registration Form */}
-            <Card className="shadow-xl border-primary/10 bg-card/95 backdrop-blur-sm">
+            <Card className="rounded-2xl border bg-card shadow-sm">
               <CardHeader className="space-y-1">
-                <CardTitle className="text-2xl">Inscreva-se</CardTitle>
+                <CardTitle className="font-['Playfair_Display'] text-2xl">Inscreva-se</CardTitle>
                 <CardDescription>
                   Preencha os dados abaixo para se inscrever no curso de Diálogo Fraterno
                 </CardDescription>
@@ -279,7 +275,6 @@ export default function DialogoFraternoRegistration() {
                   <Button 
                     type="submit" 
                     className="w-full" 
-                    size="lg"
                     disabled={loading}
                   >
                     {loading ? 'Processando...' : 'Confirmar Inscrição'}
@@ -298,7 +293,7 @@ export default function DialogoFraternoRegistration() {
           </div>
 
           {/* Footer */}
-          <div className="text-left mt-12 text-sm text-muted-foreground">
+          <div className="text-left mt-12 text-xs text-muted-foreground">
             <p>Lar de Seu Luiz - Secretaria de Formação</p>
           </div>
         </div>

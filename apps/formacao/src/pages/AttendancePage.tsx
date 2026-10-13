@@ -154,16 +154,17 @@ export default function AttendancePage() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[hsl(214,40%,97%)] via-[hsl(208,68%,95%)] to-[hsl(168,42%,93%)] flex items-center justify-center p-4">
+    // Página fora da moldura: cartão centralizado com o logo, no padrão único
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="flex flex-col items-center mb-6">
-          <img src={logo} alt="Lar de Seu Luiz" className="h-16 w-16 rounded-xl object-cover shadow-lg mb-3" />
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Registro de Presença</h2>
-        </div>
-
-        <Card className="shadow-xl border-border/50">
+        <Card className="rounded-2xl border bg-card shadow-sm">
           <CardContent className="p-6">
+            {/* Logo */}
+            <div className="flex flex-col items-center mb-6">
+              <img src={logo} alt="Lar de Seu Luiz" className="h-14 w-14 rounded-xl object-contain mb-3" />
+              <h2 className="font-['Playfair_Display'] text-xl font-semibold text-foreground">Registro de Presença</h2>
+            </div>
+
             {/* Loading */}
             {status === 'loading' && (
               <div className="flex flex-col items-center py-8 gap-3">
@@ -178,7 +179,7 @@ export default function AttendancePage() {
                 <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center">
                   <Clock className="h-7 w-7 text-muted-foreground" />
                 </div>
-                <h3 className="text-lg font-semibold text-foreground">Link Expirado</h3>
+                <h3 className="font-['Playfair_Display'] text-lg font-semibold text-foreground">Link Expirado</h3>
                 <p className="text-sm text-muted-foreground">O período de registro de presença encerrou. Entre em contato com o facilitador caso precise de ajuda.</p>
               </div>
             )}
@@ -189,7 +190,7 @@ export default function AttendancePage() {
                 <div className="h-14 w-14 rounded-full bg-destructive/10 flex items-center justify-center">
                   <AlertCircle className="h-7 w-7 text-destructive" />
                 </div>
-                <h3 className="text-lg font-semibold text-foreground">Link Inválido</h3>
+                <h3 className="font-['Playfair_Display'] text-lg font-semibold text-foreground">Link Inválido</h3>
                 <p className="text-sm text-muted-foreground">Este link de presença não é válido. Verifique se copiou o link correto.</p>
               </div>
             )}
@@ -202,7 +203,7 @@ export default function AttendancePage() {
                     <BookOpen className="h-3.5 w-3.5" />
                     {lessonInfo.course_name}
                   </div>
-                  <h3 className="text-lg font-bold text-foreground mb-1">
+                  <h3 className="font-['Playfair_Display'] text-lg font-bold text-foreground mb-1">
                     Aula {lessonInfo.lesson_order} — {lessonInfo.lesson_title}
                   </h3>
                   <p className="text-sm text-muted-foreground capitalize">{today}</p>
@@ -210,7 +211,7 @@ export default function AttendancePage() {
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-foreground mb-1.5">
+                    <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
                       Seu e-mail cadastrado
                     </label>
                     <Input
@@ -229,9 +230,9 @@ export default function AttendancePage() {
                   </div>
 
                   {status === 'not_found' && (
-                    <div className="flex items-start gap-2 p-3 rounded-lg bg-accent/10 border border-accent/20">
-                      <AlertCircle className="h-4 w-4 text-accent mt-0.5 flex-shrink-0" />
-                      <p className="text-sm text-accent">
+                    <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-100 border border-amber-300">
+                      <AlertCircle className="h-4 w-4 text-amber-800 mt-0.5 flex-shrink-0" />
+                      <p className="text-sm text-amber-800">
                         {errorMessage || 'E-mail não encontrado. Verifique se está usando o mesmo e-mail do cadastro.'}
                       </p>
                     </div>
@@ -258,10 +259,10 @@ export default function AttendancePage() {
             {/* Success */}
             {status === 'success' && (
               <div className="flex flex-col items-center py-8 gap-3 text-center">
-                <div className="h-14 w-14 rounded-full bg-success/10 flex items-center justify-center">
-                  <CheckCircle className="h-7 w-7 text-success" />
+                <div className="h-14 w-14 rounded-full bg-emerald-100 flex items-center justify-center">
+                  <CheckCircle className="h-7 w-7 text-emerald-700" />
                 </div>
-                <h3 className="text-lg font-semibold text-foreground">Presença Confirmada!</h3>
+                <h3 className="font-['Playfair_Display'] text-lg font-semibold text-foreground">Presença Confirmada!</h3>
                 <p className="text-sm text-muted-foreground">
                   {userName ? `${userName}, sua` : 'Sua'} presença na aula foi registrada com sucesso.
                 </p>
@@ -286,7 +287,7 @@ export default function AttendancePage() {
                 <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center">
                   <Info className="h-7 w-7 text-primary" />
                 </div>
-                <h3 className="text-lg font-semibold text-foreground">Já Registrado</h3>
+                <h3 className="font-['Playfair_Display'] text-lg font-semibold text-foreground">Já Registrado</h3>
                 <p className="text-sm text-muted-foreground">
                   {userName ? `${userName}, sua` : 'Sua'} presença já foi confirmada nesta aula!
                 </p>

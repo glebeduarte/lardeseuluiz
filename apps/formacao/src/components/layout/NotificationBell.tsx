@@ -34,14 +34,14 @@ export function NotificationBell() {
 
   const getIcon = (type: string) => {
     if (type === 'enrollment') {
-      return <ClipboardList className="h-4 w-4 text-warning" />;
+      return <ClipboardList className="h-4 w-4 text-amber-700" />;
     }
     return <UserPlus className="h-4 w-4 text-primary" />;
   };
 
   const getIconBg = (type: string) => {
     if (type === 'enrollment') {
-      return 'bg-warning/20';
+      return 'bg-amber-100';
     }
     return 'bg-primary/20';
   };

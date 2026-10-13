@@ -1,16 +1,13 @@
+import { CabecalhoPagina } from '@/compartilhado';
+
 interface PageHeroProps {
   title: string;
   description: string;
+  /** Mantido por compatibilidade: as duas variantes agora usam o cabeçalho padrão da plataforma. */
   variant?: 'admin' | 'student';
 }
 
-export function PageHero({ title, description, variant = 'admin' }: PageHeroProps) {
-  return (
-    <div className={`${variant === 'admin' ? 'gradient-admin' : 'gradient-primary'} rounded-none px-6 sm:px-10 md:px-12 py-8 sm:py-10 text-white relative overflow-hidden`}>
-      <div className="relative z-10">
-        <h1 className="text-2xl sm:text-[28px] font-display font-bold">{title}</h1>
-        <p className="text-white/65 text-[13px] mt-1">{description}</p>
-      </div>
-    </div>
-  );
+/** Cabeçalho de página da Formação no padrão único da plataforma (igual ao da Governança). */
+export function PageHero({ title, description }: PageHeroProps) {
+  return <CabecalhoPagina titulo={title} descricao={description} />;
 }

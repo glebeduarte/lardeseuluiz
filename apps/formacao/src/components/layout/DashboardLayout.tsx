@@ -1,30 +1,80 @@
 import { ReactNode, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdminNotifications } from '@/hooks/useAdminNotifications';
-import { AppSidebar } from '@/components/layout/AppSidebar';
 import { NotificationBell } from '@/components/layout/NotificationBell';
-import { BottomNav } from '@/components/layout/BottomNav';
-import { NavLink } from '@/components/NavLink';
-import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
+import { supabase } from '@/integrations/supabase/client';
+import { MolduraSistema, useAreasLsl, type GrupoMenuLsl, type LinkLslProps } from '@/compartilhado';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Loader2, LogOut, Shield, UserCircle } from 'lucide-react';
-import logoLarSeuLuiz from '@/assets/logo-lar-seu-luiz.png';
+  Loader2, LayoutDashboard, BookOpen, Users, UserCog, FolderOpen, Mail, Megaphone, Library,
+  ClipboardCheck, ListChecks, CalendarCheck, Bell, Link2, GraduationCap, Eye,
+} from 'lucide-react';
 
 interface DashboardLayoutProps {
   children: ReactNode;
+  /** Páginas que ocupam a largura toda (ex.: player da aula). */
+  larguraTotal?: boolean;
 }
 
-export function DashboardLayout({ children }: DashboardLayoutProps) {
+const gruposAluno: GrupoMenuLsl[] = [
+  {
+    rotulo: 'Meus estudos',
+    itens: [
+      { href: '/dashboard', rotulo: 'Início', icone: LayoutDashboard },
+      { href: '/explore', rotulo: 'Meus cursos', icone: BookOpen },
+      { href: '/avisos', rotulo: 'Avisos', icone: Bell },
+      { href: '/biblioteca', rotulo: 'Biblioteca', icone: Library },
+      { href: '/minha-frequencia', rotulo: 'Minha frequência', icone: CalendarCheck },
+    ],
+  },
+];
+
+const gruposAdmin: GrupoMenuLsl[] = [
+  { rotulo: '', itens: [{ href: '/admin', rotulo: 'Painel da Formação', icone: LayoutDashboard }] },
+  {
+    rotulo: 'Conteúdo',
+    itens: [
+      { href: '/admin/courses', rotulo: 'Cursos', icone: FolderOpen },
+      { href: '/admin/assessments', rotulo: 'Avaliações', icone: ClipboardCheck },
+      { href: '/admin/library', rotulo: 'Biblioteca', icone: Library },
+      { href: '/admin/esde-calendar', rotulo: 'Calendário ESDE', icone: CalendarCheck },
+    ],
+  },
+  {
+    rotulo: 'Pessoas',
+    itens: [
+      { href: '/admin/students', rotulo: 'Alunos', icone: Users },
+      { href: '/admin/inscricoes', rotulo: 'Inscrições', icone: Link2 },
+      { href: '/admin/attendance', rotulo: 'Presenças', icone: ListChecks },
+    ],
+  },
+  {
+    rotulo: 'Comunicação',
+    itens: [
+      { href: '/admin/emails', rotulo: 'E-mails', icone: Mail },
+      { href: '/admin/announcements', rotulo: 'Avisos', icone: Megaphone },
+    ],
+  },
+  { rotulo: 'Sistema', itens: [{ href: '/admin/admins', rotulo: 'Administradores', icone: UserCog }] },
+  {
+    rotulo: 'Aluno',
+    itens: [
+      { href: '/dashboard?student-view', rotulo: 'Visão do aluno', icone: Eye },
+      { href: '/biblioteca', rotulo: 'Biblioteca', icone: Library },
+    ],
+  },
+];
+
+const LinkRR = ({ href, className, title, onClick, children }: LinkLslProps) => (
+  <Link to={href} className={className} title={title} onClick={onClick}>{children}</Link>
+);
+
+/** Moldura única da plataforma aplicada à Formação (a mesma da Governança e do Atendimento). */
+export function DashboardLayout({ children, larguraTotal }: DashboardLayoutProps) {
   const { user, loading, profile, signOut, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const { pathname, search } = useLocation();
+  const areas = useAreasLsl(supabase, user?.id);
 
   useAdminNotifications();
 
@@ -34,9 +84,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   useEffect(() => {
-    if (!loading && !user) {
-      navigate('/auth');
-    }
+    if (!loading && !user) navigate('/auth');
   }, [user, loading, navigate]);
 
   if (loading) {
@@ -46,82 +94,32 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       </div>
     );
   }
-
   if (!user) return null;
 
+  const visaoAluno = search.includes('student-view');
+  const ativo = (href: string) => {
+    const [rota, q] = href.split('?');
+    if (q) return pathname === rota && visaoAluno;
+    if (rota === '/dashboard' || rota === '/admin') return pathname === rota && !(rota === '/dashboard' && visaoAluno && isAdmin);
+    return pathname === rota || pathname.startsWith(rota + '/');
+  };
+  // Links da Formação abrem sem recarregar; o resto (site, Governança, Atendimento, perfil) é outro app
+  const navegar = (href: string) => {
+    if (!href.startsWith('/formacao')) return false;
+    navigate(href.replace(/^\/formacao/, '') || '/');
+    return true;
+  };
+
   return (
-    <SidebarProvider defaultOpen={true}>
-      <div className="min-h-screen flex w-full bg-background overflow-x-hidden">
-        {/* Sidebar: visible only on md+ for everyone */}
-        <div className="hidden md:flex">
-          <AppSidebar />
-        </div>
-
-        <SidebarInset className="flex-1 min-w-0 overflow-x-hidden">
-          {/* Header */}
-          <header className="sticky top-0 z-30 flex h-[58px] items-center gap-3 border-b border-border bg-card/85 backdrop-blur-lg px-3 md:px-4">
-            {/* Desktop: sidebar trigger */}
-            <SidebarTrigger className="h-8 w-8 hidden md:inline-flex" />
-
-            {/* Mobile: logo + brand */}
-            <NavLink to="/dashboard" className="md:hidden flex items-center gap-2 mr-auto">
-              <img src={logoLarSeuLuiz} alt="Lar de Seu Luiz" className="h-8 w-8 rounded-lg object-contain" />
-              <span className="font-display font-bold text-[13px] leading-tight">Lar de Seu Luiz</span>
-            </NavLink>
-
-            <div className="hidden md:block flex-1" />
-
-            <NotificationBell />
-
-            {profile && (
-              <DropdownMenu>
-                <DropdownMenuTrigger className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
-                  <div className="text-right hidden sm:block">
-                    <p className="text-sm font-medium">{profile.full_name}</p>
-                    <p className="text-[11px] text-muted-foreground uppercase tracking-wider">
-                      {profile.role === 'admin' ? 'Administrador' : 'Aluno'}
-                    </p>
-                  </div>
-                  <div className="h-9 w-9 rounded-full gradient-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
-                    {profile.full_name.charAt(0).toUpperCase()}
-                  </div>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>
-                    <div>
-                      <p className="font-medium font-display">{profile.full_name}</p>
-                      <p className="text-xs text-muted-foreground">{profile.email}</p>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {isAdmin && (
-                    <DropdownMenuItem onClick={() => navigate('/admin')}>
-                      <Shield className="h-4 w-4 mr-2" />
-                      Painel Admin
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem onClick={() => navigate('/my-account')}>
-                    <UserCircle className="h-4 w-4 mr-2" />
-                    Minha Conta
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sair
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </header>
-
-          <main className="flex-1 animate-fade-in overflow-x-hidden pb-[68px] md:pb-0">
-            {children}
-          </main>
-        </SidebarInset>
-
-        {/* Bottom nav: only mobile (visible to all logged users; admin shows admin nav) */}
-        <BottomNav />
-      </div>
-    </SidebarProvider>
+    <MolduraSistema
+      sistema="formacao" titulo="Formação" subtitulo={isAdmin ? 'Gestão de cursos' : 'Área do aluno'} iconeSistema={GraduationCap}
+      grupos={isAdmin ? gruposAdmin : gruposAluno} ativo={ativo} Link={LinkRR} areas={areas} navegar={navegar}
+      usuario={{ nome: areas?.nome || profile?.full_name || user.email?.split('@')[0] || '', papel: isAdmin ? 'Administrador' : 'Aluno', foto: areas?.foto || profile?.avatar_url }}
+      aoAbrirPerfil={() => window.location.assign('/app/perfil')} aoSair={handleSignOut}
+      extraBarra={<div className="lsl-sino">{<NotificationBell />}</div>}
+      larguraTotal={larguraTotal}
+    >
+      <div className="animate-fade-in">{children}</div>
+    </MolduraSistema>
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { CabecalhoPagina } from '@/compartilhado';
 import { PageHero } from '@/components/layout/PageHero';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -174,19 +175,22 @@ export default function RegistrationPagesPage() {
 
   return (
     <DashboardLayout>
-      <PageHero title="Inscrições" description="Crie páginas públicas de inscrição vinculadas a um ou mais cursos" />
-
-      <div className="p-6 space-y-4">
-        <div className="flex justify-end">
+      <CabecalhoPagina
+        titulo="Inscrições"
+        descricao="Crie páginas públicas de inscrição vinculadas a um ou mais cursos"
+        acoes={
           <Button onClick={openNew}>
             <Plus className="h-4 w-4 mr-2" /> Nova página de inscrição
           </Button>
-        </div>
+        }
+      />
+
+      <div className="space-y-6">
 
         {loading ? (
           <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
         ) : pages.length === 0 ? (
-          <Card><CardContent className="py-12 text-center text-muted-foreground">
+          <Card><CardContent className="py-8 text-center text-muted-foreground">
             <Link2 className="h-8 w-8 mx-auto mb-3 opacity-50" />
             Nenhuma página de inscrição criada ainda.
           </CardContent></Card>
@@ -197,10 +201,10 @@ export default function RegistrationPagesPage() {
                 <CardContent className="pt-6 space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <h3 className="font-semibold text-lg">{p.title}</h3>
+                      <h3 className="font-['Playfair_Display'] font-semibold text-lg">{p.title}</h3>
                       <p className="text-sm text-muted-foreground">{p.subtitle}</p>
                     </div>
-                    <Badge variant={p.is_active ? 'default' : 'secondary'}>{p.is_active ? 'Ativa' : 'Inativa'}</Badge>
+                    <Badge variant="outline" className={p.is_active ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-muted text-muted-foreground border-border'}>{p.is_active ? 'Ativa' : 'Inativa'}</Badge>
                   </div>
                   <div className="flex flex-wrap gap-1">
                     {(p.course_ids || []).map((id) => (

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { CabecalhoPagina } from '@/compartilhado';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -170,22 +171,23 @@ export default function CoursesPage() {
 
   return (
     <DashboardLayout>
-      <PageHero title="Cursos" description="Gerencie todos os cursos da plataforma" />
-      <div className="p-4 sm:p-6 md:p-7 space-y-5">
+      <CabecalhoPagina
+        titulo="Cursos"
+        descricao="Gerencie todos os cursos da plataforma"
+        acoes={
+          <Button onClick={() => navigate('/admin/courses/new')}>
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Curso
+          </Button>
+        }
+      />
+      <div className="space-y-6">
         {/* KPIs */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <MiniKPI icon={Globe} label="Publicados" value={loading ? '—' : publishedCount} tone="primary" />
           <MiniKPI icon={EyeOff} label="Rascunhos" value={loading ? '—' : draftCount} tone="muted" />
           <MiniKPI icon={LockOpen} label="Inscrições abertas" value={loading ? '—' : enrollmentOpenCount} tone="teal" />
           <MiniKPI icon={Play} label="Total de aulas" value={loading ? '—' : totalLessons} tone="accent" />
-        </div>
-
-        {/* Header */}
-        <div className="flex justify-end">
-          <Button onClick={() => navigate('/admin/courses/new')} className="gradient-primary">
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Curso
-          </Button>
         </div>
 
         {/* Search & View Toggle */}
@@ -217,17 +219,17 @@ export default function CoursesPage() {
             ))}
           </div>
         ) : filteredCourses.length === 0 ? (
-          <Card className="bg-card/50 border-border/50">
-            <CardContent className="p-12 text-center">
+          <Card>
+            <CardContent className="py-8 text-center">
               <div className="h-16 w-16 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
                 <BookOpen className="h-8 w-8 text-muted-foreground" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Nenhum curso encontrado</h3>
-              <p className="text-muted-foreground mb-6">
+              <h3 className="font-['Playfair_Display'] text-lg font-semibold mb-1">Nenhum curso encontrado</h3>
+              <p className="text-sm text-muted-foreground mb-6">
                 {searchQuery ? 'Tente uma busca diferente' : 'Crie seu primeiro curso!'}
               </p>
               {!searchQuery && (
-                <Button onClick={() => navigate('/admin/courses/new')} className="gradient-primary">
+                <Button onClick={() => navigate('/admin/courses/new')}>
                   <Plus className="h-4 w-4 mr-2" />
                   Criar Curso
                 </Button>
@@ -237,7 +239,7 @@ export default function CoursesPage() {
         ) : (
           <div className={viewMode === 'grid' ? 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4' : 'space-y-2'}>
             {filteredCourses.map((course) => viewMode === 'grid' ? (
-              <Card key={course.id} className="bg-card/50 border-border/50 overflow-hidden group hover:shadow-md transition-shadow">
+              <Card key={course.id} className="overflow-hidden group hover:shadow-sm transition-shadow">
                 <div className="aspect-[4/5] bg-muted overflow-hidden">
                   {course.thumbnail_url ? (
                     <img src={course.thumbnail_url} alt={course.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
@@ -249,7 +251,7 @@ export default function CoursesPage() {
                 </div>
                 <CardContent className="p-4 space-y-2">
                   <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-semibold text-sm line-clamp-2">{course.title}</h3>
+                    <h3 className="font-['Playfair_Display'] font-semibold text-sm line-clamp-2">{course.title}</h3>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="shrink-0 h-7 w-7">
@@ -274,19 +276,19 @@ export default function CoursesPage() {
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <Badge variant="outline" className={course.status === 'published'
-                      ? 'border-emerald-500/50 text-emerald-600 bg-emerald-500/10 text-[10px] px-1.5 py-0'
-                      : 'text-[10px] px-1.5 py-0'}>
+                      ? 'bg-emerald-100 text-emerald-800 border-emerald-300 text-[10px] px-1.5 py-0'
+                      : 'bg-muted text-muted-foreground border-border text-[10px] px-1.5 py-0'}>
                       {course.status === 'published' ? 'Publicado' : 'Rascunho'}
                     </Badge>
                     {course.category === 'formacoes' && (
-                      <Badge variant="outline" className="border-primary/50 text-primary bg-primary/10 text-[10px] px-1.5 py-0">Formação</Badge>
+                      <Badge variant="outline" className="bg-sky-100 text-sky-800 border-sky-300 text-[10px] px-1.5 py-0">Formação</Badge>
                     )}
                   </div>
                   <div className="flex items-center gap-3 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1"><Layers className="h-3 w-3" />{course.modules_count} módulos</span>
                     <span className="flex items-center gap-1"><Play className="h-3 w-3" />{course.lessons_count} aulas</span>
                   </div>
-                  <div className="flex items-center gap-2 pt-1 border-t border-border/30 mt-1">
+                  <div className="flex items-center gap-2 pt-1 border-t mt-1">
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -304,7 +306,7 @@ export default function CoursesPage() {
             ) : (
               <div
                 key={course.id}
-                className="flex items-center gap-4 p-3 rounded-lg border border-border/50 bg-card/50 hover:bg-muted/50 transition-colors group"
+                className="flex items-center gap-4 p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors group"
               >
                 <div className="h-14 w-14 rounded-lg overflow-hidden bg-muted shrink-0">
                   {course.thumbnail_url ? (
@@ -317,20 +319,20 @@ export default function CoursesPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-semibold text-sm truncate">{course.title}</h3>
+                    <h3 className="font-['Playfair_Display'] font-semibold text-sm truncate">{course.title}</h3>
                     <Badge variant="outline" className={course.status === 'published'
-                      ? 'border-emerald-500/50 text-emerald-600 bg-emerald-500/10 text-[10px] px-1.5 py-0'
-                      : 'text-[10px] px-1.5 py-0'}>
+                      ? 'bg-emerald-100 text-emerald-800 border-emerald-300 text-[10px] px-1.5 py-0'
+                      : 'bg-muted text-muted-foreground border-border text-[10px] px-1.5 py-0'}>
                       {course.status === 'published' ? 'Publicado' : 'Rascunho'}
                     </Badge>
                     {course.category === 'formacoes' && (
-                      <Badge variant="outline" className="border-primary/50 text-primary bg-primary/10 text-[10px] px-1.5 py-0">Formação</Badge>
+                      <Badge variant="outline" className="bg-sky-100 text-sky-800 border-sky-300 text-[10px] px-1.5 py-0">Formação</Badge>
                     )}
                     {course.category === 'cursos_extras' && (
-                      <Badge variant="outline" className="border-accent/50 text-accent bg-accent/10 text-[10px] px-1.5 py-0">Curso Extra</Badge>
+                      <Badge variant="outline" className="bg-accent/20 text-accent-foreground border-accent/40 text-[10px] px-1.5 py-0">Curso Extra</Badge>
                     )}
                     {course.category === 'materiais' && (
-                      <Badge variant="outline" className="border-emerald-500/50 text-emerald-600 bg-emerald-500/10 text-[10px] px-1.5 py-0">Material</Badge>
+                      <Badge variant="outline" className="bg-muted text-muted-foreground border-border text-[10px] px-1.5 py-0">Material</Badge>
                     )}
                   </div>
                   <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">

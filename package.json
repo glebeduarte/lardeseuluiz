@@ -5,6 +5,7 @@
   "description": "Plataforma unificada do Lar de Seu Luiz: site e Governança (apps/site), Formação (apps/formacao), Atendimento (apps/atendimento). Um só login e um só banco.",
   "scripts": {
     "install:apps": "npm install --prefix apps/site && npm install --prefix apps/formacao && npm install --prefix apps/atendimento",
-    "build": "npm run build --prefix apps/site && npm run build --prefix apps/formacao && npm run build --prefix apps/atendimento && node scripts/montar-dist.mjs"
+    "build": "node scripts/sincronizar-compartilhado.mjs && npm run build --prefix apps/site && npm run build --prefix apps/formacao && npm run build --prefix apps/atendimento && node scripts/montar-dist.mjs",
+    "sincronizar": "node scripts/sincronizar-compartilhado.mjs"
   }
 }

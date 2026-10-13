@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { CabecalhoPagina } from '@/compartilhado';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -267,21 +268,22 @@ export default function CourseFormPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-4 sm:p-6 md:p-7 max-w-4xl mx-auto space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/admin/courses')}>
-            <ArrowLeft className="h-5 w-5" />
+      <CabecalhoPagina
+        titulo={isEditing ? 'Editar Curso' : 'Novo Curso'}
+        descricao={isEditing ? 'Atualize as informações do curso' : 'Preencha os dados do novo curso'}
+        acoes={
+          <Button variant="outline" onClick={() => navigate('/admin/courses')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Voltar
           </Button>
-          <div>
-            <h1 className="text-3xl font-display font-bold">{isEditing ? 'Editar Curso' : 'Novo Curso'}</h1>
-            <p className="text-muted-foreground mt-1">{isEditing ? 'Atualize as informações do curso' : 'Preencha os dados do novo curso'}</p>
-          </div>
-        </div>
+        }
+      />
+      <div className="max-w-4xl space-y-6">
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Info */}
-          <Card className="bg-card/50 border-border/50">
-            <CardHeader><CardTitle>Informações Básicas</CardTitle></CardHeader>
+          <Card>
+            <CardHeader><CardTitle className="font-['Playfair_Display'] text-lg">Informações Básicas</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="title">Título do Curso *</Label>
@@ -395,8 +397,8 @@ export default function CourseFormPage() {
           </Card>
 
           {/* Learning Topics */}
-          <Card className="bg-card/50 border-border/50">
-            <CardHeader><CardTitle>O que o aluno vai aprender</CardTitle></CardHeader>
+          <Card>
+            <CardHeader><CardTitle className="font-['Playfair_Display'] text-lg">O que o aluno vai aprender</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">Adicione até 8 tópicos de aprendizado (opcional).</p>
               {form.learning_topics.map((topic, i) => (
@@ -417,8 +419,8 @@ export default function CourseFormPage() {
           </Card>
 
           {/* Course Info */}
-          <Card className="bg-card/50 border-border/50">
-            <CardHeader><CardTitle>Informações Adicionais</CardTitle></CardHeader>
+          <Card>
+            <CardHeader><CardTitle className="font-['Playfair_Display'] text-lg">Informações Adicionais</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -447,16 +449,16 @@ export default function CourseFormPage() {
 
           {/* Turmas */}
           {isEditing && classGroups.length > 0 && (
-            <Card className="bg-card/50 border-border/50">
+            <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="font-['Playfair_Display'] text-lg flex items-center gap-2">
                   <Users className="h-5 w-5" />
                   Turmas
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {classGroups.map((cg) => (
-                  <div key={cg.id} className="border border-border/50 rounded-lg p-4 space-y-3">
+                  <div key={cg.id} className="border rounded-lg p-4 space-y-3">
                     <div className="flex items-center justify-between">
                       <h4 className="font-semibold">{cg.name}</h4>
                     </div>
@@ -503,8 +505,8 @@ export default function CourseFormPage() {
             </Card>
           )}
 
-          <Card className="bg-card/50 border-border/50">
-            <CardHeader><CardTitle>Imagens</CardTitle></CardHeader>
+          <Card>
+            <CardHeader><CardTitle className="font-['Playfair_Display'] text-lg">Imagens</CardTitle></CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
                 <Label>Thumbnail (Capa do Card)</Label>
@@ -524,9 +526,9 @@ export default function CourseFormPage() {
           </Card>
 
           {/* Actions */}
-          <div className="flex justify-end gap-4">
+          <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => navigate('/admin/courses')}>Cancelar</Button>
-            <Button type="submit" className="gradient-primary" disabled={saving}>
+            <Button type="submit" disabled={saving}>
               {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
               {isEditing ? 'Salvar Alterações' : 'Criar Curso'}
             </Button>

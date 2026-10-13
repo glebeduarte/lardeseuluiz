@@ -14,6 +14,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Save, Eye, Loader2, LayoutDashboard, Image, Type, Bell, ToggleLeft, Info, AlertTriangle, CheckCircle2, AlertCircle } from 'lucide-react';
 import { PageHero } from '@/components/layout/PageHero';
+import { CabecalhoPagina } from '@/compartilhado';
 
 interface DashboardConfig {
   id: string;
@@ -101,29 +102,33 @@ export default function DashboardEditorPage() {
 
   return (
     <DashboardLayout>
-      <PageHero title="Editor da Área do Aluno" description="Personalize a experiência dos alunos no painel" />
-      <div className="p-4 sm:p-6 md:p-7 space-y-6 max-w-4xl">
-        {/* Header */}
-        <div className="flex justify-end gap-3">
-          <Button variant="outline" onClick={() => navigate('/dashboard')}>
-            <Eye className="h-4 w-4 mr-2" />
-            Pré-visualizar
-          </Button>
-          <Button onClick={handleSave} disabled={saving} className="gradient-primary">
-            {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-            Salvar
-          </Button>
-        </div>
+      <CabecalhoPagina
+        titulo="Editor da Área do Aluno"
+        descricao="Personalize a experiência dos alunos no painel"
+        acoes={
+          <>
+            <Button variant="outline" onClick={() => navigate('/dashboard')}>
+              <Eye className="h-4 w-4 mr-2" />
+              Pré-visualizar
+            </Button>
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+              Salvar
+            </Button>
+          </>
+        }
+      />
+      <div className="space-y-6 max-w-4xl">
 
         {/* Hero Section Config */}
-        <Card className="bg-card/50 border-border/50">
+        <Card>
           <CardHeader>
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
                 <Image className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <CardTitle className="text-lg">Seção Hero (Banner)</CardTitle>
+                <CardTitle className="font-['Playfair_Display'] text-lg">Seção Hero (Banner)</CardTitle>
                 <CardDescription>Imagem de fundo e texto principal do painel</CardDescription>
               </div>
             </div>
@@ -179,14 +184,14 @@ export default function DashboardEditorPage() {
         </Card>
 
         {/* Announcement Config */}
-        <Card className="bg-card/50 border-border/50">
+        <Card>
           <CardHeader>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                <Bell className="h-5 w-5 text-amber-500" />
+              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Bell className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <CardTitle className="text-lg">Aviso em Destaque</CardTitle>
+                <CardTitle className="font-['Playfair_Display'] text-lg">Aviso em Destaque</CardTitle>
                 <CardDescription>Banner de avisos temporários para os alunos</CardDescription>
               </div>
             </div>
@@ -234,9 +239,9 @@ export default function DashboardEditorPage() {
                 <div className="space-y-2">
                   <Label className="text-xs text-muted-foreground">Pré-visualização</Label>
                   <div className={`rounded-lg px-4 py-3 text-sm flex items-start gap-3 break-words ${
-                    config.announcement_type === 'info' ? 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20' :
-                    config.announcement_type === 'warning' ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20' :
-                    config.announcement_type === 'success' ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20' :
+                    config.announcement_type === 'info' ? 'bg-sky-100 text-sky-800 border border-sky-300' :
+                    config.announcement_type === 'warning' ? 'bg-amber-100 text-amber-800 border border-amber-300' :
+                    config.announcement_type === 'success' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
                     'bg-destructive/10 text-destructive border border-destructive/20'
                   }`}>
                     <span className="shrink-0 mt-0.5">
@@ -254,20 +259,20 @@ export default function DashboardEditorPage() {
         </Card>
 
         {/* Visibility Config */}
-        <Card className="bg-card/50 border-border/50">
+        <Card>
           <CardHeader>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                <ToggleLeft className="h-5 w-5 text-emerald-500" />
+              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <ToggleLeft className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <CardTitle className="text-lg">Visibilidade dos Elementos</CardTitle>
+                <CardTitle className="font-['Playfair_Display'] text-lg">Visibilidade dos Elementos</CardTitle>
                 <CardDescription>Controle o que aparece na área do aluno</CardDescription>
               </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between py-2 border-b border-border/30">
+            <div className="flex items-center justify-between py-2 border-b">
               <div>
                 <Label>Filtros de categoria</Label>
                 <p className="text-xs text-muted-foreground">Abas de filtragem (Todos, Formações, etc.)</p>
@@ -277,7 +282,7 @@ export default function DashboardEditorPage() {
                 onCheckedChange={(v) => updateField('show_filters', v)}
               />
             </div>
-            <div className="flex items-center justify-between py-2 border-b border-border/30">
+            <div className="flex items-center justify-between py-2 border-b">
               <div>
                 <Label>Campo de busca</Label>
                 <p className="text-xs text-muted-foreground">Barra de pesquisa de cursos</p>

@@ -189,12 +189,12 @@ export default function MyAccount() {
   return (
     <DashboardLayout>
       <PageHero title="Minha Conta" description="Gerencie seus dados e acompanhe sua jornada" variant="student" />
-      <div className="p-4 sm:p-6 md:p-7 space-y-6">
+      <div className="space-y-6">
 
         <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-5">
           {/* Left: Profile Card */}
           <div className="space-y-4">
-            <Card className="shadow-card border-border text-center">
+            <Card className="text-center">
               <CardContent className="p-6">
                 {/* Avatar */}
                 <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
@@ -203,7 +203,7 @@ export default function MyAccount() {
                     {avatarUrl || profile.avatar_url ? (
                       <img src={avatarUrl || profile.avatar_url || ''} alt="Avatar" className="h-full w-full object-cover" />
                     ) : (
-                      <div className="h-full w-full gradient-primary flex items-center justify-center">
+                      <div className="h-full w-full bg-primary/10 text-primary flex items-center justify-center">
                         <span className="text-[32px] font-bold text-primary-foreground">{profile.full_name.charAt(0).toUpperCase()}</span>
                       </div>
                     )}
@@ -217,26 +217,26 @@ export default function MyAccount() {
                   </button>
                 </div>
 
-                <h2 className="font-display font-bold text-xl mb-0.5">{profile.full_name}</h2>
+                <h2 className="font-['Playfair_Display'] font-bold text-xl mb-0.5">{profile.full_name}</h2>
                 <p className="text-xs text-muted-foreground mb-4">{profile.email}</p>
 
                 {/* Stats */}
                 <div className="flex justify-around py-3 border-t border-b border-border mb-4">
                   <div>
-                    <p className="text-[22px] font-display font-bold">{enrolledCourses.length}</p>
+                    <p className="text-2xl font-bold">{enrolledCourses.length}</p>
                     <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Cursos</p>
                   </div>
                   <div>
-                    <p className="text-[22px] font-display font-bold">{totalCompleted}</p>
+                    <p className="text-2xl font-bold">{totalCompleted}</p>
                     <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Aulas</p>
                   </div>
                   <div>
-                    <p className="text-[22px] font-display font-bold">{overallProgress}%</p>
+                    <p className="text-2xl font-bold">{overallProgress}%</p>
                     <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Progresso</p>
                   </div>
                 </div>
 
-                <span className="inline-flex items-center gap-1.5 bg-blue-lt border border-primary/20 text-primary text-[11px] font-bold px-3 py-1 rounded-full">
+                <span className="inline-flex items-center gap-1.5 bg-primary/10 border border-primary/20 text-primary text-xs font-medium px-3 py-1 rounded-full">
                   {profile.role === 'admin' ? '⊞ Administrador' : '📚 Aluno'}
                 </span>
 
@@ -252,7 +252,7 @@ export default function MyAccount() {
                         if (!lesson) return null;
                         return (
                           <div key={item.lesson_id} onClick={() => navigate(`/lesson/${item.lesson_id}`)} className="flex items-center gap-3 py-2.5 border-b border-border last:border-b-0 cursor-pointer hover:bg-muted/30 transition-colors rounded-lg px-1">
-                            <div className="h-[42px] w-[42px] rounded-lg bg-blue-lt flex items-center justify-center text-lg flex-shrink-0">📄</div>
+                            <div className="h-[42px] w-[42px] rounded-lg bg-primary/10 flex items-center justify-center text-lg flex-shrink-0">📄</div>
                             <div className="flex-1 min-w-0">
                               <p className="text-[13px] font-medium truncate">{lesson.title}</p>
                               <p className="text-[11px] text-muted-foreground truncate">{lesson.module?.course?.title} · {lesson.module?.title}</p>
@@ -271,9 +271,9 @@ export default function MyAccount() {
           {/* Right: Forms - 2 columns */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Personal Data */}
-            <Card className="shadow-card border-border">
+            <Card>
               <CardContent className="p-5">
-                <h3 className="font-display font-bold text-base mb-4 pb-3 border-b border-border">Dados Pessoais</h3>
+                <h3 className="font-['Playfair_Display'] font-semibold text-lg mb-4 pb-3 border-b">Dados Pessoais</h3>
                 <div className="space-y-3.5">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-semibold text-muted-foreground">Nome</Label>
@@ -294,7 +294,7 @@ export default function MyAccount() {
                 </div>
                 <div className="flex justify-end gap-2 mt-4">
                   <Button variant="outline" size="sm" onClick={() => { setFullName(profile.full_name); setPhone(profile.phone || ''); }}>Cancelar</Button>
-                  <Button size="sm" className="gradient-primary text-white" onClick={handleSaveProfile} disabled={saving}>
+                  <Button size="sm" onClick={handleSaveProfile} disabled={saving}>
                     {saving ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Save className="h-4 w-4 mr-1" />}
                     Salvar
                   </Button>
@@ -303,9 +303,9 @@ export default function MyAccount() {
             </Card>
 
             {/* Password */}
-            <Card className="shadow-card border-border h-fit">
+            <Card className="h-fit">
               <CardContent className="p-5">
-                <h3 className="font-display font-bold text-base mb-4 pb-3 border-b border-border">Alterar Senha</h3>
+                <h3 className="font-['Playfair_Display'] font-semibold text-lg mb-4 pb-3 border-b">Alterar Senha</h3>
                 <div className="space-y-3.5">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-semibold text-muted-foreground">Senha atual</Label>
@@ -321,7 +321,7 @@ export default function MyAccount() {
                   </div>
                 </div>
                 <div className="flex justify-end mt-4">
-                  <Button size="sm" className="gradient-primary text-white" onClick={handlePasswordChange} disabled={changingPassword || !newPassword}>
+                  <Button size="sm" onClick={handlePasswordChange} disabled={changingPassword || !newPassword}>
                     {changingPassword ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
                     Atualizar Senha
                   </Button>
@@ -332,9 +332,9 @@ export default function MyAccount() {
         </div>
 
         {/* Courses - Full width below, vertical cards */}
-        <Card className="shadow-card border-border">
+        <Card>
           <CardContent className="p-5">
-            <h3 className="font-display font-bold text-base mb-4 pb-3 border-b border-border">Meus Cursos ({enrolledCourses.length})</h3>
+            <h3 className="font-['Playfair_Display'] font-semibold text-lg mb-4 pb-3 border-b">Meus Cursos ({enrolledCourses.length})</h3>
             {loading ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                 {[...Array(4)].map((_, i) => <div key={i} className="aspect-[3/4] bg-muted/30 rounded-xl animate-pulse" />)}
@@ -352,8 +352,8 @@ export default function MyAccount() {
                   if (!course) return null;
                   const prog = courseProgress.get(course.id);
                   const pct = prog && prog.totalLessons > 0 ? Math.round((prog.completedLessons / prog.totalLessons) * 100) : 0;
-                  const bgColors: Record<string, string> = { formacoes: 'bg-blue-lt', cursos_extras: 'bg-teal-lt', materiais: 'bg-accent/10' };
-                  const bg = bgColors[course.category || ''] || 'bg-blue-lt';
+                  const bgColors: Record<string, string> = { formacoes: 'bg-primary/10', cursos_extras: 'bg-sky-100', materiais: 'bg-accent/20' };
+                  const bg = bgColors[course.category || ''] || 'bg-primary/10';
 
                   return (
                     <div key={enrollment.id} onClick={() => navigate(`/course/${course.id}`)} className="border border-border rounded-xl overflow-hidden cursor-pointer card-hover">
@@ -367,7 +367,7 @@ export default function MyAccount() {
                       <div className="p-3">
                         <p className="text-xs font-bold truncate mb-2">{course.title}</p>
                         <div className="h-[5px] bg-muted rounded-full overflow-hidden mb-1">
-                          <div className={`h-full rounded-full transition-all ${pct === 100 ? 'bg-teal' : 'bg-primary'}`} style={{ width: `${pct}%` }} />
+                          <div className={`h-full rounded-full transition-all ${pct === 100 ? 'bg-emerald-500' : 'bg-primary'}`} style={{ width: `${pct}%` }} />
                         </div>
                         <p className="text-[10px] text-muted-foreground text-right">{pct}%</p>
                       </div>

@@ -110,13 +110,13 @@ export default function ExploreCourses() {
     const status = getEnrollmentStatus(course.id);
 
     if (!course.enrollment_open && status !== 'approved') {
-      return <Badge className="bg-muted text-muted-foreground text-[10px]"><Lock className="h-3 w-3 mr-1" />Em Breve</Badge>;
+      return <Badge variant="outline" className="bg-muted text-muted-foreground border-border text-[10px]"><Lock className="h-3 w-3 mr-1" />Em Breve</Badge>;
     }
     if (status === 'approved') {
-      return <Badge className="bg-emerald-600 text-white text-[10px]">Matriculado</Badge>;
+      return <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300 text-[10px]">Matriculado</Badge>;
     }
     if (course.enrollment_open && !status) {
-      return <Badge className="bg-accent text-accent-foreground text-[10px]">Inscreva-se</Badge>;
+      return <Badge variant="outline" className="bg-sky-100 text-sky-800 border-sky-300 text-[10px]">Inscreva-se</Badge>;
     }
     return null;
   };
@@ -126,7 +126,7 @@ export default function ExploreCourses() {
 
     if (!course.enrollment_open && status !== 'approved') {
       return (
-        <Button size="sm" variant="secondary" disabled className="w-full text-xs">
+        <Button size="sm" variant="outline" disabled className="w-full text-xs">
           <Lock className="h-3 w-3 mr-1" />
           Em Breve
         </Button>
@@ -134,7 +134,7 @@ export default function ExploreCourses() {
     }
     if (status === 'approved') {
       return (
-        <Button size="sm" className="w-full text-xs bg-primary hover:bg-primary/90" onClick={(e) => { e.stopPropagation(); navigate(`/course/${course.id}`); }}>
+        <Button size="sm" className="w-full text-xs" onClick={(e) => { e.stopPropagation(); navigate(`/course/${course.id}`); }}>
           Acessar Curso
         </Button>
       );
@@ -156,8 +156,8 @@ export default function ExploreCourses() {
   const renderCourseCard = (course: Course) => (
     <div
       key={course.id}
-      className={`rounded-xl overflow-hidden border border-border/50 shadow-[0_2px_8px_rgba(0,0,0,0.08)] group transition-all duration-300 ${
-        !course.enrollment_open && getEnrollmentStatus(course.id) !== 'approved' ? 'opacity-60 grayscale' : 'hover:shadow-lg'
+      className={`rounded-lg overflow-hidden border bg-card group transition-all duration-300 ${
+        !course.enrollment_open && getEnrollmentStatus(course.id) !== 'approved' ? 'opacity-60 grayscale' : 'hover:shadow-sm'
       }`}
     >
       {/* Image 4:5 */}
@@ -188,7 +188,7 @@ export default function ExploreCourses() {
             </span>
           )}
         </div>
-        <h3 className="font-semibold text-[15px] leading-tight line-clamp-2">
+        <h3 className="font-['Playfair_Display'] font-semibold text-[15px] leading-tight line-clamp-2">
           {course.title}
         </h3>
         {course.description && (
@@ -198,12 +198,12 @@ export default function ExploreCourses() {
         )}
         <div className="flex gap-1 flex-wrap">
           {(course.audience === 'trabalhadores' || course.audience === 'ambos') && (
-            <span className="text-[11px] text-blue-600 flex items-center gap-0.5">
+            <span className="text-[11px] text-primary flex items-center gap-0.5">
               <Users className="h-3 w-3" /> Trabalhadores
             </span>
           )}
           {(course.audience === 'frequentadores' || course.audience === 'ambos') && (
-            <span className="text-[11px] text-purple-600 flex items-center gap-0.5">
+            <span className="text-[11px] text-muted-foreground flex items-center gap-0.5">
               <Users className="h-3 w-3" /> Frequentadores
             </span>
           )}
@@ -227,7 +227,7 @@ export default function ExploreCourses() {
         }}
         disabled={isUnavailable || enrollingId === course.id}
         aria-label={`${course.title}${isApproved ? ' — acessar curso' : isUnavailable ? ' — em breve' : ' — inscrever-se'}`}
-        className={`w-full flex items-center gap-3 bg-card border border-border rounded-xl p-2.5 text-left shadow-card transition-all active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
+        className={`w-full flex items-center gap-3 bg-card border rounded-lg p-2.5 text-left transition-all active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
           isUnavailable ? 'opacity-60 grayscale cursor-not-allowed' : 'hover:border-primary/40'
         }`}
       >
@@ -242,7 +242,7 @@ export default function ExploreCourses() {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start gap-2">
-            <h3 className="flex-1 font-display font-bold text-[14px] leading-tight line-clamp-2">
+            <h3 className="flex-1 font-['Playfair_Display'] font-semibold text-[14px] leading-tight line-clamp-2">
               {course.title}
             </h3>
             <div className="flex-shrink-0">{getStatusBadge(course)}</div>
@@ -270,8 +270,8 @@ export default function ExploreCourses() {
     if (coursesList.length === 0) return null;
     return (
       <div className="space-y-4">
-        <div className="border-t border-border/50 pt-6">
-          <h2 className="text-xl font-display font-semibold flex items-center gap-2">
+        <div className="border-t pt-6">
+          <h2 className="font-['Playfair_Display'] text-lg font-semibold flex items-center gap-2">
             <span>{icon}</span> {title}
           </h2>
           <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>
@@ -291,7 +291,7 @@ export default function ExploreCourses() {
   return (
     <DashboardLayout>
       <PageHero title="Explorar Cursos" description="Descubra novos cursos e inscreva-se" variant="student" />
-      <div className="p-4 sm:p-6 md:p-7 space-y-6">
+      <div className="space-y-6">
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="relative max-w-md flex-1">
@@ -304,7 +304,7 @@ export default function ExploreCourses() {
             />
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[11px] uppercase tracking-[0.1em] font-bold text-muted-foreground">Linha:</span>
+            <span className="text-xs font-medium text-muted-foreground">Linha:</span>
             {([
               { value: 'todos', label: 'Todas', icon: '📚' },
               { value: 'espirita', label: 'Espírita', icon: '🙏' },
@@ -314,10 +314,10 @@ export default function ExploreCourses() {
               <button
                 key={tab.value}
                 onClick={() => setStudyLineFilter(tab.value)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                className={`px-3 py-1.5 rounded-md border text-xs font-medium transition-all ${
                   studyLineFilter === tab.value
-                    ? 'bg-primary text-white shadow-sm'
-                    : 'bg-muted/60 text-muted-foreground hover:bg-muted'
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-card text-muted-foreground hover:bg-muted'
                 }`}
               >
                 {tab.icon} {tab.label}

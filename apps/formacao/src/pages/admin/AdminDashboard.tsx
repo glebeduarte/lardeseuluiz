@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { CabecalhoPagina } from '@/compartilhado';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -286,39 +288,37 @@ export default function AdminDashboard() {
   };
 
   const getBarColor = (pct: number) => {
-    if (pct >= 70) return 'bg-teal';
+    if (pct >= 70) return 'bg-emerald-500';
     if (pct >= 40) return 'bg-primary';
-    return 'bg-accent';
+    return 'bg-amber-500';
   };
 
   const activityIcon = (type: RecentActivity['type']) => {
     if (type === 'assessment') return <ClipboardList className="h-3.5 w-3.5 text-primary" />;
-    if (type === 'completion') return <CheckCircle2 className="h-3.5 w-3.5 text-teal" />;
-    return <UserPlus className="h-3.5 w-3.5 text-accent" />;
+    if (type === 'completion') return <CheckCircle2 className="h-3.5 w-3.5 text-emerald-700" />;
+    return <UserPlus className="h-3.5 w-3.5 text-primary" />;
   };
 
   return (
     <DashboardLayout>
-      <div className="space-y-0">
-        {/* Hero Banner Admin */}
-        <div className="gradient-admin rounded-none px-6 sm:px-10 md:px-12 py-10 sm:py-14 md:py-16 text-white relative overflow-hidden">
-          <div className="absolute right-10 top-1/2 -translate-y-1/2 text-[120px] opacity-[0.08] select-none">📊</div>
-          <div className="relative z-10">
-            <p className="text-[10px] uppercase tracking-[0.14em] text-white/65 font-semibold mb-1">⊞ Visão Geral da Plataforma</p>
-            <h1 className="text-2xl sm:text-[28px] font-display font-bold">Painel Administrativo</h1>
-            <p className="text-white/65 text-[13px] mt-1">
-              {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-              <span className="ml-3 inline-flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full bg-teal animate-pulse-dot" />
-                <span className="text-teal-lt">Tudo a postos</span>
-              </span>
-            </p>
-          </div>
-        </div>
-
-        <div className="p-4 sm:p-6 md:p-7 space-y-5">
+      <CabecalhoPagina
+        titulo="Painel Administrativo"
+        descricao={
+          <>
+            Visão Geral da Plataforma · {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+          </>
+        }
+        acoes={
+          <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300 gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            Tudo a postos
+          </Badge>
+        }
+      />
+      <div>
+        <div className="space-y-6">
           {/* 4 KPIs */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-[14px]">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <KPICard
               icon={BookOpen}
               label="Cursos Publicados"
@@ -361,11 +361,11 @@ export default function AdminDashboard() {
             {/* LEFT COLUMN */}
             <div className="space-y-4">
               {/* Engajamento por Curso */}
-              <Card className="shadow-card border-border overflow-hidden">
+              <Card className="overflow-hidden">
                 <CardContent className="p-5">
-                  <div className="flex items-center justify-between mb-4 pb-3 border-b border-border">
-                    <h3 className="font-display font-bold text-sm flex items-center gap-2">
-                      <span className="h-7 w-7 rounded-lg bg-gradient-to-br from-primary to-teal flex items-center justify-center text-white">
+                  <div className="flex items-center justify-between mb-4 pb-3 border-b">
+                    <h3 className="font-['Playfair_Display'] font-semibold text-lg flex items-center gap-2">
+                      <span className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                         <TrendingUp className="h-3.5 w-3.5" />
                       </span>
                       Engajamento por Curso
@@ -384,14 +384,14 @@ export default function AdminDashboard() {
                             key={c.id}
                             onClick={() => navigate(`/admin/courses/${c.id}/content`)}
                             className={`group cursor-pointer rounded-lg p-2 -mx-2 transition-colors hover:bg-muted/40 ${
-                              isTop ? 'bg-gradient-to-r from-amber-50 to-transparent dark:from-amber-950/20' : ''
+                              isTop ? 'bg-amber-50' : ''
                             }`}
                           >
                             <div className="flex items-center gap-2 mb-1.5">
-                              {isTop && <Award className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" aria-label="Top engajamento" />}
+                              {isTop && <Award className="h-3.5 w-3.5 text-amber-700 flex-shrink-0" aria-label="Top engajamento" />}
                               <span className="text-xs font-medium text-foreground flex-1 truncate" title={c.title}>{c.title}</span>
                               <span className={`text-xs font-bold tabular-nums ${
-                                c.engagementPct >= 70 ? 'text-teal' : c.engagementPct >= 40 ? 'text-primary' : c.engagementPct > 0 ? 'text-accent' : 'text-muted-foreground'
+                                c.engagementPct >= 70 ? 'text-emerald-700' : c.engagementPct >= 40 ? 'text-primary' : c.engagementPct > 0 ? 'text-amber-700' : 'text-muted-foreground'
                               }`}>
                                 {c.engagementPct}%
                               </span>
@@ -416,18 +416,18 @@ export default function AdminDashboard() {
               </Card>
 
               {/* Avaliações */}
-              <Card className="shadow-card border-border overflow-hidden">
+              <Card className="overflow-hidden">
                 <CardContent className="p-5">
-                  <div className="flex items-center justify-between mb-4 pb-3 border-b border-border">
-                    <h3 className="font-display font-bold text-sm flex items-center gap-2">
-                      <span className="h-7 w-7 rounded-lg bg-gradient-to-br from-accent to-amber-500 flex items-center justify-center text-white">
+                  <div className="flex items-center justify-between mb-4 pb-3 border-b">
+                    <h3 className="font-['Playfair_Display'] font-semibold text-lg flex items-center gap-2">
+                      <span className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                         <ClipboardList className="h-3.5 w-3.5" />
                       </span>
                       Avaliações
                     </h3>
                     <button
                       onClick={() => navigate('/admin/assessments')}
-                      className="text-[11px] text-primary hover:underline font-semibold inline-flex items-center gap-1"
+                      className="text-xs text-primary hover:underline font-medium inline-flex items-center gap-1"
                     >
                       Ver todas <ChevronRight className="h-3 w-3" />
                     </button>
@@ -435,26 +435,26 @@ export default function AdminDashboard() {
 
                   {/* mini-stats */}
                   <div className="grid grid-cols-2 gap-2 mb-4">
-                    <div className="rounded-lg bg-blue-lt border border-primary/20 px-3 py-2.5">
-                      <p className="text-[22px] font-display font-bold text-primary leading-none tabular-nums">{val(stats.totalAssessments)}</p>
-                      <p className="text-[10px] uppercase tracking-[0.07em] text-muted-foreground font-semibold mt-1">Avaliações criadas</p>
+                    <div className="rounded-lg border bg-muted/40 px-3 py-2.5">
+                      <p className="text-2xl font-bold text-foreground leading-none tabular-nums">{val(stats.totalAssessments)}</p>
+                      <p className="text-xs text-muted-foreground mt-1">Avaliações criadas</p>
                     </div>
                     <div className={`rounded-lg px-3 py-2.5 border ${
                       stats.pendingAssessmentReviews > 0
-                        ? 'bg-accent/10 border-accent/30'
-                        : 'bg-teal-lt border-teal/20'
+                        ? 'bg-amber-100 border-amber-300'
+                        : 'bg-emerald-100 border-emerald-300'
                     }`}>
-                      <p className={`text-[22px] font-display font-bold leading-none tabular-nums ${
-                        stats.pendingAssessmentReviews > 0 ? 'text-accent' : 'text-teal'
+                      <p className={`text-2xl font-bold leading-none tabular-nums ${
+                        stats.pendingAssessmentReviews > 0 ? 'text-amber-800' : 'text-emerald-800'
                       }`}>{val(stats.pendingAssessmentReviews)}</p>
-                      <p className="text-[10px] uppercase tracking-[0.07em] text-muted-foreground font-semibold mt-1">
+                      <p className="text-xs text-muted-foreground mt-1">
                         {stats.pendingAssessmentReviews > 0 ? 'Pend. revisão' : 'Sem pendências'}
                       </p>
                     </div>
                   </div>
 
                   {/* Top courses by avg score */}
-                  <p className="text-[11px] uppercase tracking-[0.07em] text-muted-foreground font-semibold mb-2">
+                  <p className="text-xs font-medium text-muted-foreground mb-2">
                     Médias por curso
                   </p>
                   <div className="space-y-2">
@@ -476,7 +476,7 @@ export default function AdminDashboard() {
                             {s.attempts} resp.
                           </span>
                           <span className={`text-xs font-bold tabular-nums w-10 text-right ${
-                            s.avgScore >= 70 ? 'text-teal' : s.avgScore >= 50 ? 'text-primary' : 'text-accent'
+                            s.avgScore >= 70 ? 'text-emerald-700' : s.avgScore >= 50 ? 'text-primary' : 'text-amber-700'
                           }`}>
                             {s.avgScore}%
                           </span>
@@ -491,10 +491,10 @@ export default function AdminDashboard() {
             {/* RIGHT COLUMN */}
             <div className="space-y-4">
               {/* Atividade Recente */}
-              <Card className="shadow-card border-border">
+              <Card>
                 <CardContent className="p-5">
-                  <h3 className="font-display font-bold text-sm mb-4 pb-3 border-b border-border flex items-center gap-2">
-                    <span className="h-7 w-7 rounded-lg bg-gradient-to-br from-teal to-primary flex items-center justify-center text-white">
+                  <h3 className="font-['Playfair_Display'] font-semibold text-lg mb-4 pb-3 border-b flex items-center gap-2">
+                    <span className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                       <CalendarCheck className="h-3.5 w-3.5" />
                     </span>
                     Atividade Recente
@@ -524,10 +524,10 @@ export default function AdminDashboard() {
               </Card>
 
               {/* Insights & Alertas — actionable */}
-              <Card className="shadow-card border-border">
+              <Card>
                 <CardContent className="p-5">
-                  <h3 className="font-display font-bold text-sm mb-4 pb-3 border-b border-border flex items-center gap-2">
-                    <span className="h-7 w-7 rounded-lg bg-gradient-to-br from-accent to-destructive flex items-center justify-center text-white">
+                  <h3 className="font-['Playfair_Display'] font-semibold text-lg mb-4 pb-3 border-b flex items-center gap-2">
+                    <span className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                       <AlertTriangle className="h-3.5 w-3.5" />
                     </span>
                     Insights & Alertas
@@ -568,9 +568,9 @@ export default function AdminDashboard() {
           </div>
 
           {/* Ações Rápidas — full-width bottom */}
-          <Card className="shadow-card border-border">
+          <Card>
             <CardContent className="p-5">
-              <h3 className="font-display font-bold text-sm mb-3 pb-3 border-b border-border flex items-center gap-2">
+              <h3 className="font-['Playfair_Display'] font-semibold text-lg mb-3 pb-3 border-b flex items-center gap-2">
                 <span className="text-base">⚡</span> Ações Rápidas
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
@@ -595,6 +595,7 @@ export default function AdminDashboard() {
 /* ===== Sub-components ===== */
 type KPITone = 'primary' | 'teal' | 'accent' | 'success';
 
+// Padrão único: cartões brancos com borda; o tom só aparece no quadrado do ícone
 const toneStyles: Record<KPITone, {
   cardBg: string;
   iconBg: string;
@@ -603,27 +604,10 @@ const toneStyles: Record<KPITone, {
   border: string;
   glow: string;
 }> = {
-  primary: {
-    cardBg: 'bg-gradient-to-br from-blue-lt via-card to-card',
-    iconBg: 'bg-primary/15', iconColor: 'text-primary', valueColor: 'text-primary',
-    border: 'border-primary/20', glow: 'shadow-[0_4px_20px_-4px_hsl(var(--primary)/0.25)]',
-  },
-  teal: {
-    cardBg: 'bg-gradient-to-br from-teal-lt via-card to-card',
-    iconBg: 'bg-teal/15', iconColor: 'text-teal', valueColor: 'text-teal',
-    border: 'border-teal/20', glow: 'shadow-[0_4px_20px_-4px_hsl(var(--teal)/0.25)]',
-  },
-  accent: {
-    cardBg: 'bg-gradient-to-br from-accent/10 via-card to-card',
-    iconBg: 'bg-accent/15', iconColor: 'text-accent', valueColor: 'text-accent',
-    border: 'border-accent/25', glow: 'shadow-[0_4px_20px_-4px_hsl(var(--accent)/0.25)]',
-  },
-  success: {
-    cardBg: 'bg-gradient-to-br from-emerald-50 via-card to-card dark:from-emerald-950/20',
-    iconBg: 'bg-emerald-500/15', iconColor: 'text-emerald-600 dark:text-emerald-400',
-    valueColor: 'text-emerald-600 dark:text-emerald-400',
-    border: 'border-emerald-500/20', glow: 'shadow-[0_4px_20px_-4px_rgb(16_185_129/0.25)]',
-  },
+  primary: { cardBg: 'bg-card', iconBg: 'bg-primary/10', iconColor: 'text-primary', valueColor: 'text-foreground', border: 'border-border', glow: 'shadow-sm' },
+  teal: { cardBg: 'bg-card', iconBg: 'bg-primary/10', iconColor: 'text-primary', valueColor: 'text-foreground', border: 'border-border', glow: 'shadow-sm' },
+  accent: { cardBg: 'bg-card', iconBg: 'bg-primary/10', iconColor: 'text-primary', valueColor: 'text-foreground', border: 'border-border', glow: 'shadow-sm' },
+  success: { cardBg: 'bg-card', iconBg: 'bg-primary/10', iconColor: 'text-primary', valueColor: 'text-foreground', border: 'border-border', glow: 'shadow-sm' },
 };
 
 function KPICard({
@@ -635,32 +619,34 @@ function KPICard({
   const t = toneStyles[tone];
   const interactive = !!onClick;
   const hintClass = hintTone === 'warn'
-    ? 'text-destructive font-semibold'
+    ? 'text-amber-700 font-medium'
     : hintTone === 'ok'
-      ? 'text-teal font-medium'
-      : 'text-muted-foreground/80';
+      ? 'text-emerald-700 font-medium'
+      : 'text-muted-foreground';
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={!interactive}
-      className={`group text-left w-full rounded-2xl border ${t.border} ${t.cardBg} p-4 sm:p-5 transition-all duration-300 ${
+      className={`group text-left w-full rounded-lg border ${t.border} ${t.cardBg} p-4 transition-all ${
         interactive
-          ? `cursor-pointer hover:-translate-y-0.5 hover:${t.glow} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`
+          ? 'cursor-pointer hover:shadow-sm hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2'
           : 'cursor-default'
       }`}
     >
-      <div className="flex items-start justify-between gap-2 mb-3">
-        <span className={`h-10 w-10 rounded-xl ${t.iconBg} flex items-center justify-center transition-transform group-hover:scale-110`}>
-          <Icon className={`h-5 w-5 ${t.iconColor}`} strokeWidth={2.2} aria-hidden="true" />
+      <div className="flex items-center gap-3">
+        <span className={`h-11 w-11 rounded-lg ${t.iconBg} flex items-center justify-center flex-shrink-0`}>
+          <Icon className={`h-5 w-5 ${t.iconColor}`} aria-hidden="true" />
         </span>
+        <div className="min-w-0 flex-1">
+          <p className={`text-2xl font-bold leading-none tabular-nums ${t.valueColor}`}>{value}</p>
+          <p className="text-xs text-muted-foreground mt-1 truncate">{label}</p>
+        </div>
         {interactive && (
-          <ArrowRight className={`h-4 w-4 ${t.iconColor} opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all`} aria-hidden="true" />
+          <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true" />
         )}
       </div>
-      <p className={`text-[34px] font-display font-bold leading-none tabular-nums ${t.valueColor}`}>{value}</p>
-      <p className="text-[11px] uppercase tracking-[0.07em] text-muted-foreground font-semibold mt-2">{label}</p>
-      {hint && <p className={`text-[11px] mt-1 truncate ${hintClass}`}>{hint}</p>}
+      {hint && <p className={`text-xs mt-2 truncate ${hintClass}`}>{hint}</p>}
     </button>
   );
 }
@@ -670,20 +656,21 @@ function ActionableAlert({
 }: {
   icon: any; tone: 'ok' | 'warn'; label: string; value: number; onClick: () => void;
 }) {
+  // Situação: pendente em âmbar, ok em verde (paleta do guia)
   const styles = tone === 'warn'
-    ? { bg: 'bg-accent/10 border-accent/30 hover:bg-accent/15', icon: 'text-accent', value: 'text-accent' }
-    : { bg: 'bg-teal-lt border-teal/20 hover:bg-teal/10', icon: 'text-teal', value: 'text-teal' };
+    ? { bg: 'bg-amber-50 border-amber-300 hover:bg-amber-100', icon: 'text-amber-800', value: 'text-amber-800' }
+    : { bg: 'bg-emerald-50 border-emerald-300 hover:bg-emerald-100', icon: 'text-emerald-800', value: 'text-emerald-800' };
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-3 rounded-xl px-3 py-2.5 border transition-colors text-left group ${styles.bg}`}
+      className={`w-full flex items-center gap-3 rounded-lg px-3 py-2.5 border transition-colors text-left group ${styles.bg}`}
     >
-      <span className="h-8 w-8 rounded-lg bg-card/70 flex items-center justify-center flex-shrink-0">
-        <Icon className={`h-4 w-4 ${styles.icon}`} strokeWidth={2.2} />
+      <span className="h-8 w-8 rounded-lg bg-card flex items-center justify-center flex-shrink-0">
+        <Icon className={`h-4 w-4 ${styles.icon}`} />
       </span>
-      <span className="flex-1 text-xs text-muted-foreground leading-tight">{label}</span>
-      <span className={`text-lg font-display font-bold tabular-nums ${styles.value}`}>{value}</span>
-      <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all" />
+      <span className="flex-1 text-xs text-foreground leading-tight">{label}</span>
+      <span className={`text-lg font-bold tabular-nums ${styles.value}`}>{value}</span>
+      <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
     </button>
   );
 }
@@ -697,12 +684,12 @@ function QuickAction({
   return (
     <button
       onClick={onClick}
-      className={`group flex flex-col items-center justify-center gap-2 rounded-xl px-3 py-4 border ${t.border} ${t.cardBg} hover:-translate-y-0.5 hover:shadow-md transition-all`}
+      className={`group flex flex-col items-center justify-center gap-2 rounded-lg px-3 py-4 border ${t.border} ${t.cardBg} hover:bg-muted hover:border-primary/30 transition-colors`}
     >
-      <span className={`h-9 w-9 rounded-lg ${t.iconBg} flex items-center justify-center transition-transform group-hover:scale-110`}>
-        <Icon className={`h-4 w-4 ${t.iconColor}`} strokeWidth={2.2} />
+      <span className={`h-9 w-9 rounded-lg ${t.iconBg} flex items-center justify-center`}>
+        <Icon className={`h-4 w-4 ${t.iconColor}`} />
       </span>
-      <span className="text-[12px] font-semibold text-foreground text-center leading-tight">{label}</span>
+      <span className="text-xs font-medium text-foreground text-center leading-tight">{label}</span>
     </button>
   );
 }

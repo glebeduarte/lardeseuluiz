@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { PageHero } from '@/components/layout/PageHero';
+import { CabecalhoPagina } from '@/compartilhado';
 import { ArrowLeft, Download, Search, Trophy, Target, Users, Clock, TrendingUp } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -140,32 +141,33 @@ export default function AssessmentResultsPage() {
   };
 
   if (loading) {
-    return <DashboardLayout><div className="text-center py-12 text-muted-foreground">Carregando...</div></DashboardLayout>;
+    return <DashboardLayout><div className="text-center py-8 text-muted-foreground">Carregando...</div></DashboardLayout>;
   }
 
   return (
     <DashboardLayout>
+      <CabecalhoPagina
+        titulo={`Resultados: ${assessment?.title || ''}`}
+        descricao={(assessment?.courses as any)?.title || 'Visualize os resultados da avaliação'}
+        acoes={
+          <>
+            <Button variant="outline" onClick={() => navigate('/admin/assessments')}>
+              <ArrowLeft className="h-4 w-4 mr-2" /> Voltar
+            </Button>
+            <Button variant="outline" onClick={exportCSV}>
+              <Download className="h-4 w-4 mr-2" /> Exportar CSV
+            </Button>
+          </>
+        }
+      />
       <div className="space-y-6">
-        <PageHero
-          title={`Resultados: ${assessment?.title || ''}`}
-          description={(assessment?.courses as any)?.title || 'Visualize os resultados da avaliação'}
-        />
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-6">
-        <div className="flex items-center gap-4 flex-wrap">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/admin/assessments')}>
-            <ArrowLeft className="h-4 w-4 mr-2" /> Voltar
-          </Button>
-          <div className="flex-1" />
-          <Button variant="outline" onClick={exportCSV} className="gap-2">
-            <Download className="h-4 w-4" /> Exportar CSV
-          </Button>
-        </div>
+        <div className="space-y-6">
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <Card>
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <div className="h-11 w-11 rounded-lg bg-primary/10 flex items-center justify-center">
                 <Users className="h-5 w-5 text-primary" />
               </div>
               <div>
@@ -176,7 +178,7 @@ export default function AssessmentResultsPage() {
           </Card>
           <Card>
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <div className="h-11 w-11 rounded-lg bg-primary/10 flex items-center justify-center">
                 <Target className="h-5 w-5 text-primary" />
               </div>
               <div>
@@ -187,7 +189,7 @@ export default function AssessmentResultsPage() {
           </Card>
           <Card>
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <div className="h-11 w-11 rounded-lg bg-primary/10 flex items-center justify-center">
                 <TrendingUp className="h-5 w-5 text-primary" />
               </div>
               <div>
@@ -198,7 +200,7 @@ export default function AssessmentResultsPage() {
           </Card>
           <Card>
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <div className="h-11 w-11 rounded-lg bg-primary/10 flex items-center justify-center">
                 <Clock className="h-5 w-5 text-primary" />
               </div>
               <div>
@@ -213,7 +215,7 @@ export default function AssessmentResultsPage() {
         {completedAttempts.length > 0 && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
-              <CardHeader><CardTitle className="text-base">Distribuição de Notas</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="font-['Playfair_Display'] text-lg">Distribuição de Notas</CardTitle></CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={scoreDistribution}>
@@ -227,7 +229,7 @@ export default function AssessmentResultsPage() {
               </CardContent>
             </Card>
             <Card>
-              <CardHeader><CardTitle className="text-base">Aprovação</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="font-['Playfair_Display'] text-lg">Aprovação</CardTitle></CardHeader>
               <CardContent className="flex items-center justify-center">
                 <ResponsiveContainer width="100%" height={220}>
                   <PieChart>
@@ -248,7 +250,7 @@ export default function AssessmentResultsPage() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between flex-wrap gap-2">
-              <CardTitle className="text-base">Resultados</CardTitle>
+              <CardTitle className="font-['Playfair_Display'] text-lg">Resultados</CardTitle>
               <div className="flex items-center gap-2 flex-wrap">
                 <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
                   <SelectTrigger className="h-9 w-40">
@@ -278,8 +280,8 @@ export default function AssessmentResultsPage() {
                 {filtered.length === 0 ? (
                   <p className="text-center py-8 text-muted-foreground">Nenhuma tentativa encontrada.</p>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
+                  <div className="rounded-lg border bg-card overflow-x-auto">
+                    <table className="w-full text-sm [&_th]:px-3 [&_td]:px-3 [&_th]:pt-3">
                       <thead>
                         <tr className="border-b text-left">
                           <th className="pb-2 font-medium text-muted-foreground">Aluno</th>
@@ -304,9 +306,9 @@ export default function AssessmentResultsPage() {
                               <td className="py-3">{studentAttempts.length}</td>
                               <td className="py-3">
                                 {a.passed ? (
-                                  <Badge className="bg-primary/10 text-primary border-primary/20 text-xs">Aprovado</Badge>
+                                  <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300 text-xs">Aprovado</Badge>
                                 ) : (
-                                  <Badge variant="secondary" className="text-xs">Reprovado</Badge>
+                                  <Badge variant="destructive" className="text-xs">Reprovado</Badge>
                                 )}
                               </td>
                               <td className="py-3 text-muted-foreground">
@@ -325,8 +327,8 @@ export default function AssessmentResultsPage() {
                 {filteredAttempts.length === 0 ? (
                   <p className="text-center py-8 text-muted-foreground">Nenhuma tentativa encontrada.</p>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
+                  <div className="rounded-lg border bg-card overflow-x-auto">
+                    <table className="w-full text-sm [&_th]:px-3 [&_td]:px-3 [&_th]:pt-3">
                       <thead>
                         <tr className="border-b text-left">
                           <th className="pb-2 font-medium text-muted-foreground">Aluno</th>
@@ -368,9 +370,9 @@ export default function AssessmentResultsPage() {
                                 <td className="py-3"><span className="font-bold">{a.score}%</span></td>
                                 <td className="py-3">
                                   {a.passed ? (
-                                    <Badge className="bg-primary/10 text-primary border-primary/20 text-xs">Aprovado</Badge>
+                                    <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300 text-xs">Aprovado</Badge>
                                   ) : (
-                                    <Badge variant="secondary" className="text-xs">Reprovado</Badge>
+                                    <Badge variant="destructive" className="text-xs">Reprovado</Badge>
                                   )}
                                 </td>
                                 <td className="py-3 text-muted-foreground">

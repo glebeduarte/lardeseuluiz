@@ -273,7 +273,7 @@ export function ExportStudents({ students, courses, defaultCourseFilter = 'all' 
           </div>
 
           {/* Export Button */}
-          <Button onClick={handleExport} disabled={!canExport || exporting || totalStudents === 0} className="w-full gradient-primary">
+          <Button onClick={handleExport} disabled={!canExport || exporting || totalStudents === 0} className="w-full">
             {exporting ? 'Exportando...' : 'Exportar Lista'}
           </Button>
         </div>

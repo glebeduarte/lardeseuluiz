@@ -8,12 +8,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Pencil, Trash2, Megaphone, Calendar, BookOpen, Mic, Star } from 'lucide-react';
 import { PageHero } from '@/components/layout/PageHero';
+import { CabecalhoPagina } from '@/compartilhado';
 
 interface Announcement {
   id: string;
@@ -123,21 +124,24 @@ export default function AnnouncementsPage() {
 
   return (
     <DashboardLayout>
-      <PageHero title="Avisos e Programação" description="Gerencie avisos visíveis para os alunos" />
-      <div className="p-4 sm:p-6 md:p-7 space-y-5">
-        <div className="flex justify-end">
-          <Button onClick={openNew} size="sm" className="gap-1.5">
-            <Plus className="h-4 w-4" /> Novo Aviso
+      <CabecalhoPagina
+        titulo="Avisos e Programação"
+        descricao="Gerencie avisos visíveis para os alunos"
+        acoes={
+          <Button onClick={openNew}>
+            <Plus className="h-4 w-4 mr-2" /> Novo Aviso
           </Button>
-        </div>
+        }
+      />
+      <div className="space-y-6">
 
         {loading ? (
           <div className="space-y-3">
-            {[...Array(3)].map((_, i) => <div key={i} className="h-20 bg-muted/30 rounded-xl animate-pulse" />)}
+            {[...Array(3)].map((_, i) => <div key={i} className="h-20 bg-muted/30 rounded-lg animate-pulse" />)}
           </div>
         ) : announcements.length === 0 ? (
-          <Card className="shadow-card border-border">
-            <CardContent className="p-8 text-center">
+          <Card>
+            <CardContent className="py-8 text-center">
               <Megaphone className="h-10 w-10 text-muted-foreground mx-auto mb-3 opacity-40" />
               <p className="text-sm text-muted-foreground">Nenhum aviso criado ainda.</p>
             </CardContent>
@@ -145,17 +149,17 @@ export default function AnnouncementsPage() {
         ) : (
           <div className="space-y-2">
             {announcements.map((a) => (
-              <Card key={a.id} className={`shadow-card border-border ${!a.is_active ? 'opacity-50' : ''}`}>
+              <Card key={a.id} className={`${!a.is_active ? 'opacity-50' : ''}`}>
                 <CardContent className="p-4 flex items-start gap-3">
                   <span className="text-xl mt-0.5">{getCatIcon(a.category)}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
-                      <h3 className="font-display font-bold text-sm">{a.title}</h3>
-                      <span className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                      <h3 className="font-['Playfair_Display'] font-semibold text-sm">{a.title}</h3>
+                      <span className="text-[10px] font-medium text-muted-foreground bg-muted border border-border px-1.5 py-0.5 rounded-full">
                         {categories.find(c => c.value === a.category)?.label || a.category}
                       </span>
                       {!a.is_active && (
-                        <span className="text-[10px] uppercase tracking-wider font-bold text-destructive bg-destructive/10 px-1.5 py-0.5 rounded">Inativo</span>
+                        <span className="text-[10px] font-medium text-muted-foreground bg-muted border border-border px-1.5 py-0.5 rounded-full">Inativo</span>
                       )}
                     </div>
                     {a.description && <p className="text-xs text-muted-foreground line-clamp-1">{a.description}</p>}
@@ -187,15 +191,15 @@ export default function AnnouncementsPage() {
               <DialogTitle>{editing ? 'Editar Aviso' : 'Novo Aviso'}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 pt-2">
-              <div>
+              <div className="grid gap-2">
                 <Label>Título *</Label>
                 <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Ex: Palestra sobre mediunidade" />
               </div>
-              <div>
+              <div className="grid gap-2">
                 <Label>Descrição</Label>
                 <Textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Breve descrição do aviso..." rows={3} />
               </div>
-              <div>
+              <div className="grid gap-2">
                 <Label>Categoria</Label>
                 <Select value={form.category} onValueChange={v => setForm(f => ({ ...f, category: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
@@ -207,19 +211,22 @@ export default function AnnouncementsPage() {
                 </Select>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div>
+                <div className="grid gap-2">
                   <Label>Data/Hora de Início</Label>
                   <Input type="datetime-local" value={form.starts_at} onChange={e => setForm(f => ({ ...f, starts_at: e.target.value }))} />
                 </div>
-                <div>
+                <div className="grid gap-2">
                   <Label>Expira em</Label>
                   <Input type="datetime-local" value={form.expires_at} onChange={e => setForm(f => ({ ...f, expires_at: e.target.value }))} />
                 </div>
               </div>
-              <Button onClick={handleSave} disabled={saving} className="w-full">
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
+              <Button onClick={handleSave} disabled={saving}>
                 {saving ? 'Salvando...' : editing ? 'Salvar Alterações' : 'Criar Aviso'}
               </Button>
-            </div>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>

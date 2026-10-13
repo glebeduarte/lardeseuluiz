@@ -36,3 +36,4 @@ supabase/.branches
 backups/
 *.dump
 *.sql.gz
+.claude/

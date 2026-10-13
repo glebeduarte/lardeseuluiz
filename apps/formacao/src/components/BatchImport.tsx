@@ -233,7 +233,7 @@ export function BatchImport({ courseId, onImportComplete }: BatchImportProps) {
           {importResult ? (
             <div
               className={`flex items-center gap-3 p-4 rounded-lg ${
-                importResult.success ? 'bg-green-500/10 text-green-700' : 'bg-destructive/10 text-destructive'
+                importResult.success ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-destructive/10 text-destructive'
               }`}
             >
               {importResult.success ? (
@@ -275,7 +275,7 @@ export function BatchImport({ courseId, onImportComplete }: BatchImportProps) {
                 <Button variant="outline" onClick={closeDialog}>
                   Cancelar
                 </Button>
-                <Button onClick={executeImport} disabled={importing} className="gradient-primary">
+                <Button onClick={executeImport} disabled={importing}>
                   {importing && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
                   Confirmar Importação
                 </Button>

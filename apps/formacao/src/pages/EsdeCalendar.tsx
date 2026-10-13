@@ -7,6 +7,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import logo from '@/assets/logo-lar-seu-luiz.png';
 import { supabase } from '@/integrations/supabase/client';
+import { CabecalhoPagina } from '@/compartilhado';
 
 interface Aula {
   data: string;
@@ -18,25 +19,26 @@ interface Aula {
 }
 
 const moduloColors: Record<string, string> = {
-  'Módulo I': 'bg-primary/10 text-primary border-primary/20',
-  'Módulo II': 'bg-accent/10 text-accent border-accent/20',
-  'Módulo III': 'bg-success/10 text-success border-success/20',
-  'Módulo IV': 'bg-warning/10 text-warning border-warning/20',
-  'Módulo V': 'bg-destructive/10 text-destructive border-destructive/20',
-  'Módulo VI': 'bg-primary/10 text-primary border-primary/20',
-  'Módulo VII': 'bg-accent/10 text-accent border-accent/20',
-  'Módulo VIII': 'bg-success/10 text-success border-success/20',
+  // Cores por módulo na paleta do padrão único (tokens e tons de situação)
+  'Módulo I': 'bg-primary/10 text-primary border-primary/30',
+  'Módulo II': 'bg-accent/20 text-accent-foreground border-accent/40',
+  'Módulo III': 'bg-emerald-100 text-emerald-800 border-emerald-300',
+  'Módulo IV': 'bg-amber-100 text-amber-800 border-amber-300',
+  'Módulo V': 'bg-sky-100 text-sky-800 border-sky-300',
+  'Módulo VI': 'bg-primary/10 text-primary border-primary/30',
+  'Módulo VII': 'bg-accent/20 text-accent-foreground border-accent/40',
+  'Módulo VIII': 'bg-emerald-100 text-emerald-800 border-emerald-300',
 };
 
 const moduloBorderLeft: Record<string, string> = {
   'Módulo I': 'border-l-4 border-l-primary',
   'Módulo II': 'border-l-4 border-l-accent',
-  'Módulo III': 'border-l-4 border-l-success',
-  'Módulo IV': 'border-l-4 border-l-warning',
-  'Módulo V': 'border-l-4 border-l-destructive',
+  'Módulo III': 'border-l-4 border-l-emerald-500',
+  'Módulo IV': 'border-l-4 border-l-amber-500',
+  'Módulo V': 'border-l-4 border-l-sky-500',
   'Módulo VI': 'border-l-4 border-l-primary',
   'Módulo VII': 'border-l-4 border-l-accent',
-  'Módulo VIII': 'border-l-4 border-l-success',
+  'Módulo VIII': 'border-l-4 border-l-emerald-500',
 };
 
 type CourseMeta = {
@@ -183,51 +185,46 @@ export default function EsdeCalendar() {
   };
 
   return (
+    // Página pública de conteúdo: cabeçalho branco com o logo e conteúdo em max-w-5xl
     <div className="min-h-screen bg-background">
-      <div className="relative bg-gradient-to-br from-primary/5 via-background to-secondary/10 border-b border-border">
-        <div className="container mx-auto px-4 py-6 sm:py-8 relative z-10">
-          <div className="flex flex-col items-center text-center">
-            <div className="mb-3 sm:mb-4">
-              <div className="inline-flex p-2 rounded-xl bg-card border border-border shadow-lg">
-                <img src={logo} alt="Logo Lar de Seu Luiz" className="h-12 w-12 sm:h-16 sm:w-16 rounded-lg object-cover" />
-              </div>
-            </div>
+      <header className="bg-card border-b">
+        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center gap-3">
+          <img src={logo} alt="Logo Lar de Seu Luiz" className="h-10 w-10 rounded-lg object-contain" />
+          <p className="text-sm text-muted-foreground">
+            Lar de Seu Luiz - Secretaria de Formação
+          </p>
+        </div>
+      </header>
 
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-foreground mb-1 sm:mb-2">
-              {meta.title}
-            </h1>
-            <p className="text-base sm:text-lg text-primary font-medium mb-1">
-              {meta.subtitle}
-            </p>
-            <p className="text-sm text-muted-foreground mb-4 sm:mb-6">
-              Lar de Seu Luiz - Secretaria de Formação
-            </p>
-
-            <div className="flex flex-wrap justify-center gap-2 sm:gap-4 mb-4 sm:mb-6">
-              <div className="flex items-center gap-1.5 bg-card rounded-lg px-3 py-1.5 sm:px-4 sm:py-2 border border-border text-xs sm:text-sm">
+      <div className="max-w-5xl mx-auto px-4 pt-6 sm:pt-8">
+        <CabecalhoPagina
+          titulo={meta.title}
+          descricao={meta.subtitle}
+          acoes={
+            <Button onClick={handleGeneratePDF} disabled={loading || aulas.length === 0}>
+              <FileDown className="h-4 w-4 mr-2" />
+              Baixar PDF do Calendário
+            </Button>
+          }
+        />
+            <div className="flex flex-wrap gap-2">
+              <div className="flex items-center gap-1.5 bg-card rounded-md px-3 py-1.5 border text-xs sm:text-sm">
                 <Calendar className="h-4 w-4 text-primary" />
                 <span className="font-medium">Quintas-feiras</span>
               </div>
-              <div className="flex items-center gap-1.5 bg-card rounded-lg px-3 py-1.5 sm:px-4 sm:py-2 border border-border text-xs sm:text-sm">
+              <div className="flex items-center gap-1.5 bg-card rounded-md px-3 py-1.5 border text-xs sm:text-sm">
                 <Clock className="h-4 w-4 text-primary" />
                 <span className="font-medium">19h30 às 21h00</span>
               </div>
-              <div className="flex items-center gap-1.5 bg-card rounded-lg px-3 py-1.5 sm:px-4 sm:py-2 border border-border text-xs sm:text-sm">
+              <div className="flex items-center gap-1.5 bg-card rounded-md px-3 py-1.5 border text-xs sm:text-sm">
                 <MapPin className="h-4 w-4 text-primary" />
                 <span className="font-medium">Online</span>
               </div>
             </div>
-
-            <Button onClick={handleGeneratePDF} size="lg" className="mb-2 gap-2" disabled={loading || aulas.length === 0}>
-              <FileDown className="h-5 w-5" />
-              Baixar PDF do Calendário
-            </Button>
-          </div>
-        </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6 sm:py-8">
-        <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+      <div className="max-w-5xl mx-auto px-4 py-6 sm:py-8">
+        <h2 className="font-['Playfair_Display'] text-lg sm:text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
           <Calendar className="h-5 w-5 text-primary" />
           {meta.heading}
         </h2>
@@ -249,7 +246,7 @@ export default function EsdeCalendar() {
                     key={index}
                     className={`rounded-lg border border-border p-3 ${
                       isSpecial ? 'bg-muted'
-                      : isExtra ? 'bg-purple-50 dark:bg-purple-950/20 border-l-4 border-l-purple-500'
+                      : isExtra ? 'bg-sky-50 border-l-4 border-l-sky-500'
                       : isEven ? 'bg-card' : 'bg-muted/60'
                     } ${!isExtra && aula.modulo ? moduloBorderLeft[aula.modulo] || '' : ''}`}
                   >
@@ -261,7 +258,7 @@ export default function EsdeCalendar() {
                         </Badge>
                       )}
                       {isExtra && (
-                        <Badge variant="outline" className="text-[10px] bg-purple-100 text-purple-700 border-purple-300 dark:bg-purple-900/30 dark:text-purple-300">
+                        <Badge variant="outline" className="text-[10px] bg-sky-100 text-sky-800 border-sky-300">
                           Extra
                         </Badge>
                       )}
@@ -271,7 +268,7 @@ export default function EsdeCalendar() {
                         {aula.tipo === 'feriado' ? `Feriado — ${aula.roteiro}` : 'Recesso'}
                       </p>
                     ) : isExtra ? (
-                      <p className="text-sm font-semibold text-purple-700 dark:text-purple-300">
+                      <p className="text-sm font-semibold text-sky-800">
                         {aula.tema || 'Encontro Extra'}
                       </p>
                     ) : (
@@ -293,7 +290,7 @@ export default function EsdeCalendar() {
             </div>
 
             {/* Desktop: table layout */}
-            <div className="hidden md:block overflow-x-auto rounded-lg border border-border">
+            <div className="hidden md:block rounded-lg border bg-card overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-muted/50 border-b border-border">
@@ -314,14 +311,14 @@ export default function EsdeCalendar() {
                         key={index}
                         className={`border-b border-border last:border-0 ${
                           isSpecial ? 'bg-muted'
-                          : isExtra ? 'bg-purple-50 dark:bg-purple-950/20 border-l-4 border-l-purple-500'
+                          : isExtra ? 'bg-sky-50 border-l-4 border-l-sky-500'
                           : isEven ? 'bg-card' : 'bg-muted/60'
                         } ${!isExtra && aula.modulo ? moduloBorderLeft[aula.modulo] || '' : ''}`}
                       >
                         <td className="px-4 py-3 font-medium">{aula.data}</td>
                         <td className="px-4 py-3 text-center">
                           {isExtra ? (
-                            <Badge variant="outline" className="text-xs bg-purple-100 text-purple-700 border-purple-300 dark:bg-purple-900/30 dark:text-purple-300">
+                            <Badge variant="outline" className="text-xs bg-sky-100 text-sky-800 border-sky-300">
                               Extra
                             </Badge>
                           ) : aula.tipo === 'aula' || aula.tipo === 'encerramento' ? (
@@ -329,7 +326,7 @@ export default function EsdeCalendar() {
                               {aula.roteiro}
                             </span>
                           ) : (
-                            <Badge variant="secondary" className="text-xs">{aula.roteiro}</Badge>
+                            <Badge variant="outline" className="text-xs bg-muted text-muted-foreground border-border">{aula.roteiro}</Badge>
                           )}
                         </td>
                         <td className="px-4 py-3">
@@ -338,7 +335,7 @@ export default function EsdeCalendar() {
                               {aula.tipo === 'feriado' ? 'Feriado' : 'Recesso'}
                             </span>
                           ) : isExtra ? (
-                            <span className="font-semibold text-purple-700 dark:text-purple-300">
+                            <span className="font-semibold text-sky-800">
                               {aula.tema || 'Encontro Extra'}
                             </span>
                           ) : aula.tipo === 'encerramento' ? (
@@ -371,8 +368,8 @@ export default function EsdeCalendar() {
         </div>
       </div>
 
-      <footer className="py-6 px-4 border-t border-border bg-card/80">
-        <div className="container mx-auto text-center text-muted-foreground text-sm">
+      <footer className="py-6 px-4 border-t bg-card">
+        <div className="max-w-5xl mx-auto text-center text-muted-foreground text-xs">
           <p>© 2025 Lar de Seu Luiz - Secretaria de Formação. Todos os direitos reservados.</p>
         </div>
       </footer>

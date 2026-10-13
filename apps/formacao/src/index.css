@@ -35,34 +35,38 @@
     --text-muted-custom: 220 9% 55%;
     --border-custom: 220 13% 91%;
 
-    /* Tokens semânticos shadcn */
+    /* Tokens semânticos shadcn: iguais aos da Governança (padrão único da plataforma) */
     --background: 214 33% 97%;       /* #f5f7fa */
     --foreground: 220 39% 11%;       /* #111827 */
     --card: 0 0% 100%;
     --card-foreground: 220 39% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 220 39% 11%;
-    --primary: 209 100% 35%;         /* brand-blue */
+    --primary: 210 100% 35%;         /* #0059b1 */
     --primary-foreground: 0 0% 100%;
-    --secondary: 220 13% 95%;
-    --secondary-foreground: 220 39% 11%;
-    --muted: 220 13% 95%;
+    --primary-dark: 211 100% 25%;
+    --primary-muted: 207 100% 95%;
+    --secondary: 44 100% 54%;        /* dourado, como na Governança */
+    --secondary-foreground: 211 100% 25%;
+    --muted: 214 33% 95%;
     --muted-foreground: 220 9% 46%;
-    --accent: 43 100% 54%;           /* dourado */
+    --accent: 44 100% 54%;           /* dourado */
     --accent-foreground: 211 100% 25%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
     --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 209 100% 35%;
-    --radius: 0.75rem;
+    --input: 220 13% 88%;
+    --ring: 210 100% 35%;
+    --radius: 0.875rem;
+    --font-display: "Playfair Display", Georgia, serif;
+    --font-body: "Inter", "DM Sans", system-ui, sans-serif;
 
-    --gradient-start: 209 100% 35%;
+    --gradient-start: 210 100% 35%;
     --gradient-end: 211 100% 25%;
     --surface: 214 33% 97%;
-    --surface-hover: 220 13% 93%;
-    --success: 152 60% 40%;
-    --warning: 43 100% 54%;
+    --surface-hover: 214 33% 93%;
+    --success: 142 64% 38%;
+    --warning: 44 100% 54%;
 
     /* Sidebar — azul institucional escuro */
     --sidebar-background: 211 100% 25%;
@@ -121,7 +125,8 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
+    line-height: 1.6;
     overflow-x: hidden;
   }
 
@@ -130,14 +135,15 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Playfair Display', serif;
-    @apply font-bold tracking-tight;
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+    @apply font-bold;
   }
 }
 
 @layer utilities {
   .font-body {
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
   }
 
   .gradient-primary {

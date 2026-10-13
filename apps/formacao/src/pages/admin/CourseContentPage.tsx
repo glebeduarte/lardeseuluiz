@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { CabecalhoPagina } from '@/compartilhado';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -642,19 +643,15 @@ export default function CourseContentPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-4 sm:p-6 md:p-7 max-w-4xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" className="shrink-0" onClick={() => navigate('/admin/courses')}>
-              <ArrowLeft className="h-5 w-5" />
+      <CabecalhoPagina
+        titulo="Conteúdo do Curso"
+        descricao={course?.title}
+        acoes={
+          <>
+            <Button variant="outline" size="sm" onClick={() => navigate('/admin/courses')}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar
             </Button>
-            <div className="flex-1 min-w-0">
-              <h1 className="text-2xl sm:text-3xl font-display font-bold">Conteúdo do Curso</h1>
-              <p className="text-muted-foreground mt-1 truncate">{course?.title}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
             <Button onClick={() => setStudentProgressOpen(true)} variant="outline" size="sm">
               <Users className="h-4 w-4 mr-2" />
               Alunos
@@ -663,16 +660,18 @@ export default function CourseContentPage() {
               <Pencil className="h-4 w-4 mr-2" />
               Editar Curso
             </Button>
-          </div>
-        </div>
+          </>
+        }
+      />
+      <div className="max-w-4xl space-y-6">
 
         {/* Modules */}
-        <Card className="bg-card/50 border-border/50">
+        <Card>
           <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <CardTitle className="text-lg sm:text-xl">Módulos e Aulas</CardTitle>
+            <CardTitle className="font-['Playfair_Display'] text-lg">Módulos e Aulas</CardTitle>
             <div className="flex items-center gap-2">
               <BatchImport courseId={id!} onImportComplete={fetchCourseContent} />
-              <Button onClick={() => openModuleDialog()} size="sm" className="gradient-primary">
+              <Button onClick={() => openModuleDialog()} size="sm">
                 <Plus className="h-4 w-4 mr-2" />
                 Novo Módulo
               </Button>
@@ -680,11 +679,11 @@ export default function CourseContentPage() {
           </CardHeader>
           <CardContent>
             {modules.length === 0 ? (
-              <div className="text-center py-12">
-                <FolderOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="font-semibold mb-2">Nenhum módulo ainda</h3>
-                <p className="text-muted-foreground mb-4">Crie o primeiro módulo do curso</p>
-                <Button onClick={() => openModuleDialog()} className="gradient-primary">
+              <div className="text-center py-8">
+                <FolderOpen className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+                <h3 className="font-['Playfair_Display'] font-semibold mb-1">Nenhum módulo ainda</h3>
+                <p className="text-sm text-muted-foreground mb-4">Crie o primeiro módulo do curso</p>
+                <Button onClick={() => openModuleDialog()}>
                   <Plus className="h-4 w-4 mr-2" />
                   Criar Módulo
                 </Button>
@@ -694,7 +693,7 @@ export default function CourseContentPage() {
                 {modules.map((module, index) => (
                   <div
                     key={module.id}
-                    className={`border border-border/50 rounded-lg ${draggedModule === module.id ? 'opacity-50 bg-muted/50' : ''} ${draggedModule && draggedModule !== module.id ? 'border-primary/50' : ''}`}
+                    className={`border rounded-lg bg-card ${draggedModule === module.id ? 'opacity-50 bg-muted/50' : ''} ${draggedModule && draggedModule !== module.id ? 'border-primary/50' : ''}`}
                     onDragOver={handleModuleDragOver}
                     onDrop={(e) => handleModuleDrop(e, module.id)}
                   >
@@ -917,7 +916,7 @@ export default function CourseContentPage() {
             <Button variant="outline" onClick={() => setModuleDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={saveModule} className="gradient-primary" disabled={savingModule}>
+            <Button onClick={saveModule} disabled={savingModule}>
               {savingModule && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
               Salvar
             </Button>
@@ -993,7 +992,7 @@ export default function CourseContentPage() {
             <Button variant="outline" onClick={() => setLessonDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={saveLesson} className="gradient-primary" disabled={savingLesson}>
+            <Button onClick={saveLesson} disabled={savingLesson}>
               {savingLesson && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
               Salvar
             </Button>

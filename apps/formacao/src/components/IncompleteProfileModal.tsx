@@ -77,7 +77,7 @@ export function IncompleteProfileModal() {
               autoFocus
             />
           </div>
-          <Button type="submit" className="w-full gradient-primary" disabled={saving}>
+          <Button type="submit" className="w-full" disabled={saving}>
             {saving ? 'Salvando...' : 'Salvar e continuar'}
           </Button>
         </form>

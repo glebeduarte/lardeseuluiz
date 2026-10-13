@@ -90,8 +90,8 @@ export function AttemptResult({ attempt, assessmentTitle, passingScore, showAnsw
         <div className="space-y-1">
           {q.alternatives?.map((alt: any) => (
             <div key={alt.id} className={`text-xs px-3 py-1.5 rounded-lg ${
-              alt.id === q.correct_answer ? 'bg-green-100 text-green-800 font-medium' :
-              alt.id === a.answer_given && !a.is_correct ? 'bg-red-100 text-red-800' :
+              alt.id === q.correct_answer ? 'bg-emerald-100 text-emerald-800 font-medium' :
+              alt.id === a.answer_given && !a.is_correct ? 'bg-destructive/10 text-destructive' :
               'text-muted-foreground'
             }`}>
               {alt.id.toUpperCase()}) {alt.text}
@@ -114,8 +114,8 @@ export function AttemptResult({ attempt, assessmentTitle, passingScore, showAnsw
             const isCorrectAlt = correctIds.includes(alt.id);
             return (
               <div key={alt.id} className={`text-xs px-3 py-1.5 rounded-lg ${
-                isCorrectAlt ? 'bg-green-100 text-green-800 font-medium' :
-                isGiven && !isCorrectAlt ? 'bg-red-100 text-red-800' :
+                isCorrectAlt ? 'bg-emerald-100 text-emerald-800 font-medium' :
+                isGiven && !isCorrectAlt ? 'bg-destructive/10 text-destructive' :
                 'text-muted-foreground'
               }`}>
                 {alt.id.toUpperCase()}) {alt.text}
@@ -141,7 +141,7 @@ export function AttemptResult({ attempt, assessmentTitle, passingScore, showAnsw
                 const alt = q.alternatives?.find((x: any) => x.id === id);
                 const isCorrectPos = correctOrder[idx] === id;
                 return (
-                  <div key={idx} className={`text-xs px-3 py-1.5 rounded-lg ${isCorrectPos ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                  <div key={idx} className={`text-xs px-3 py-1.5 rounded-lg ${isCorrectPos ? 'bg-emerald-100 text-emerald-800' : 'bg-destructive/10 text-destructive'}`}>
                     {idx + 1}. {alt?.text || id} {isCorrectPos ? '✓' : '✗'}
                   </div>
                 );
@@ -155,7 +155,7 @@ export function AttemptResult({ attempt, assessmentTitle, passingScore, showAnsw
                 {correctOrder.map((id, idx) => {
                   const alt = q.alternatives?.find((x: any) => x.id === id);
                   return (
-                    <div key={idx} className="text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-800">
+                    <div key={idx} className="text-xs px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-800">
                       {idx + 1}. {alt?.text || id}
                     </div>
                   );
@@ -171,11 +171,11 @@ export function AttemptResult({ attempt, assessmentTitle, passingScore, showAnsw
     if (q.question_type === 'fill_blank') {
       return (
         <div className="space-y-1">
-          <div className={`text-xs px-3 py-1.5 rounded-lg ${a.is_correct ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+          <div className={`text-xs px-3 py-1.5 rounded-lg ${a.is_correct ? 'bg-emerald-100 text-emerald-800' : 'bg-destructive/10 text-destructive'}`}>
             Sua resposta: {a.answer_given || '(vazio)'} {a.is_correct ? '✓' : '✗'}
           </div>
           {!a.is_correct && (
-            <div className="text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-800">
+            <div className="text-xs px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-800">
               Resposta correta: {q.correct_answer}
             </div>
           )}
@@ -200,16 +200,16 @@ export function AttemptResult({ attempt, assessmentTitle, passingScore, showAnsw
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
-      <Card className={attempt.passed ? 'border-green-200 bg-green-50/50' : 'border-amber-200 bg-amber-50/50'}>
+      <Card className={attempt.passed ? 'border-emerald-300 bg-emerald-50/50' : 'border-amber-300 bg-amber-50/50'}>
         <CardContent className="p-6 text-center">
           {attempt.passed ? (
-            <Trophy className="h-16 w-16 text-green-500 mx-auto mb-4" />
+            <Trophy className="h-16 w-16 text-emerald-600 mx-auto mb-4" />
           ) : (
             <div className="h-16 w-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
               <span className="text-2xl">💪</span>
             </div>
           )}
-          <h2 className="text-2xl font-display font-bold mb-1">
+          <h2 className="text-2xl font-['Playfair_Display'] font-bold mb-1">
             {attempt.passed ? 'Parabéns! Você foi aprovado!' : 'Continue estudando!'}
           </h2>
           <p className="text-muted-foreground mb-4">
@@ -253,13 +253,13 @@ export function AttemptResult({ attempt, assessmentTitle, passingScore, showAnsw
         <div className="space-y-3">
           <h3 className="font-semibold text-foreground">Revisão das Respostas</h3>
           {answers.map((a) => (
-            <Card key={a.question_id} className={a.is_correct === true ? 'border-green-200' : a.is_correct === false ? 'border-red-200' : 'border-border'}>
+            <Card key={a.question_id} className={a.is_correct === true ? 'border-emerald-300' : a.is_correct === false ? 'border-destructive/30' : 'border-border'}>
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
                   {a.is_correct === true ? (
-                    <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                    <CheckCircle className="h-5 w-5 text-emerald-600 mt-0.5 flex-shrink-0" />
                   ) : a.is_correct === false ? (
-                    <XCircle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
+                    <XCircle className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
                   ) : (
                     <div className="h-5 w-5 rounded-full bg-muted flex items-center justify-center mt-0.5 flex-shrink-0 text-xs">?</div>
                   )}

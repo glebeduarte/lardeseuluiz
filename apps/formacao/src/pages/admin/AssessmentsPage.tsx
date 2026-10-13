@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { PageHero } from '@/components/layout/PageHero';
+import { CabecalhoPagina } from '@/compartilhado';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -66,9 +67,9 @@ export default function AssessmentsPage() {
 
   const statusBadge = (status: string) => {
     switch (status) {
-      case 'published': return <Badge className="bg-green-100 text-green-700 border-green-200">Publicada</Badge>;
-      case 'draft': return <Badge variant="secondary">Rascunho</Badge>;
-      case 'archived': return <Badge variant="outline" className="text-muted-foreground">Arquivada</Badge>;
+      case 'published': return <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300">Publicada</Badge>;
+      case 'draft': return <Badge variant="outline" className="bg-muted text-muted-foreground border-border">Rascunho</Badge>;
+      case 'archived': return <Badge variant="outline" className="bg-muted text-muted-foreground border-border">Arquivada</Badge>;
       default: return <Badge>{status}</Badge>;
     }
   };
@@ -80,14 +81,17 @@ export default function AssessmentsPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <PageHero title="Avaliações" description="Gerencie as avaliações dos cursos" />
-        <div className="px-4 sm:px-6 space-y-6">
-        <div className="flex justify-end">
-          <Button onClick={() => navigate('/admin/assessments/new')} className="gap-2">
-            <Plus className="h-4 w-4" /> Nova Avaliação
+      <CabecalhoPagina
+        titulo="Avaliações"
+        descricao="Gerencie as avaliações dos cursos"
+        acoes={
+          <Button onClick={() => navigate('/admin/assessments/new')}>
+            <Plus className="h-4 w-4 mr-2" /> Nova Avaliação
           </Button>
-        </div>
+        }
+      />
+      <div className="space-y-6">
+        <div className="space-y-6">
 
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -100,15 +104,15 @@ export default function AssessmentsPage() {
         </div>
 
         {loading ? (
-          <div className="text-center py-12 text-muted-foreground">Carregando...</div>
+          <div className="text-center py-8 text-muted-foreground">Carregando...</div>
         ) : filtered.length === 0 ? (
           <Card>
-            <CardContent className="text-center py-12">
-              <ClipboardCheck className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Nenhuma avaliação encontrada</h3>
-              <p className="text-muted-foreground mb-4">Crie sua primeira avaliação para começar.</p>
-              <Button onClick={() => navigate('/admin/assessments/new')} className="gap-2">
-                <Plus className="h-4 w-4" /> Nova Avaliação
+            <CardContent className="text-center py-8">
+              <ClipboardCheck className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+              <h3 className="font-['Playfair_Display'] text-lg font-semibold mb-1">Nenhuma avaliação encontrada</h3>
+              <p className="text-sm text-muted-foreground mb-4">Crie sua primeira avaliação para começar.</p>
+              <Button onClick={() => navigate('/admin/assessments/new')}>
+                <Plus className="h-4 w-4 mr-2" /> Nova Avaliação
               </Button>
             </CardContent>
           </Card>
@@ -120,7 +124,7 @@ export default function AssessmentsPage() {
                   <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-foreground truncate">{a.title}</h3>
+                        <h3 className="font-['Playfair_Display'] font-semibold text-foreground truncate">{a.title}</h3>
                         {statusBadge(a.status)}
                       </div>
                       <p className="text-sm text-muted-foreground">

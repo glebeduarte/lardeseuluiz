@@ -154,8 +154,8 @@ export default function LibraryPage() {
     <DashboardLayout>
       <PageHero title="Biblioteca" description="Gerencie o acervo de livros disponíveis para os alunos." />
 
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="flex flex-col sm:flex-row gap-3 mb-6 items-start sm:items-center justify-between">
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -236,8 +236,8 @@ export default function LibraryPage() {
           </div>
         ) : (
           <>
-            <p className="text-sm text-muted-foreground mb-4">{filtered.length} livro(s) encontrado(s)</p>
-            <div className="rounded-xl border bg-card overflow-hidden">
+            <p className="text-sm text-muted-foreground mb-3">{filtered.length} livro(s) encontrado(s)</p>
+            <div className="rounded-lg border bg-card overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -262,7 +262,7 @@ export default function LibraryPage() {
                       <TableCell className="hidden lg:table-cell">
                         <div className="flex flex-wrap gap-1 max-w-[200px]">
                           {(book.tags || []).slice(0, 3).map((tag: string) => (
-                            <Badge key={tag} variant="secondary" className="text-[10px]">{tag}</Badge>
+                            <Badge key={tag} variant="outline" className="text-[10px]">{tag}</Badge>
                           ))}
                           {(book.tags || []).length > 3 && (
                             <Badge variant="outline" className="text-[10px]">+{(book.tags || []).length - 3}</Badge>

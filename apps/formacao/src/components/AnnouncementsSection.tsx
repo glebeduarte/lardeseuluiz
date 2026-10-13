@@ -13,10 +13,10 @@ interface Announcement {
 
 const categoryConfig: Record<string, { icon: React.ReactNode; label: string; color: string }> = {
   curso: { icon: <BookOpen className="h-3.5 w-3.5" />, label: 'Curso', color: 'bg-primary/10 text-primary border-primary/20' },
-  evento: { icon: <Calendar className="h-3.5 w-3.5" />, label: 'Evento', color: 'bg-teal/10 text-teal border-teal/20' },
-  palestra: { icon: <Mic className="h-3.5 w-3.5" />, label: 'Palestra', color: 'bg-accent/10 text-accent border-accent/20' },
+  evento: { icon: <Calendar className="h-3.5 w-3.5" />, label: 'Evento', color: 'bg-sky-100 text-sky-800 border-sky-300' },
+  palestra: { icon: <Mic className="h-3.5 w-3.5" />, label: 'Palestra', color: 'bg-amber-100 text-amber-800 border-amber-300' },
   geral: { icon: <Megaphone className="h-3.5 w-3.5" />, label: 'Geral', color: 'bg-muted text-muted-foreground border-border' },
-  destaque: { icon: <Star className="h-3.5 w-3.5" />, label: 'Destaque', color: 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800' },
+  destaque: { icon: <Star className="h-3.5 w-3.5" />, label: 'Destaque', color: 'bg-accent/20 text-accent-foreground border-accent/40' },
 };
 
 export function AnnouncementsSection() {
@@ -41,7 +41,7 @@ export function AnnouncementsSection() {
   if (loading) {
     return (
       <div className="space-y-2">
-        <h2 className="font-display font-bold text-base flex items-center gap-2">📢 Avisos</h2>
+        <h2 className="font-['Playfair_Display'] font-semibold text-lg flex items-center gap-2">📢 Avisos</h2>
         {[...Array(2)].map((_, i) => (
           <div key={i} className="h-16 bg-muted/30 rounded-xl animate-pulse" />
         ))}
@@ -53,14 +53,14 @@ export function AnnouncementsSection() {
 
   return (
     <div className="space-y-3">
-      <h2 className="font-display font-bold text-base flex items-center gap-2">📢 Avisos e Programação</h2>
+      <h2 className="font-['Playfair_Display'] font-semibold text-lg flex items-center gap-2">📢 Avisos e Programação</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {announcements.map((a) => {
           const cat = categoryConfig[a.category] || categoryConfig.geral;
           return (
             <div
               key={a.id}
-              className="rounded-xl border border-border bg-card p-4 shadow-card hover:shadow-md transition-shadow"
+              className="rounded-lg border bg-card p-4 hover:shadow-sm transition-shadow"
             >
               <div className="flex items-center gap-2 mb-2">
                 <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${cat.color}`}>
@@ -68,7 +68,7 @@ export function AnnouncementsSection() {
                   {cat.label}
                 </span>
               </div>
-              <h3 className="font-display font-bold text-sm leading-snug mb-1">{a.title}</h3>
+              <h3 className="font-['Playfair_Display'] font-semibold text-sm leading-snug mb-1">{a.title}</h3>
               {a.description && (
                 <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">{a.description}</p>
               )}

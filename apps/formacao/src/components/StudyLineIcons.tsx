@@ -34,7 +34,7 @@ export function StudyLineIcons({ studyLines, size = 'sm' }: StudyLineIconsProps)
         {studyLines.includes('espiritualista') && (
           <Tooltip>
             <TooltipTrigger asChild>
-              <Sparkles className={`${iconSize} text-violet-500`} />
+              <Sparkles className={`${iconSize} text-primary`} />
             </TooltipTrigger>
             <TooltipContent>Espiritualista</TooltipContent>
           </Tooltip>

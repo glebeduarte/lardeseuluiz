@@ -9,7 +9,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Calendar, Clock, MapPin, BookOpen, Users, Lock, Loader2 } from 'lucide-react';
 import { enrollUserInCourse } from '@/lib/enrollments';
 import logo from '@/assets/logo-lar-seu-luiz.png';
-import backgroundImage from '@/assets/esde-background.jpg';
 
 const ESDE_COURSE_ID = '348d7a02-2159-4fee-9aa6-a92cbdc9696f';
 
@@ -17,8 +16,8 @@ function EsdeCourseInfo() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold text-foreground mb-2">ESDE I</h2>
-        <p className="text-xl text-primary font-medium">
+        <h2 className="font-['Playfair_Display'] text-2xl sm:text-3xl font-bold text-foreground mb-2">ESDE I</h2>
+        <p className="text-lg text-primary font-medium">
           Estudo Sistematizado da Doutrina Espírita
         </p>
       </div>
@@ -34,11 +33,11 @@ function EsdeCourseInfo() {
           { icon: Calendar, label: 'Início: 26 de Fevereiro de 2026', sub: 'Todas as quintas-feiras', bg: 'bg-primary/10', color: 'text-primary' },
           { icon: Clock, label: '19:30 às 21:00', sub: 'Horário de Brasília', bg: 'bg-primary/10', color: 'text-primary' },
           { icon: MapPin, label: 'Curso Online', sub: 'Aulas ao vivo pela internet', bg: 'bg-primary/10', color: 'text-primary' },
-          { icon: BookOpen, label: 'Gratuito', sub: 'Sem custo de inscrição', bg: 'bg-accent/20', color: 'text-accent' },
-          { icon: Users, label: 'Para frequentadores', sub: 'Aberto a todos os interessados', bg: 'bg-secondary/20', color: 'text-secondary-foreground' },
+          { icon: BookOpen, label: 'Gratuito', sub: 'Sem custo de inscrição', bg: 'bg-accent/20', color: 'text-accent-foreground' },
+          { icon: Users, label: 'Para frequentadores', sub: 'Aberto a todos os interessados', bg: 'bg-muted', color: 'text-muted-foreground' },
         ].map(({ icon: Icon, label, sub, bg, color }) => (
           <div key={label} className="flex items-center gap-3 text-foreground">
-            <div className={`p-2 rounded-full ${bg}`}>
+            <div className={`p-2 rounded-lg ${bg}`}>
               <Icon className={`h-5 w-5 ${color}`} />
             </div>
             <div>
@@ -54,9 +53,9 @@ function EsdeCourseInfo() {
 
 function EsdeClosedCard() {
   return (
-    <Card className="shadow-xl border-primary/10 bg-card/95 backdrop-blur-sm">
+    <Card className="rounded-2xl border bg-card shadow-sm">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl">Inscrições Encerradas</CardTitle>
+        <CardTitle className="font-['Playfair_Display'] text-2xl">Inscrições Encerradas</CardTitle>
         <CardDescription>
           As inscrições para o curso ESDE I foram encerradas pois a turma está lotada.
         </CardDescription>
@@ -141,9 +140,9 @@ function EsdeRegistrationForm() {
   };
 
   return (
-    <Card className="shadow-xl border-primary/10 bg-card/95 backdrop-blur-sm">
+    <Card className="rounded-2xl border bg-card shadow-sm">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl">Inscreva-se Gratuitamente</CardTitle>
+        <CardTitle className="font-['Playfair_Display'] text-2xl">Inscreva-se Gratuitamente</CardTitle>
         <CardDescription>Preencha seus dados para se inscrever no curso ESDE I</CardDescription>
       </CardHeader>
       <CardContent>
@@ -197,32 +196,32 @@ export default function EsdeRegistration() {
 
   if (enrollmentOpen === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      <div className="absolute inset-0 bg-cover bg-left md:bg-right bg-no-repeat" style={{ backgroundImage: `url(${backgroundImage})` }} />
-      <div className="relative z-10 min-h-screen">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-col items-start mb-8">
-            <img src={logo} alt="Lar de Seu Luiz" className="h-20 w-20 rounded-full object-cover mb-4 shadow-lg" />
-            <h1 className="text-2xl md:text-3xl font-bold text-primary text-left">
-              Área de Formação do Lar de Seu Luiz
-            </h1>
-          </div>
+    // Página pública fora da moldura: cabeçalho branco com o logo e conteúdo em max-w-5xl
+    <div className="min-h-screen bg-background">
+      <header className="bg-card border-b">
+        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center gap-3">
+          <img src={logo} alt="Lar de Seu Luiz" className="h-10 w-10 rounded-lg object-contain" />
+          <h1 className="font-['Playfair_Display'] text-lg font-semibold text-foreground leading-tight">
+            Área de Formação do Lar de Seu Luiz
+          </h1>
+        </div>
+      </header>
 
-          <div className="max-w-4xl grid md:grid-cols-2 gap-8">
-            <EsdeCourseInfo />
-            {enrollmentOpen ? <EsdeRegistrationForm /> : <EsdeClosedCard />}
-          </div>
+      <div className="max-w-5xl mx-auto px-4 py-8">
+        <div className="grid md:grid-cols-2 gap-8">
+          <EsdeCourseInfo />
+          {enrollmentOpen ? <EsdeRegistrationForm /> : <EsdeClosedCard />}
+        </div>
 
-          <div className="text-left mt-12 text-sm text-muted-foreground">
-            <p>Lar de Seu Luiz</p>
-          </div>
+        <div className="text-left mt-12 text-xs text-muted-foreground">
+          <p>Lar de Seu Luiz</p>
         </div>
       </div>
     </div>
