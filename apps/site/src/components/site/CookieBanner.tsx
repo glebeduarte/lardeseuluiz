@@ -19,7 +19,7 @@ const CookieBanner = () => {
     <div className={`site-cookie-banner ${show ? "site-cookie-banner--show" : ""}`}>
       <div className="site-cookie-banner__text">
         Usamos cookies essenciais para o funcionamento do site.{" "}
-        <a href="#">Saiba mais</a> na nossa Política de Privacidade.
+        <a href="/privacidade">Saiba mais</a> na nossa Política de Privacidade.
       </div>
       <button className="site-btn-cookie site-btn-cookie--decline" onClick={() => setShow(false)}>
         Recusar

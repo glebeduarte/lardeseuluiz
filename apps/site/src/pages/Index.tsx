@@ -5,6 +5,7 @@ import SectionMissao from "@/components/site/SectionMissao";
 import SectionEventos from "@/components/site/SectionEventos";
 import SectionAtendimento from "@/components/site/SectionAtendimento";
 import SectionSobre from "@/components/site/SectionSobre";
+import SectionFormacao from "@/components/site/SectionFormacao";
 import SectionProgramacao from "@/components/site/SectionProgramacao";
 import SectionContato from "@/components/site/SectionContato";
 import SiteFooter from "@/components/site/SiteFooter";
@@ -18,6 +19,7 @@ const Index = () => (
     <SectionMissao />
     <SectionEventos />
     <SectionAtendimento />
+    <SectionFormacao />
     <SectionSobre />
     <SectionProgramacao />
     <SectionContato />

@@ -736,6 +736,15 @@ export type Database = {
       }
       projects: {
         Row: {
+          accepts_volunteers: boolean
+          content: string | null
+          cover_url: string | null
+          display_order: number
+          is_public: boolean
+          schedule: string | null
+          slug: string | null
+          summary: string | null
+          tags: string[]
           coordinator_id: string | null
           created_at: string
           description: string | null
@@ -747,6 +756,15 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          accepts_volunteers?: boolean
+          content?: string | null
+          cover_url?: string | null
+          display_order?: number
+          is_public?: boolean
+          schedule?: string | null
+          slug?: string | null
+          summary?: string | null
+          tags?: string[]
           coordinator_id?: string | null
           created_at?: string
           description?: string | null
@@ -758,6 +776,15 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          accepts_volunteers?: boolean
+          content?: string | null
+          cover_url?: string | null
+          display_order?: number
+          is_public?: boolean
+          schedule?: string | null
+          slug?: string | null
+          summary?: string | null
+          tags?: string[]
           coordinator_id?: string | null
           created_at?: string
           description?: string | null

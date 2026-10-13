@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -35,6 +37,8 @@ interface ProjectRow {
   ended_at: string | null;
   coordinator_id: string | null;
   coordinator: { full_name: string } | null;
+  slug: string | null; summary: string | null; content: string | null; cover_url: string | null;
+  tags: string[] | null; schedule: string | null; is_public: boolean; display_order: number;
 }
 
 interface PersonOpt { id: string; full_name: string; }
@@ -46,11 +50,17 @@ interface FormState {
   started_at: string;
   ended_at: string;
   coordinator_id: string;
+  // Página da ação no site (/projetos/:slug)
+  slug: string; summary: string; content: string; cover_url: string; tags: string; schedule: string;
+  is_public: boolean; display_order: string;
 }
+
+const slugify = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
 const emptyForm = (): FormState => ({
   name: "", description: "", status: "planejamento",
   started_at: "", ended_at: "", coordinator_id: "",
+  slug: "", summary: "", content: "", cover_url: "", tags: "", schedule: "", is_public: false, display_order: "100",
 });
 
 export default function Projetos() {
@@ -66,7 +76,7 @@ export default function Projetos() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("projects")
-        .select("id, name, description, status, started_at, ended_at, coordinator_id, coordinator:people!coordinator_id ( full_name )")
+        .select("id, name, description, status, started_at, ended_at, coordinator_id, slug, summary, content, cover_url, tags, schedule, is_public, display_order, coordinator:people!coordinator_id ( full_name )")
         .order("name");
       if (error) throw error;
       return data as unknown as ProjectRow[];
@@ -95,6 +105,8 @@ export default function Projetos() {
       started_at: p.started_at || "",
       ended_at: p.ended_at || "",
       coordinator_id: p.coordinator_id || "",
+      slug: p.slug || "", summary: p.summary || "", content: p.content || "", cover_url: p.cover_url || "",
+      tags: (p.tags || []).join(", "), schedule: p.schedule || "", is_public: p.is_public, display_order: String(p.display_order ?? 100),
     });
     setDialogOpen(true);
   };
@@ -109,6 +121,14 @@ export default function Projetos() {
         started_at: form.started_at || null,
         ended_at: form.ended_at || null,
         coordinator_id: form.coordinator_id || null,
+        slug: (form.slug.trim() || slugify(form.name)) || null,
+        summary: form.summary.trim() || null,
+        content: form.content.trim() || null,
+        cover_url: form.cover_url.trim() || null,
+        tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
+        schedule: form.schedule.trim() || null,
+        is_public: form.is_public,
+        display_order: Number(form.display_order) || 100,
       };
       if (editing) {
         const { error } = await supabase.from("projects").update(payload).eq("id", editing.id);
@@ -266,6 +286,48 @@ export default function Projetos() {
               <div className="grid gap-2">
                 <Label>Encerramento</Label>
                 <Input type="date" value={form.ended_at} onChange={e => setForm(f => ({ ...f, ended_at: e.target.value }))} />
+              </div>
+            </div>
+
+            <div className="border-t pt-4 grid gap-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <Label>Mostrar no site</Label>
+                  <p className="text-xs text-muted-foreground">Aparece em Ações Sociais, com página própria.</p>
+                </div>
+                <Switch checked={form.is_public} onCheckedChange={v => setForm(f => ({ ...f, is_public: v }))} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="grid gap-2">
+                  <Label>Endereço da página</Label>
+                  <Input placeholder={slugify(form.name) || "sopa-solidaria"} value={form.slug} onChange={e => setForm(f => ({ ...f, slug: slugify(e.target.value) }))} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Quando acontece</Label>
+                  <Input placeholder="Ex.: Terças-feiras" value={form.schedule} onChange={e => setForm(f => ({ ...f, schedule: e.target.value }))} />
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label>Resumo (cartão do site)</Label>
+                <Textarea rows={2} value={form.summary} onChange={e => setForm(f => ({ ...f, summary: e.target.value }))} />
+              </div>
+              <div className="grid gap-2">
+                <Label>Texto da página</Label>
+                <Textarea rows={6} value={form.content} onChange={e => setForm(f => ({ ...f, content: e.target.value }))} placeholder="Separe os parágrafos com uma linha em branco" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="grid gap-2">
+                  <Label>Imagem de capa (endereço)</Label>
+                  <Input value={form.cover_url} onChange={e => setForm(f => ({ ...f, cover_url: e.target.value }))} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Etiquetas (separadas por vírgula)</Label>
+                  <Input value={form.tags} onChange={e => setForm(f => ({ ...f, tags: e.target.value }))} />
+                </div>
+              </div>
+              <div className="grid gap-2 w-32">
+                <Label>Ordem no site</Label>
+                <Input type="number" value={form.display_order} onChange={e => setForm(f => ({ ...f, display_order: e.target.value }))} />
               </div>
             </div>
           </div>

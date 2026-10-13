@@ -1,6 +1,19 @@
+import { useQuery } from "@tanstack/react-query";
 import SectionReveal from "./SectionReveal";
+import { supabase } from "@/integrations/supabase/client";
 
-const SectionTransparencia = () => (
+// Documentos marcados como públicos em /app/documentos aparecem aqui para download.
+const useDocumentosPublicos = () => useQuery({
+  queryKey: ["site-documentos-publicos"],
+  queryFn: async () => {
+    const { data } = await supabase.from("documents").select("id, title, file_url, doc_type, reference_date").eq("is_public", true).order("reference_date", { ascending: false });
+    return data ?? [];
+  },
+});
+
+const SectionTransparencia = () => {
+  const { data: documentos = [] } = useDocumentosPublicos();
+  return (
   <SectionReveal id="transparencia" className="site-section--light">
     <div className="site-container">
       <span className="site-section__badge">Transparência</span>
@@ -26,8 +39,19 @@ const SectionTransparencia = () => (
           <p>Documento constitutivo com regras de funcionamento, direitos e deveres dos associados.</p>
         </div>
       </div>
+
+      {documentos.length > 0 && (
+        <ul className="site-transparency-docs" style={{ marginTop: 32, display: "grid", gap: 8 }}>
+          {documentos.map((d) => (
+            <li key={d.id}>
+              <a href={d.file_url} target="_blank" rel="noopener noreferrer" className="ds-btn ds-btn-outline ds-btn-sm">📄 {d.title}</a>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   </SectionReveal>
-);
+  );
+};
 
 export default SectionTransparencia;

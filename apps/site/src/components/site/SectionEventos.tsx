@@ -1,50 +1,13 @@
 import { motion } from "framer-motion";
-import feijoadaAsset from "@/assets/feijoada-event.jpg.asset.json";
-import diaCriancasAsset from "@/assets/dia-criancas-event.jpg.asset.json";
-import natalCriancasAsset from "@/assets/natal-criancas-event.jpg.asset.json";
-import saudeLarAsset from "@/assets/saude-lar-event.jpg.asset.json";
-import sopaAsset from "@/assets/sopa-solidaria.jpg.asset.json";
+import { Link } from "react-router-dom";
 import { Heart, ArrowRight } from "lucide-react";
+import { useProjetos } from "@/lib/site-dados";
 
-const eventos = [
-  {
-    image: feijoadaAsset.url,
-    name: "Feijoada do Lar de Seu Luiz",
-    desc: "Evento gastronômico e solidário com opções tradicional e vegana. Toda a renda é revertida para os projetos sociais da casa.",
-    tags: ["Solidário", "Vegana e tradicional", "Renda revertida"],
-    action: "Saber mais",
-  },
-  {
-    image: sopaAsset.url,
-    name: "Sopa Solidária",
-    desc: "Nas terças-feiras, um grupo de voluntários prepara cerca de 100 sopas para serem distribuídas na comunidade local, semanalmente. Você também pode fazer parte deste grupo.",
-    tags: ["Ação social", "Comunidade", "Terças"],
-    action: "Saber mais",
-  },
-  {
-    image: diaCriancasAsset.url,
-    name: "Dia das Crianças",
-    desc: "Celebração especial para as crianças da comunidade com brincadeiras, lanches, presentes e muita alegria fraternal.",
-    tags: ["Ação social", "Comunidade"],
-    action: "Saber mais",
-  },
-  {
-    image: natalCriancasAsset.url,
-    name: "Natal das Crianças",
-    desc: "Evento natalino com distribuição de presentes, lanches e atividades lúdicas para crianças em situação de vulnerabilidade.",
-    tags: ["Natal solidário", "Presentes", "Comunidade"],
-    action: "Saber mais",
-  },
-  {
-    image: saudeLarAsset.url,
-    name: "Saúde no Lar",
-    desc: "Ação de saúde e bem-estar com atendimentos, orientação e cuidados voltados à comunidade local.",
-    tags: ["Saúde", "Bem-estar", "Gratuito"],
-    action: "Saber mais",
-  },
-];
 
-const SectionEventos = () => (
+
+const SectionEventos = () => {
+  const { data: eventos = [] } = useProjetos();
+  return (
   <section className="site-eventos" id="eventos">
     <motion.div
       className="site-section-header"
@@ -66,7 +29,7 @@ const SectionEventos = () => (
     <div className="site-eventos__grid">
       {eventos.map((e, i) => (
         <motion.div
-          key={e.name}
+          key={e.id}
           className="site-evento-card"
           initial={{ opacity: 0, y: 36 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -76,7 +39,7 @@ const SectionEventos = () => (
           <div
             className="site-evento-card__cover"
             style={{
-              backgroundImage: `url(${e.image})`,
+              backgroundImage: e.cover_url ? `url(${e.cover_url})` : undefined,
               backgroundSize: "cover",
               backgroundPosition: "center",
             }}
@@ -84,15 +47,15 @@ const SectionEventos = () => (
           />
           <div className="site-evento-card__body">
             <div className="site-evento-card__name">{e.name}</div>
-            <div className="site-evento-card__desc">{e.desc}</div>
+            <div className="site-evento-card__desc">{e.summary ?? e.description}</div>
             <div className="site-evento-card__tags">
               {e.tags.map((t) => (
                 <span key={t} className="site-tag-pill">{t}</span>
               ))}
             </div>
-            <a href="#contato" className="site-evento-card__action" style={{ marginTop: 16 }}>
-              {e.action} <ArrowRight size={14} />
-            </a>
+            <Link to={`/projetos/${e.slug}`} className="site-evento-card__action" style={{ marginTop: 16 }}>
+              Saber mais <ArrowRight size={14} />
+            </Link>
           </div>
         </motion.div>
       ))}
@@ -122,6 +85,7 @@ const SectionEventos = () => (
       </a>
     </motion.div>
   </section>
-);
+  );
+};
 
 export default SectionEventos;

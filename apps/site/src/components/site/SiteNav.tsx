@@ -3,12 +3,16 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Link } from "react-router-dom";
 import logoLSL from "@/assets/logo-lsl.png";
 
-const links = [
+import { useAuth } from "@/hooks/useAuth";
+
+// Navegação da plataforma: páginas próprias para agenda, atendimentos, cursos, ações sociais e a casa.
+const links: { href: string; label: string; isRoute?: boolean; external?: boolean }[] = [
   { href: "#horarios", label: "Horários" },
-  { href: "#missao", label: "Nossa Missão" },
-  { href: "#eventos", label: "Eventos" },
+  { href: "/agenda", label: "Agenda", isRoute: true },
   { href: "/atendimentos", label: "Atendimento", isRoute: true },
-  { href: "#sobre", label: "A Instituição" },
+  { href: "/formacao/", label: "Cursos", external: true },
+  { href: "#eventos", label: "Ações Sociais" },
+  { href: "/a-casa", label: "A Casa", isRoute: true },
   { href: "#contato", label: "Contato" },
 ];
 
@@ -17,6 +21,7 @@ const SiteNav = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
@@ -51,7 +56,11 @@ const SiteNav = () => {
       <ul className={`site-nav__links ${menuOpen ? "site-nav__links--open" : ""}`}>
         {links.map((l) => (
           <li key={l.href}>
-            {l.isRoute ? (
+            {l.external ? (
+              <a href={l.href} onClick={() => setMenuOpen(false)}>
+                {l.label}
+              </a>
+            ) : l.isRoute ? (
               <Link to={l.href} onClick={() => setMenuOpen(false)}>
                 {l.label}
               </Link>
@@ -62,6 +71,11 @@ const SiteNav = () => {
             )}
           </li>
         ))}
+        <li>
+          <Link to={user ? "/app/perfil" : "/login"} onClick={() => setMenuOpen(false)}>
+            {user ? "Meu perfil" : "Entrar"}
+          </Link>
+        </li>
         <li>
           <Link to="/atendimentos" className="site-nav__cta" onClick={() => setMenuOpen(false)}>
             Quero receber atendimento

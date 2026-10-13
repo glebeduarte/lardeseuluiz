@@ -26,22 +26,24 @@ const SiteFooter = () => (
         <div>
           <div className="site-footer__col-title">Navegação</div>
           <ul className="site-footer__links">
-            <li><a href="#horarios">Horários</a></li>
-            <li><a href="#missao">Nossa Missão</a></li>
-            <li><a href="#eventos">Eventos</a></li>
+            <li><a href="/#horarios">Horários</a></li>
+            <li><Link to="/agenda">Agenda</Link></li>
+            <li><a href="/#missao">Nossa Missão</a></li>
+            <li><a href="/#eventos">Ações Sociais</a></li>
             <li><Link to="/atendimentos">Atendimentos</Link></li>
-            <li><a href="#sobre">A Instituição</a></li>
-            <li><a href="#contato">Contato</a></li>
+            <li><Link to="/a-casa">A Casa</Link></li>
+            <li><Link to="/voluntariado">Seja Voluntário</Link></li>
+            <li><a href="/#contato">Contato</a></li>
           </ul>
         </div>
         <div>
           <div className="site-footer__col-title">Institucional</div>
           <ul className="site-footer__links">
-            <li><a href="#">Estatuto Social</a></li>
-            <li><a href="#">Relatório Financeiro</a></li>
-            <li><a href="#">Ata de Fundação</a></li>
-            <li><a href="#">Política de Privacidade</a></li>
-            <li><a href="/login">Área Restrita</a></li>
+            <li><Link to="/a-casa#transparencia">Estatuto Social</Link></li>
+            <li><Link to="/a-casa#transparencia">Relatório Financeiro</Link></li>
+            <li><Link to="/a-casa#transparencia">Ata de Fundação</Link></li>
+            <li><Link to="/privacidade">Política de Privacidade</Link></li>
+            <li><Link to="/login">Entrar / Meu perfil</Link></li>
             <li><a href="/formacao/">Plataforma de Cursos</a></li>
           </ul>
         </div>
@@ -52,7 +54,7 @@ const SiteFooter = () => (
           © 2025–2026 Lar de Seu Luiz · CNPJ registrado · Organização Religiosa sem fins lucrativos
         </div>
         <div className="site-footer__lgpd">
-          <a href="#">Política de Privacidade</a> · <a href="#">LGPD</a>
+          <Link to="/privacidade">Política de Privacidade</Link> · <Link to="/privacidade#lgpd">LGPD</Link>
         </div>
       </div>
     </div>

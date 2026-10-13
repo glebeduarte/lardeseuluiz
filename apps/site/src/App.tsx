@@ -33,6 +33,13 @@ import Funcoes from "./pages/Funcoes";
 import Perfil from "./pages/Perfil";
 import Projetos from "./pages/Projetos";
 import NotFound from "./pages/NotFound";
+import Agenda from "./pages/site/Agenda";
+import ACasa from "./pages/site/ACasa";
+import Projeto from "./pages/site/Projeto";
+import Voluntariado from "./pages/site/Voluntariado";
+import Privacidade from "./pages/site/Privacidade";
+import RequireGestao from "./components/app/RequireGestao";
+import { Navigate } from "react-router-dom";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +55,11 @@ const App = () => (
             <Route path="/design" element={<Design />} />
             <Route path="/login" element={<Login />} />
             <Route path="/atendimentos" element={<AtendimentosPublic />} />
+            <Route path="/agenda" element={<Agenda />} />
+            <Route path="/a-casa" element={<ACasa />} />
+            <Route path="/projetos/:slug" element={<Projeto />} />
+            <Route path="/voluntariado" element={<Voluntariado />} />
+            <Route path="/privacidade" element={<Privacidade />} />
             <Route path="/app" element={<AppDashboard />} />
             <Route path="/app/financeiro" element={<Financeiro />} />
             <Route path="/app/documentos" element={<Documentos />} />
@@ -70,7 +82,8 @@ const App = () => (
             <Route path="/meu-painel/contribuicoes" element={<MinhasContribuicoes />} />
             <Route path="/meu-painel/assembleias" element={<MinhasAssembleias />} />
             <Route path="/meu-painel/meus-dados" element={<MeusDados />} />
-            <Route path="/palestras" element={<Palestras />} />
+            <Route path="/palestras" element={<Navigate to="/app/palestras" replace />} />
+            <Route path="/app/palestras" element={<RequireGestao><Palestras /></RequireGestao>} />
             <Route path="/stories" element={<Stories />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

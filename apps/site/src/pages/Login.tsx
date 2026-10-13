@@ -39,10 +39,14 @@ const Login = () => {
         if (userId) {
           const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", userId);
           const roleList = roles?.map(r => r.role) || [];
-          if (roleList.includes("admin") || roleList.includes("gestor")) {
+          const voltar = new URLSearchParams(window.location.search).get("voltar");
+          if (voltar && voltar.startsWith("/") && !voltar.startsWith("//")) {
+            if (voltar.startsWith("/app") || voltar.startsWith("/meu-painel")) navigate(voltar);
+            else window.location.assign(voltar);
+          } else if (roleList.includes("admin") || roleList.includes("gestor")) {
             navigate("/app");
           } else {
-            navigate("/meu-painel");
+            navigate("/app/perfil");
           }
         } else {
           navigate("/app");
@@ -61,7 +65,7 @@ const Login = () => {
         <CardHeader className="text-center">
           <img src={logoLSL} alt="Lar de Seu Luiz" className="mx-auto mb-4 w-12 h-12 rounded-xl object-contain" />
           <CardTitle className="font-['Playfair_Display'] text-2xl">Lar de Seu Luiz</CardTitle>
-          <CardDescription>{isSignUp ? "Crie sua conta" : "Área Administrativa"}</CardDescription>
+          <CardDescription>{isSignUp ? "Crie sua conta" : "Uma conta só para o site, a Formação e o Atendimento"}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
