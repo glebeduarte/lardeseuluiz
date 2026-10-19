@@ -1,428 +1,342 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import AppLayout from "@/components/app/AppLayout";
+import BuscaPessoa from "@/components/acoes/BuscaPessoa";
+import TarefaCartao, { Avatar } from "@/components/secretarias/TarefaCartao";
+import NovaTarefa from "@/components/secretarias/NovaTarefa";
+import { useAuth } from "@/hooks/useAuth";
+import { db, useMinhaPessoa, type PessoaBasica } from "@/lib/acoes";
+import { useSecretaria, useTarefas, type PessoaSecretaria } from "@/lib/secretarias";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Pencil, Trash2, UserPlus, ClipboardList, Activity } from "lucide-react";
+import { ArrowLeft, Plus, ClipboardCheck, LayoutList, Crown, Settings2, Pencil, Trash2, Check, X, Lock, ChevronRight, Phone } from "lucide-react";
 
-interface Secretaria { id: string; name: string; description: string | null; icon: string; }
-interface Member { id: string; secretaria_id: string; associate_id: string; member_role: string; associate_name?: string; }
-interface Responsibility { id: string; secretaria_id: string; title: string; description: string | null; item_order: number; }
-interface Action { id: string; secretaria_id: string; title: string; description: string | null; action_status: string; action_date: string | null; published_by: string | null; publisher_name?: string; created_at: string; }
-interface Associate { id: string; full_name: string; }
+type Responsabilidade = { id: string; title: string; description: string | null; item_order: number };
 
-const STATUS_LABELS: Record<string, string> = { planejada: "Planejada", em_andamento: "Em Andamento", concluida: "Concluída", cancelada: "Cancelada" };
-const STATUS_COLORS: Record<string, string> = {
-  planejada: "bg-muted text-muted-foreground",
-  em_andamento: "bg-primary/10 text-primary",
-  concluida: "bg-secondary/10 text-secondary",
-  cancelada: "bg-destructive/10 text-destructive",
-};
-const ROLE_LABELS: Record<string, string> = { coordenador: "Coordenador", participante: "Participante" };
-
-const SecretariaDetalhe = () => {
+/** Página inicial da secretaria: responsabilidades, pessoas (coordenação em destaque) e tarefas recentes. */
+export default function SecretariaDetalhe() {
   const { id } = useParams<{ id: string }>();
-  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const qc = useQueryClient();
+  const { user, simulacao } = useAuth();
+  const { data: eu } = useMinhaPessoa(user?.id, simulacao?.personId);
+  const { sec, carregando, semAcesso, pessoas, souCoordenador, direcao } = useSecretaria(id);
+  const { data: tarefas = [] } = useTarefas(sec ? id : undefined);
+  const [nova, setNova] = useState<null | "nova" | "registrar">(null);
+  const [gerir, setGerir] = useState(false);
+  const [todasResp, setTodasResp] = useState(false);
 
-  const [secretaria, setSecretaria] = useState<Secretaria | null>(null);
-  const [members, setMembers] = useState<Member[]>([]);
-  const [responsibilities, setResponsibilities] = useState<Responsibility[]>([]);
-  const [actions, setActions] = useState<Action[]>([]);
-  const [associates, setAssociates] = useState<Associate[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: resp = [] } = useQuery({
+    queryKey: ["secretaria-resp", id],
+    enabled: !!sec,
+    queryFn: async () => ((await db.from("secretaria_responsibilities").select("id, title, description, item_order").eq("secretaria_id", id).order("item_order")).data ?? []) as Responsabilidade[],
+  });
 
-  // Dialogs
-  const [memberOpen, setMemberOpen] = useState(false);
-  const [respOpen, setRespOpen] = useState(false);
-  const [actionOpen, setActionOpen] = useState(false);
-  const [editRespId, setEditRespId] = useState<string | null>(null);
-  const [editActionId, setEditActionId] = useState<string | null>(null);
+  if (carregando) return <AppLayout><p className="text-sm text-muted-foreground text-center py-16">Carregando...</p></AppLayout>;
+  if (semAcesso || !sec) {
+    return (
+      <AppLayout>
+        <Card className="max-w-md mx-auto mt-10"><CardContent className="py-10 text-center space-y-3">
+          <Lock className="w-8 h-8 mx-auto text-muted-foreground" />
+          <p className="font-medium">Esta página é dos membros da secretaria</p>
+          <p className="text-sm text-muted-foreground">Só os membros, a Direção e os administradores acessam. Fale com a coordenação para participar.</p>
+          <Button variant="outline" asChild><Link to="/app/secretarias">Ver secretarias</Link></Button>
+        </CardContent></Card>
+      </AppLayout>
+    );
+  }
 
-  // Forms
-  const [memberForm, setMemberForm] = useState({ associate_id: "", member_role: "participante" });
-  const [respForm, setRespForm] = useState({ title: "", description: "" });
-  const [actionForm, setActionForm] = useState({ title: "", description: "", action_status: "planejada", action_date: "", published_by: "" });
-
-  useEffect(() => {
-    if (!authLoading && !user) navigate("/login");
-  }, [user, authLoading, navigate]);
-
-  const fetchAll = async () => {
-    if (!id) return;
-    setLoading(true);
-    const [secRes, memRes, respRes, actRes, assocRes] = await Promise.all([
-      supabase.from("secretarias").select("*").eq("id", id).single(),
-      supabase.from("secretaria_members").select("*").eq("secretaria_id", id),
-      supabase.from("secretaria_responsibilities").select("*").eq("secretaria_id", id).order("item_order"),
-      supabase.from("secretaria_actions").select("*").eq("secretaria_id", id).order("created_at", { ascending: false }),
-      supabase.from("associates").select("id, full_name").eq("status", "ativo").order("full_name"),
-    ]);
-
-    setSecretaria(secRes.data as any);
-    setAssociates((assocRes.data || []) as Associate[]);
-
-    const assocMap: Record<string, string> = {};
-    (assocRes.data || []).forEach((a: any) => { assocMap[a.id] = a.full_name; });
-
-    setMembers((memRes.data || []).map((m: any) => ({ ...m, associate_name: assocMap[m.associate_id] || "Desconhecido" })));
-    setResponsibilities((respRes.data || []) as Responsibility[]);
-    setActions((actRes.data || []).map((a: any) => ({ ...a, publisher_name: a.published_by ? assocMap[a.published_by] : null })));
-    setLoading(false);
+  const coordenadores = pessoas.filter((p) => p.member_role === "coordenador");
+  const participantes = pessoas.filter((p) => p.member_role === "participante");
+  const recentes = [...tarefas].filter((t) => t.status !== "cancelada").sort((a, b) => b.updated_at.localeCompare(a.updated_at)).slice(0, 6);
+  const editaResp = souCoordenador || direcao;
+  const abrirTarefa = (tid: string) => navigate(`/app/secretarias/${id}/tarefas?tarefa=${tid}`);
+  const marcarFeita = async (tid: string, feita: boolean) => {
+    const { error } = await db.from("secretaria_tasks").update({ status: feita ? "a_fazer" : "feita" }).eq("id", tid);
+    if (error) return toast.error(error.message);
+    qc.invalidateQueries({ queryKey: ["secretaria-tarefas", id] });
+    qc.invalidateQueries({ queryKey: ["minhas-secretarias"] });
   };
-
-  useEffect(() => { if (user && id) fetchAll(); }, [user, id]);
-
-  // Members
-  const handleAddMember = async () => {
-    if (!memberForm.associate_id || !id) return;
-    const { error } = await supabase.from("secretaria_members").insert({
-      secretaria_id: id, associate_id: memberForm.associate_id, member_role: memberForm.member_role as any,
-    });
-    if (error) { toast.error(error.message.includes("duplicate") ? "Associado já é membro" : error.message); return; }
-    toast.success("Membro adicionado!");
-    setMemberOpen(false);
-    setMemberForm({ associate_id: "", member_role: "participante" });
-    fetchAll();
-  };
-
-  const handleRemoveMember = async (memberId: string) => {
-    const { error } = await supabase.from("secretaria_members").delete().eq("id", memberId);
-    if (error) { toast.error(error.message); return; }
-    toast.success("Membro removido!");
-    fetchAll();
-  };
-
-  // Responsibilities
-  const openAddResp = () => { setEditRespId(null); setRespForm({ title: "", description: "" }); setRespOpen(true); };
-  const openEditResp = (r: Responsibility) => { setEditRespId(r.id); setRespForm({ title: r.title, description: r.description || "" }); setRespOpen(true); };
-  const handleSaveResp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!id) return;
-    const payload = { secretaria_id: id, title: respForm.title, description: respForm.description || null, item_order: responsibilities.length };
-    if (editRespId) {
-      const { error } = await supabase.from("secretaria_responsibilities").update({ title: respForm.title, description: respForm.description || null }).eq("id", editRespId);
-      if (error) { toast.error(error.message); return; }
-    } else {
-      const { error } = await supabase.from("secretaria_responsibilities").insert(payload);
-      if (error) { toast.error(error.message); return; }
-    }
-    toast.success(editRespId ? "Responsabilidade atualizada!" : "Responsabilidade adicionada!");
-    setRespOpen(false);
-    fetchAll();
-  };
-  const handleDeleteResp = async (rId: string) => {
-    await supabase.from("secretaria_responsibilities").delete().eq("id", rId);
-    toast.success("Removida!");
-    fetchAll();
-  };
-
-  // Actions
-  const openAddAction = () => { setEditActionId(null); setActionForm({ title: "", description: "", action_status: "planejada", action_date: "", published_by: "" }); setActionOpen(true); };
-  const openEditAction = (a: Action) => { setEditActionId(a.id); setActionForm({ title: a.title, description: a.description || "", action_status: a.action_status, action_date: a.action_date || "", published_by: a.published_by || "" }); setActionOpen(true); };
-  const handleSaveAction = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!id) return;
-    const payload = {
-      secretaria_id: id,
-      title: actionForm.title,
-      description: actionForm.description || null,
-      action_status: actionForm.action_status as any,
-      action_date: actionForm.action_date || null,
-      published_by: actionForm.published_by || null,
-    };
-    if (editActionId) {
-      const { title, description, action_status, action_date, published_by } = payload;
-      const { error } = await supabase.from("secretaria_actions").update({ title, description, action_status, action_date, published_by }).eq("id", editActionId);
-      if (error) { toast.error(error.message); return; }
-    } else {
-      const { error } = await supabase.from("secretaria_actions").insert(payload);
-      if (error) { toast.error(error.message); return; }
-    }
-    toast.success(editActionId ? "Ação atualizada!" : "Ação publicada!");
-    setActionOpen(false);
-    fetchAll();
-  };
-  const handleDeleteAction = async (aId: string) => {
-    await supabase.from("secretaria_actions").delete().eq("id", aId);
-    toast.success("Ação removida!");
-    fetchAll();
-  };
-
-  if (authLoading || loading) return (
-    <AppLayout><div className="flex items-center justify-center py-20 text-muted-foreground animate-pulse">Carregando...</div></AppLayout>
-  );
-
-  if (!secretaria) return (
-    <AppLayout><div className="text-center py-20 text-muted-foreground">Secretaria não encontrada.</div></AppLayout>
-  );
-
-  const coordenadores = members.filter(m => m.member_role === "coordenador");
-  const participantes = members.filter(m => m.member_role === "participante");
-  const memberIds = new Set(members.map(m => m.associate_id));
-  const availableAssociates = associates.filter(a => !memberIds.has(a.id));
 
   return (
     <AppLayout>
-      <div className="mb-6">
-        <Link to="/app/secretarias" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-3">
-          <ArrowLeft className="w-4 h-4" /> Voltar
-        </Link>
-        <div className="flex items-center gap-3">
-          <span className="text-3xl">{secretaria.icon}</span>
-          <div>
-            <h1 className="font-['Playfair_Display'] text-2xl font-bold">{secretaria.name}</h1>
-            {secretaria.description && <p className="text-sm text-muted-foreground mt-0.5">{secretaria.description}</p>}
+      <div className="space-y-6">
+        <div>
+          <Link to="/app/secretarias" className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1"><ArrowLeft className="w-4 h-4" /> Secretarias</Link>
+          <div className="mt-3 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+            <div className="flex items-start gap-4 min-w-0">
+              <span className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shrink-0" style={{ background: "hsl(var(--primary) / 0.08)" }}>{sec.icon || "📋"}</span>
+              <div className="min-w-0">
+                <h1 className="text-2xl font-bold font-['Playfair_Display'] text-foreground">{sec.name}</h1>
+                {sec.description && <p className="text-sm text-muted-foreground mt-1">{sec.description}</p>}
+              </div>
+            </div>
+            <div className="grid grid-cols-2 sm:flex gap-2">
+              <Button variant="outline" className="h-11" onClick={() => setNova("registrar")}><ClipboardCheck className="w-4 h-4 mr-2" /> Registrar o que fiz</Button>
+              <Button className="h-11" onClick={() => setNova("nova")}><Plus className="w-4 h-4 mr-2" /> Nova tarefa</Button>
+            </div>
           </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3">
+          {[["A fazer", sec.a_fazer, "text-sky-700"], ["Fazendo", sec.fazendo, "text-amber-700"], ["Feitas em 30 dias", sec.feitas_30d, "text-emerald-700"]].map(([r, v, c]) => (
+            <Link key={r as string} to={`/app/secretarias/${id}/tarefas`} className="rounded-xl border bg-card p-4 hover:shadow-sm transition-shadow">
+              <div className={`text-2xl font-bold ${c}`}>{v as number}</div>
+              <div className="text-xs text-muted-foreground leading-tight">{r as string}</div>
+            </Link>
+          ))}
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2 space-y-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
+                <div>
+                  <CardTitle className="font-['Playfair_Display'] text-lg">Tarefas recentes</CardTitle>
+                  <CardDescription>Toque numa tarefa para ver os detalhes no painel</CardDescription>
+                </div>
+                <Button variant="outline" size="sm" asChild><Link to={`/app/secretarias/${id}/tarefas`}><LayoutList className="w-4 h-4 mr-2" /> Painel</Link></Button>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {recentes.length === 0 ? (
+                  <div className="text-center py-8 space-y-3">
+                    <p className="text-sm text-muted-foreground">Nenhuma tarefa ainda.</p>
+                    <Button variant="outline" onClick={() => setNova("nova")}><Plus className="w-4 h-4 mr-2" /> Criar a primeira</Button>
+                  </div>
+                ) : recentes.map((t) => (
+                  <TarefaCartao key={t.id} tarefa={t} pessoas={pessoas} aoAbrir={() => abrirTarefa(t.id)} aoConcluir={() => marcarFeita(t.id, t.status === "feita")} />
+                ))}
+                {tarefas.length > recentes.length && (
+                  <Link to={`/app/secretarias/${id}/tarefas`} className="flex items-center justify-center gap-1 text-sm text-primary py-2 hover:underline">
+                    Ver todas as {tarefas.filter((t) => t.status !== "cancelada").length} tarefas <ChevronRight className="w-4 h-4" />
+                  </Link>
+                )}
+              </CardContent>
+            </Card>
+
+            <Responsabilidades secretariaId={id!} lista={resp} podeEditar={editaResp} todas={todasResp} aoVerTodas={() => setTodasResp((v) => !v)} />
+          </div>
+
+          <Card className="h-fit">
+            <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
+              <div>
+                <CardTitle className="font-['Playfair_Display'] text-lg">Pessoas</CardTitle>
+                <CardDescription>{pessoas.length} na secretaria</CardDescription>
+              </div>
+              {(souCoordenador || direcao) && <Button variant="outline" size="sm" onClick={() => setGerir(true)}><Settings2 className="w-4 h-4 mr-2" /> Gerenciar</Button>}
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <div className="space-y-2">
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{coordenadores.length === 1 ? "Coordenação" : "Coordenadores"}</div>
+                {coordenadores.length === 0 ? <p className="text-sm text-muted-foreground">Ainda sem coordenação definida.</p> : coordenadores.map((p) => (
+                  <div key={p.member_id} className="flex items-center gap-3 rounded-xl border-2 p-3" style={{ borderColor: "hsl(var(--accent))", background: "hsl(var(--accent) / 0.08)" }}>
+                    <Avatar pessoa={p} tamanho={44} />
+                    <div className="min-w-0 flex-1">
+                      <div className="font-semibold truncate">{p.full_name}</div>
+                      <div className="text-xs inline-flex items-center gap-1 text-[hsl(var(--accent-dark))] font-medium"><Crown className="w-3.5 h-3.5" /> Coordenação</div>
+                    </div>
+                    {p.phone && <a href={`tel:${p.phone.replace(/\D/g, "")}`} aria-label={`Ligar para ${p.full_name}`} className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-muted"><Phone className="w-4 h-4" /></a>}
+                  </div>
+                ))}
+              </div>
+              <div className="space-y-1">
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Participantes</div>
+                {participantes.length === 0 ? <p className="text-sm text-muted-foreground py-1">Nenhum participante ainda.</p> : (
+                  <ul className="divide-y divide-border">
+                    {participantes.map((p) => (
+                      <li key={p.member_id} className="flex items-center gap-3 py-2.5">
+                        <Avatar pessoa={p} tamanho={36} />
+                        <span className="text-sm truncate flex-1">{p.full_name}{p.person_id === eu?.id ? " (você)" : ""}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <Card className="border-t-4" style={{ borderTopColor: "hsl(var(--primary))" }}>
-          <CardContent className="pt-4 pb-3 text-center">
-            <div className="text-2xl font-bold text-primary">{coordenadores.length}</div>
-            <div className="text-xs text-muted-foreground">Coordenador{coordenadores.length !== 1 ? "es" : ""}</div>
-          </CardContent>
-        </Card>
-        <Card className="border-t-4" style={{ borderTopColor: "hsl(var(--secondary))" }}>
-          <CardContent className="pt-4 pb-3 text-center">
-            <div className="text-2xl font-bold text-secondary">{participantes.length}</div>
-            <div className="text-xs text-muted-foreground">Participante{participantes.length !== 1 ? "s" : ""}</div>
-          </CardContent>
-        </Card>
-        <Card className="border-t-4" style={{ borderTopColor: "hsl(var(--accent))" }}>
-          <CardContent className="pt-4 pb-3 text-center">
-            <div className="text-2xl font-bold" style={{ color: "hsl(var(--accent-dark))" }}>{actions.length}</div>
-            <div className="text-xs text-muted-foreground">Ações</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Tabs defaultValue="membros" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="membros"><UserPlus className="w-4 h-4 mr-1" /> Membros</TabsTrigger>
-          <TabsTrigger value="responsabilidades"><ClipboardList className="w-4 h-4 mr-1" /> Responsabilidades</TabsTrigger>
-          <TabsTrigger value="acoes"><Activity className="w-4 h-4 mr-1" /> Ações</TabsTrigger>
-        </TabsList>
-
-        {/* MEMBROS */}
-        <TabsContent value="membros">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-base">Membros</CardTitle>
-              <Button size="sm" onClick={() => setMemberOpen(true)} disabled={availableAssociates.length === 0}>
-                <UserPlus className="w-4 h-4 mr-1" /> Adicionar
-              </Button>
-            </CardHeader>
-            <CardContent>
-              {members.length === 0 ? (
-                <p className="text-center text-muted-foreground py-6">Nenhum membro adicionado.</p>
-              ) : (
-                <Table>
-                  <TableHeader><TableRow><TableHead>Nome</TableHead><TableHead>Função</TableHead><TableHead className="text-right">Ações</TableHead></TableRow></TableHeader>
-                  <TableBody>
-                    {members.map(m => (
-                      <TableRow key={m.id}>
-                        <TableCell className="font-medium">{m.associate_name}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={m.member_role === "coordenador" ? "bg-primary/10 text-primary" : ""}>
-                            {ROLE_LABELS[m.member_role]}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive"><Trash2 className="w-3.5 h-3.5" /></Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader><AlertDialogTitle>Remover membro?</AlertDialogTitle><AlertDialogDescription>Remover {m.associate_name} desta secretaria?</AlertDialogDescription></AlertDialogHeader>
-                              <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => handleRemoveMember(m.id)} className="bg-destructive text-destructive-foreground">Remover</AlertDialogAction></AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* RESPONSABILIDADES */}
-        <TabsContent value="responsabilidades">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-base">Responsabilidades</CardTitle>
-              <Button size="sm" onClick={openAddResp}><Plus className="w-4 h-4 mr-1" /> Adicionar</Button>
-            </CardHeader>
-            <CardContent>
-              {responsibilities.length === 0 ? (
-                <p className="text-center text-muted-foreground py-6">Nenhuma responsabilidade cadastrada.</p>
-              ) : (
-                <div className="space-y-3">
-                  {responsibilities.map((r, i) => (
-                    <div key={r.id} className="flex items-start justify-between p-3 border rounded-lg group">
-                      <div className="flex gap-3">
-                        <span className="text-sm font-bold text-muted-foreground mt-0.5">{i + 1}.</span>
-                        <div>
-                          <div className="font-medium">{r.title}</div>
-                          {r.description && <p className="text-sm text-muted-foreground mt-0.5">{r.description}</p>}
-                        </div>
-                      </div>
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditResp(r)}><Pencil className="w-3.5 h-3.5" /></Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleDeleteResp(r.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* AÇÕES */}
-        <TabsContent value="acoes">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-base">Ações</CardTitle>
-              <Button size="sm" onClick={openAddAction}><Plus className="w-4 h-4 mr-1" /> Publicar Ação</Button>
-            </CardHeader>
-            <CardContent>
-              {actions.length === 0 ? (
-                <p className="text-center text-muted-foreground py-6">Nenhuma ação publicada.</p>
-              ) : (
-                <div className="space-y-3">
-                  {actions.map(a => (
-                    <div key={a.id} className="flex items-start justify-between p-4 border rounded-lg group">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-semibold">{a.title}</span>
-                          <Badge variant="outline" className={`text-xs ${STATUS_COLORS[a.action_status]}`}>{STATUS_LABELS[a.action_status]}</Badge>
-                        </div>
-                        {a.description && <p className="text-sm text-muted-foreground">{a.description}</p>}
-                        <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
-                          {a.action_date && <span>📅 {new Date(a.action_date).toLocaleDateString("pt-BR")}</span>}
-                          {a.publisher_name && <span>👤 {a.publisher_name}</span>}
-                        </div>
-                      </div>
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-2">
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditAction(a)}><Pencil className="w-3.5 h-3.5" /></Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive"><Trash2 className="w-3.5 h-3.5" /></Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader><AlertDialogTitle>Excluir ação?</AlertDialogTitle><AlertDialogDescription>Excluir "{a.title}"?</AlertDialogDescription></AlertDialogHeader>
-                            <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => handleDeleteAction(a.id)} className="bg-destructive text-destructive-foreground">Excluir</AlertDialogAction></AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      {/* Add Member Dialog */}
-      <Dialog open={memberOpen} onOpenChange={setMemberOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Adicionar Membro</DialogTitle></DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Associado</Label>
-              <Select value={memberForm.associate_id} onValueChange={v => setMemberForm(f => ({ ...f, associate_id: v }))}>
-                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                <SelectContent>
-                  {availableAssociates.map(a => <SelectItem key={a.id} value={a.id}>{a.full_name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Função</Label>
-              <Select value={memberForm.member_role} onValueChange={v => setMemberForm(f => ({ ...f, member_role: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="coordenador">Coordenador</SelectItem>
-                  <SelectItem value="participante">Participante</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setMemberOpen(false)}>Cancelar</Button>
-              <Button onClick={handleAddMember} disabled={!memberForm.associate_id}>Adicionar</Button>
-            </DialogFooter>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Responsibility Dialog */}
-      <Dialog open={respOpen} onOpenChange={setRespOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>{editRespId ? "Editar" : "Nova"} Responsabilidade</DialogTitle></DialogHeader>
-          <form onSubmit={handleSaveResp} className="space-y-4">
-            <div className="space-y-2"><Label>Título *</Label><Input required value={respForm.title} onChange={e => setRespForm(f => ({ ...f, title: e.target.value }))} /></div>
-            <div className="space-y-2"><Label>Descrição</Label><Textarea value={respForm.description} onChange={e => setRespForm(f => ({ ...f, description: e.target.value }))} rows={3} /></div>
-            <Button type="submit" className="w-full">{editRespId ? "Atualizar" : "Adicionar"}</Button>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Action Dialog */}
-      <Dialog open={actionOpen} onOpenChange={setActionOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>{editActionId ? "Editar" : "Publicar"} Ação</DialogTitle></DialogHeader>
-          <form onSubmit={handleSaveAction} className="space-y-4">
-            <div className="space-y-2"><Label>Título *</Label><Input required value={actionForm.title} onChange={e => setActionForm(f => ({ ...f, title: e.target.value }))} /></div>
-            <div className="space-y-2"><Label>Descrição</Label><Textarea value={actionForm.description} onChange={e => setActionForm(f => ({ ...f, description: e.target.value }))} rows={3} /></div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <Select value={actionForm.action_status} onValueChange={v => setActionForm(f => ({ ...f, action_status: v }))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="planejada">Planejada</SelectItem>
-                    <SelectItem value="em_andamento">Em Andamento</SelectItem>
-                    <SelectItem value="concluida">Concluída</SelectItem>
-                    <SelectItem value="cancelada">Cancelada</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2"><Label>Data</Label><Input type="date" value={actionForm.action_date} onChange={e => setActionForm(f => ({ ...f, action_date: e.target.value }))} /></div>
-            </div>
-            <div className="space-y-2">
-              <Label>Publicado por</Label>
-              <Select value={actionForm.published_by} onValueChange={v => setActionForm(f => ({ ...f, published_by: v }))}>
-                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">— Nenhum —</SelectItem>
-                  {members.map(m => <SelectItem key={m.associate_id} value={m.associate_id}>{m.associate_name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <Button type="submit" className="w-full">{editActionId ? "Atualizar" : "Publicar"}</Button>
-          </form>
-        </DialogContent>
-      </Dialog>
+      {id && <NovaTarefa aberto={!!nova} modo={nova ?? "nova"} aoFechar={() => setNova(null)} secretariaId={id} pessoas={pessoas} eu={eu?.id ?? null} />}
+      {id && <GerirPessoas aberto={gerir} aoFechar={() => setGerir(false)} secretariaId={id} pessoas={pessoas} direcao={direcao} eu={eu?.id ?? null} />}
     </AppLayout>
   );
-};
+}
 
-export default SecretariaDetalhe;
+function Responsabilidades({ secretariaId, lista, podeEditar, todas, aoVerTodas }: {
+  secretariaId: string; lista: Responsabilidade[]; podeEditar: boolean; todas: boolean; aoVerTodas: () => void;
+}) {
+  const qc = useQueryClient();
+  const [novo, setNovo] = useState("");
+  const [editando, setEditando] = useState<string | null>(null);
+  const [texto, setTexto] = useState("");
+  const recarregar = () => qc.invalidateQueries({ queryKey: ["secretaria-resp", secretariaId] });
+  const incluir = useMutation({
+    mutationFn: async () => {
+      const { error } = await db.from("secretaria_responsibilities").insert({ secretaria_id: secretariaId, title: novo.trim(), item_order: (lista.at(-1)?.item_order ?? 0) + 1 });
+      if (error) throw error;
+    },
+    onSuccess: () => { setNovo(""); recarregar(); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const salvar = useMutation({
+    mutationFn: async (rid: string) => {
+      const { error } = await db.from("secretaria_responsibilities").update({ title: texto.trim() }).eq("id", rid);
+      if (error) throw error;
+    },
+    onSuccess: () => { setEditando(null); recarregar(); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const remover = useMutation({
+    mutationFn: async (rid: string) => {
+      const { error } = await db.from("secretaria_responsibilities").delete().eq("id", rid);
+      if (error) throw error;
+    },
+    onSuccess: recarregar,
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const visiveis = todas ? lista : lista.slice(0, 6);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="font-['Playfair_Display'] text-lg">Responsabilidades</CardTitle>
+        <CardDescription>O que cabe a esta secretaria na Casa</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {lista.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma responsabilidade cadastrada.</p>}
+        <ol className="space-y-2">
+          {visiveis.map((r, i) => (
+            <li key={r.id} className="flex items-start gap-3 rounded-lg px-1 py-1.5 group">
+              <span className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5" style={{ background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary))" }}>{i + 1}</span>
+              {editando === r.id ? (
+                <div className="flex-1 flex gap-2">
+                  <Input className="h-10" value={texto} autoFocus onChange={(e) => setTexto(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && texto.trim()) salvar.mutate(r.id); }} />
+                  <Button size="icon" className="h-10 w-10 shrink-0" aria-label="Salvar" onClick={() => texto.trim() && salvar.mutate(r.id)}><Check className="w-4 h-4" /></Button>
+                  <Button size="icon" variant="ghost" className="h-10 w-10 shrink-0" aria-label="Cancelar" onClick={() => setEditando(null)}><X className="w-4 h-4" /></Button>
+                </div>
+              ) : (
+                <>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[15px] leading-snug">{r.title}</div>
+                    {r.description && <div className="text-xs text-muted-foreground mt-0.5">{r.description}</div>}
+                  </div>
+                  {podeEditar && (
+                    <div className="flex shrink-0 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                      <Button size="icon" variant="ghost" className="h-9 w-9" aria-label="Editar" onClick={() => { setEditando(r.id); setTexto(r.title); }}><Pencil className="w-4 h-4" /></Button>
+                      <Button size="icon" variant="ghost" className="h-9 w-9" aria-label="Remover" onClick={() => remover.mutate(r.id)}><Trash2 className="w-4 h-4 text-destructive" /></Button>
+                    </div>
+                  )}
+                </>
+              )}
+            </li>
+          ))}
+        </ol>
+        {lista.length > 6 && (
+          <button type="button" onClick={aoVerTodas} className="text-sm text-primary hover:underline">{todas ? "Mostrar menos" : `Ver todas as ${lista.length}`}</button>
+        )}
+        {podeEditar && (
+          <div className="flex gap-2 pt-2">
+            <Input className="h-11" placeholder="Nova responsabilidade" value={novo} onChange={(e) => setNovo(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && novo.trim()) incluir.mutate(); }} />
+            <Button className="h-11 shrink-0" variant="outline" disabled={!novo.trim()} onClick={() => incluir.mutate()}><Plus className="w-4 h-4" /></Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+/** Coordenação inclui e retira participantes; Direção e admins também definem coordenadores. */
+function GerirPessoas({ aberto, aoFechar, secretariaId, pessoas, direcao, eu }: {
+  aberto: boolean; aoFechar: () => void; secretariaId: string; pessoas: PessoaSecretaria[]; direcao: boolean; eu: string | null;
+}) {
+  const qc = useQueryClient();
+  const [pessoa, setPessoa] = useState<PessoaBasica | null>(null);
+  const [papel, setPapel] = useState<"participante" | "coordenador">("participante");
+  const recarregar = () => { qc.invalidateQueries({ queryKey: ["secretaria-pessoas", secretariaId] }); qc.invalidateQueries({ queryKey: ["minhas-secretarias"] }); };
+
+  const incluir = useMutation({
+    mutationFn: async () => {
+      if (!pessoa) return;
+      if (pessoas.some((p) => p.person_id === pessoa.id)) throw new Error("Esta pessoa já faz parte da secretaria.");
+      const { error } = await db.from("secretaria_members").insert({ secretaria_id: secretariaId, person_id: pessoa.id, member_role: direcao ? papel : "participante" });
+      if (error) throw error;
+    },
+    onSuccess: () => { setPessoa(null); setPapel("participante"); recarregar(); toast.success("Pessoa incluída"); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const mudarPapel = useMutation({
+    mutationFn: async (p: PessoaSecretaria) => {
+      const { error } = await db.from("secretaria_members").update({ member_role: p.member_role === "coordenador" ? "participante" : "coordenador" }).eq("id", p.member_id);
+      if (error) throw error;
+    },
+    onSuccess: recarregar,
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const retirar = useMutation({
+    mutationFn: async (p: PessoaSecretaria) => {
+      const { error } = await db.from("secretaria_members").delete().eq("id", p.member_id);
+      if (error) throw error;
+    },
+    onSuccess: recarregar,
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Dialog open={aberto} onOpenChange={(v) => { if (!v) aoFechar(); }}>
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="font-['Playfair_Display'] text-xl">Pessoas da secretaria</DialogTitle>
+          <DialogDescription>{direcao ? "Inclua participantes e defina quem coordena." : "Como coordenação, você inclui e retira participantes."}</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3 rounded-lg border p-3">
+          <Label className="text-sm">Incluir pessoa</Label>
+          <BuscaPessoa valor={pessoa} onEscolher={setPessoa} />
+          <div className="flex gap-2">
+            {direcao && (
+              <Select value={papel} onValueChange={(v) => setPapel(v as typeof papel)}>
+                <SelectTrigger className="h-11 flex-1"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="participante">Participante</SelectItem>
+                  <SelectItem value="coordenador">Coordenação</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+            <Button className="h-11 flex-1" disabled={!pessoa || incluir.isPending} onClick={() => incluir.mutate()}><Plus className="w-4 h-4 mr-2" /> Incluir</Button>
+          </div>
+        </div>
+        <ul className="divide-y divide-border">
+          {pessoas.map((p) => {
+            const podeRetirar = direcao || p.member_role === "participante";
+            return (
+              <li key={p.member_id} className="flex items-center gap-3 py-3">
+                <Avatar pessoa={p} tamanho={36} />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium truncate">{p.full_name}{p.person_id === eu ? " (você)" : ""}</div>
+                  {p.member_role === "coordenador"
+                    ? <Badge variant="outline" className="text-[10px] bg-amber-100 text-amber-800 border-amber-300 mt-0.5">Coordenação</Badge>
+                    : <span className="text-xs text-muted-foreground">Participante</span>}
+                </div>
+                {direcao && (
+                  <Button variant="ghost" size="sm" className="h-9" onClick={() => mudarPapel.mutate(p)}>
+                    {p.member_role === "coordenador" ? "Tornar participante" : "Tornar coordenação"}
+                  </Button>
+                )}
+                {podeRetirar && (
+                  <Button variant="ghost" size="icon" className="h-9 w-9" aria-label={`Retirar ${p.full_name}`} onClick={() => retirar.mutate(p)}><Trash2 className="w-4 h-4 text-destructive" /></Button>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </DialogContent>
+    </Dialog>
+  );
+}

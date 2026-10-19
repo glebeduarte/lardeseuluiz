@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { usePermissions, type ModulePermission } from "@/hooks/usePermissions";
 import MinhasAcoes from "@/components/acoes/MinhasAcoes";
+import MinhasTarefas from "@/components/secretarias/MinhasTarefas";
 import { useMinhaJornada } from "@/components/site/JornadaVoluntario";
 import { ETAPA_COR, ETAPA_LABEL, ETAPAS_JORNADA, dataCurta, proximoPasso, semanaDoEstagio } from "@/lib/chamamento";
 import { db } from "@/lib/acoes";
@@ -289,6 +290,8 @@ export default function Perfil() {
                   : <Indicador icone={Award} rotulo="Avaliações aprovadas" valor={formacao?.avaliacoes_aprovadas ?? 0} />}
                 <Indicador icone={Briefcase} rotulo="Funções na Casa" valor={funcoes.length} />
               </div>
+
+              <MinhasTarefas desativado={!!simulacao?.personId} />
 
               <div className="grid gap-4 md:grid-cols-2">
                 <Area icone={GraduationCap} titulo="Formação" href={formacao?.admin ? "/formacao/admin" : "/formacao/dashboard"} externo

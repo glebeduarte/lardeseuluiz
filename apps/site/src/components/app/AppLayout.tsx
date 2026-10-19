@@ -24,7 +24,7 @@ const navGroups: NavGroup[] = [
   {
     label: "Operacional",
     items: [
-      { to: "/app/secretarias", icon: Building2, label: "Secretarias", perm: "modulo_secretaria" },
+      { to: "/app/secretarias", icon: Building2, label: "Secretarias", perm: "always" },
       { to: "/app/acoes", icon: HeartHandshake, label: "Ações sociais", perm: "modulo_projetos" },
       { to: "/app/familias", icon: Home, label: "Famílias atendidas", perm: "modulo_projetos" },
       { to: "/app/eventos", icon: CalendarDays, label: "Eventos e palestras", perm: "always" },

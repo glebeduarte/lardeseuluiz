@@ -22,6 +22,7 @@ import MinhasAssembleias from "./pages/associate/MinhasAssembleias";
 import MeusDados from "./pages/associate/MeusDados";
 import SecretariasPage from "./pages/Secretarias";
 import SecretariaDetalhePage from "./pages/SecretariaDetalhe";
+import SecretariaTarefas from "./pages/SecretariaTarefas";
 import Eventos from "./pages/Eventos";
 import Stories from "./pages/Stories";
 import Associados from "./pages/Associados";
@@ -81,6 +82,7 @@ const App = () => (
             <Route path="/app/pessoas/:id" element={<PessoaDetalhe />} />
             <Route path="/app/frequentadores" element={<Frequentadores />} />
             <Route path="/app/secretarias/:id" element={<SecretariaDetalhePage />} />
+            <Route path="/app/secretarias/:id/tarefas" element={<SecretariaTarefas />} />
             <Route path="/app/configuracoes/funcoes" element={<Funcoes />} />
             <Route path="/app/projetos" element={<Projetos />} />
             <Route path="/app/acoes" element={<AcoesSociais />} />

@@ -1,0 +1,12 @@
+-- Aplicado no banco via migrações "secretarias_tarefas", "secretarias_ajustes_acesso" e "secretarias_direcao_cadastra".
+-- Direção: governanca.eh_direcao() = administrador ou função "Direção" ativa.
+-- Acesso às secretarias (membros, responsabilidades, tarefas): membros da secretaria, Direção e admins
+--   (acessa_secretaria, membro_da_secretaria, coordena_secretaria). Nome e descrição continuam públicos.
+-- Membros: a coordenação inclui e retira participantes; Direção e admins também definem coordenadores.
+-- Responsabilidades: coordenação, Direção e admins editam.
+-- Tarefas: secretaria_tasks (A fazer, Fazendo, Feita, Cancelada; prazo, data em que foi feita, ordem do kanban),
+--   secretaria_task_assignees (responsáveis), secretaria_task_updates (comentários e histórico automático).
+--   Todos os membros criam, mudam a situação, se colocam como responsáveis e comentam; editar o conteúdo e apagar:
+--   quem criou ou a coordenação (gatilho tarefa_antes_de_salvar e política de exclusão).
+-- Funções para as telas: secretaria_pessoas(), minhas_secretarias(), minhas_tarefas().
+-- minhas_areas(): quem participa de alguma secretaria (ou é da Direção) passa a ver a Governança na barra.
