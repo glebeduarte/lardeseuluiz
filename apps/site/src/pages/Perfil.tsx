@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePermissions, type ModulePermission } from "@/hooks/usePermissions";
 import MinhasAcoes from "@/components/acoes/MinhasAcoes";
 import MinhasTarefas from "@/components/secretarias/MinhasTarefas";
+import MeusVinculos, { useMeusVinculos } from "@/components/perfil/MeusVinculos";
 import { useMinhaJornada } from "@/components/site/JornadaVoluntario";
 import { ETAPA_COR, ETAPA_LABEL, ETAPAS_JORNADA, dataCurta, proximoPasso, semanaDoEstagio } from "@/lib/chamamento";
 import { db } from "@/lib/acoes";
@@ -197,6 +198,7 @@ export default function Perfil() {
     return true;
   };
 
+  const { data: vinculos } = useMeusVinculos(simulacao?.personId);
   const carregando = authLoading || govLoading || permsLoading;
   const nome = person?.full_name || areas?.nome || user?.email?.split("@")[0] || "";
   const foto = person?.photo_url || areas?.foto;
@@ -207,7 +209,14 @@ export default function Perfil() {
   const atendimento = resumo?.atendimento;
   const cursosAtivos = (formacao?.cursos ?? []).filter((c) => c.status === "approved");
   const perms = isAdmin ? (Object.keys(PERMISSION_LABELS) as ModulePermission[]) : Array.from(permissions);
-  const temGovernanca = isAdmin || isGestor || perms.length > 0 || funcoes.length > 0 || !!associacao;
+  const secretariasV = vinculos?.secretarias ?? [];
+  const projetosV = vinculos?.projetos ?? [];
+  const temVinculos = secretariasV.length > 0 || projetosV.length > 0;
+  const temGovernanca = isAdmin || isGestor || perms.length > 0 || funcoes.length > 0 || !!associacao || temVinculos;
+  const resumoVinculos = [
+    ...secretariasV.map((s) => (s.papel === "coordenador" ? `Coordena ${s.nome}` : s.nome)),
+    ...projetosV.map((p) => (p.coordena ? `Coordena ${p.nome}` : p.nome)),
+  ].join(" · ");
   const endereco = (person?.address && typeof person.address === "object" ? person.address : null) as Endereco | null;
   const papelPrincipal = isAdmin ? "Administrador" : isGestor ? "Gestor" : funcoes.length ? "Voluntário" : roles[0] ? ROLE_META[roles[0].role]?.label ?? "Frequentador" : "Frequentador";
   const nomesFuncoes = funcoes.map((f) => f.functions?.name).filter(Boolean).join(" · ");
@@ -243,6 +252,14 @@ export default function Perfil() {
                     <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">{papelPrincipal}</Badge>
                     {roles.filter((r) => r.role !== "trabalhador" && ROLE_META[r.role]).map((r) => (
                       <Badge key={r.id} variant="outline" className={ROLE_META[r.role].tone}>{ROLE_META[r.role].label}</Badge>
+                    ))}
+                    {secretariasV.map((s) => (
+                      <Badge key={`s-${s.id}`} variant="outline" className={s.papel === "coordenador" ? "bg-amber-100 text-amber-800 border-amber-300 gap-1" : "bg-primary/10 text-primary border-primary/20"}>
+                        {s.papel === "coordenador" && <Crown className="w-3 h-3" />}{s.papel === "coordenador" ? `Coordena ${s.nome}` : s.nome}
+                      </Badge>
+                    ))}
+                    {projetosV.filter((p) => p.coordena).map((p) => (
+                      <Badge key={`p-${p.id}`} variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 gap-1"><Crown className="w-3 h-3" />Coordena {p.nome}</Badge>
                     ))}
                     {associacao?.status === "ativo" && <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 gap-1"><Crown className="w-3 h-3" /> Associado</Badge>}
                     {(atendimento?.papeis ?? []).map((p) => (
@@ -315,8 +332,23 @@ export default function Perfil() {
 
                 {temGovernanca && (
                   <Area icone={Landmark} titulo="Governança" href={areas?.governanca ? "/app" : undefined}
-                    resumo={nomesFuncoes || (associacao ? "Associado da Casa" : "Sem função ativa")}
+                    resumo={resumoVinculos || nomesFuncoes || (associacao ? "Associado da Casa" : "Sem função ativa")}
                     acao={() => irPara("governanca")}>
+                    {temVinculos && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {secretariasV.map((s) => (
+                          <Link key={s.id} to={`/app/secretarias/${s.id}`}
+                            className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium hover:bg-muted ${s.papel === "coordenador" ? "bg-amber-100 text-amber-800 border-amber-300" : ""}`}>
+                            {s.icone} {s.nome}{s.papel === "coordenador" ? " · coordenação" : ""}
+                          </Link>
+                        ))}
+                        {projetosV.map((p) => (
+                          <span key={p.id} className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium ${p.coordena ? "bg-amber-100 text-amber-800 border-amber-300" : ""}`}>
+                            {p.nome}{p.coordena ? " · coordenação" : ""}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                     <div className="flex flex-wrap gap-1.5">
                       {perms.slice(0, 6).map((p) => PERMISSION_LABELS[p] && <Badge key={p} variant="outline" className="text-xs">{PERMISSION_LABELS[p].label}</Badge>)}
                       {perms.length > 6 && <Badge variant="outline" className="text-xs">+{perms.length - 6}</Badge>}
@@ -505,6 +537,7 @@ export default function Perfil() {
             {temGovernanca && (
               <TabsContent value="governanca" className="mt-4">
                 <div className="grid gap-6 lg:grid-cols-3">
+                  {vinculos && <MeusVinculos vinculos={vinculos} operaAcoes={isAdmin || isGestor || permissions.has("modulo_projetos")} />}
                   <Card className="lg:col-span-2">
                     <CardHeader>
                       <CardTitle className="font-['Playfair_Display'] text-lg flex items-center gap-2"><Briefcase className="w-4 h-4 text-primary" /> Minhas funções</CardTitle>

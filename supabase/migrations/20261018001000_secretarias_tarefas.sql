@@ -10,3 +10,5 @@
 --   quem criou ou a coordenação (gatilho tarefa_antes_de_salvar e política de exclusão).
 -- Funções para as telas: secretaria_pessoas(), minhas_secretarias(), minhas_tarefas().
 -- minhas_areas(): quem participa de alguma secretaria (ou é da Direção) passa a ver a Governança na barra.
+-- governanca.meus_vinculos(p_person): secretarias (membro/coordenação, função, tarefas abertas) e projetos sociais
+--   (coordenação, função no projeto, escalas) da pessoa, para o perfil único (migração "perfil_vinculos").
