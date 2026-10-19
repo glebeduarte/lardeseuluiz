@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import AppLayout from "@/components/app/AppLayout";
+import { useAreasLsl } from "@/compartilhado";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, CartesianGrid, Legend } from "recharts";
 import { Pencil, Trash2, Link2, Download, Search } from "lucide-react";
 import * as XLSX from "xlsx";
@@ -51,6 +52,7 @@ const emptyForm = { full_name: "", email: "", phone: "", cpf: "", category: "fre
 
 const AppDashboard = () => {
   const { user, loading: authLoading } = useAuth();
+  const areas = useAreasLsl(supabase, user?.id);
   const navigate = useNavigate();
   const [associates, setAssociates] = useState<Associate[]>([]);
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -307,7 +309,11 @@ const AppDashboard = () => {
   );
 
   const today = new Date();
-  const userName = user?.email?.split("@")[0] || "diretoria";
+  // Nome do cadastro único (primeiro nome); se ainda não houver, usa o começo do e-mail
+  const userName = (areas?.nome || "").trim().split(/\s+/)[0] || user?.email?.split("@")[0] || "diretoria";
+  const diaSemana = today.toLocaleDateString("pt-BR", { weekday: "long" });
+  const diaSemanaRotulo = diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1);
+  const dataPorExtenso = today.toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" });
 
   return (
     <AppLayout>
@@ -321,13 +327,17 @@ const AppDashboard = () => {
         <div className="relative flex flex-wrap items-end justify-between gap-4">
           <div>
             <div className="text-[13px] text-white/80">Bem-vindo(a) de volta,</div>
-            <h1 className="font-['Playfair_Display'] text-3xl sm:text-4xl font-bold capitalize mt-1">{userName}</h1>
+            <h1 className="font-['Playfair_Display'] text-3xl sm:text-4xl font-bold mt-1">{userName.charAt(0).toUpperCase() + userName.slice(1)}</h1>
             <p className="text-sm text-white/75 mt-1">Painel da Diretoria · Centro Espiritualista Lar de Seu Luiz</p>
           </div>
-          <div className="text-right">
-            <div className="font-['Playfair_Display'] text-4xl font-bold leading-none">{today.getDate()}</div>
-            <div className="text-[12px] text-white/80 mt-1 capitalize">
-              {today.toLocaleDateString("pt-BR", { weekday: "long" })} · {today.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}
+          <div className="flex items-center gap-3 rounded-xl bg-white/10 border border-white/15 pl-2 pr-4 py-2 w-full sm:w-auto">
+            <div className="w-12 h-12 rounded-lg bg-white text-[hsl(var(--primary-dark))] flex flex-col items-center justify-center leading-none shrink-0">
+              <span className="text-[10px] font-semibold uppercase tracking-wide">{today.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}</span>
+              <span className="font-['Playfair_Display'] text-xl font-bold">{today.getDate()}</span>
+            </div>
+            <div className="min-w-0">
+              <div className="text-sm font-semibold">{diaSemanaRotulo}</div>
+              <div className="text-xs text-white/80">{dataPorExtenso}</div>
             </div>
           </div>
         </div>
