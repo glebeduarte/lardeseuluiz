@@ -56,3 +56,14 @@ Referências prontas na Governança:
 - Lógica: consultas, mutações, handlers, rotas, estados, validações e permissões.
 - Os textos e recursos de cada tela. Só muda a apresentação.
 - Textos novos em português, sem travessão.
+
+## Simplicidade em primeiro lugar
+
+Quem usa a plataforma está acostumado com o WhatsApp. Toda tela nova ou revisada segue estes princípios:
+
+1. **Uma coisa por vez.** A tela inicial mostra atalhos grandes; cada assunto abre na própria tela, com um botão de voltar no topo.
+2. **Palavras do dia a dia.** "Meus cursos", "Minhas tarefas", "Onde eu ajudo", "Minhas escalas", "Meus dados". Termos técnicos (módulos, permissões, papéis) ficam escondidos ou fora da tela principal.
+3. **Cores de área.** Cada assunto tem uma cor fixa, para ser reconhecido de longe: cursos verde, tarefas azul, onde eu ajudo dourado, escalas laranja, atendimento roxo, voluntariado rosa, dados cinza. Use os tons 50 a 100 nos fundos e 500 nos ícones.
+4. **Toques grandes.** Botões e campos com no mínimo 44px (h-11) e, de preferência, 48px (h-12) no celular. Cartões com cantos bem arredondados (rounded-2xl ou rounded-3xl).
+5. **Acolhimento.** Saudação pelo primeiro nome, mensagens de vazio que explicam o próximo passo e um bloco "Para você agora" com o que pede atenção.
+6. **Celular primeiro.** Desenhe para 375px e depois amplie. No celular, a barra do topo mostra ícone e nome curto: Menu, Site, Gestão, Cursos, Macas e Perfil.

@@ -43,6 +43,7 @@
 }
 .lsl-barra__aba:hover { color: #fff; background: rgba(255,255,255,0.06); }
 .lsl-barra__aba svg { width: 16px; height: 16px; flex-shrink: 0; }
+.lsl-barra__aba > em, .lsl-barra__perfil > em, .lsl-barra__menu > em { display: none; }
 .lsl-barra__aba--ativa { color: #fff; font-weight: 600; }
 .lsl-barra__aba--ativa::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: 0; height: 3px; border-radius: 3px 3px 0 0; background: var(--lsl-dourado); }
 .lsl-barra__fim { margin-left: auto; display: flex; align-items: center; gap: 6px; padding-left: 8px; }
@@ -119,12 +120,25 @@
 .lsl-sombra { display: none; }
 @media (max-width: 767px) {
   .lsl-barra { padding: 0 6px; }
-  .lsl-barra__menu { display: inline-flex; }
+  .lsl-barra__menu { display: inline-flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10.5px; font-weight: 600; padding: 4px 6px; }
+  .lsl-barra__menu > em { display: block; font-style: normal; }
   .lsl-barra__marca { display: none; }
-  .lsl-barra__aba { padding: 0 10px; }
-  .lsl-barra__aba span { display: none; }
-  .lsl-barra__perfil { padding: 3px; }
+  /* No celular, ícone com o nome curto embaixo (como as abas do WhatsApp) */
+  :root { --lsl-barra-altura: 60px; }
+  .lsl-barra__abas { flex: 1; justify-content: space-around; }
+  .lsl-barra__aba { flex-direction: column; justify-content: center; gap: 3px; padding: 0 6px; min-width: 52px; font-size: 10.5px; }
+  .lsl-barra__aba svg { width: 21px; height: 21px; }
+  .lsl-barra__aba > span { display: none; }
+  .lsl-barra__aba > em { display: block; font-style: normal; font-weight: 600; letter-spacing: .01em; }
+  .lsl-barra__aba--ativa::after { left: 14px; right: 14px; }
+  .lsl-barra__perfil { flex-direction: column; gap: 2px; padding: 0 4px; border: 0; font-size: 10.5px; font-weight: 600; }
+  .lsl-barra__perfil .lsl-avatar { width: 26px; height: 26px; }
   .lsl-barra__perfil > span:not(.lsl-avatar) { display: none; }
+  .lsl-barra__perfil > em { display: block; font-style: normal; }
+  .lsl-barra__perfil--ativo .lsl-avatar { box-shadow: 0 0 0 2px var(--lsl-dourado); }
+  /* Menu lateral com toques maiores */
+  .lsl-item { padding: 12px 14px; font-size: 15px; gap: 14px; }
+  .lsl-item svg { width: 20px; height: 20px; }
   .lsl-lateral { transform: translateX(-100%); width: 272px; transition: transform .2s ease; z-index: 55; }
   .lsl-lateral--aberta { transform: none; }
   .lsl-lateral--recolhida { width: 272px; }

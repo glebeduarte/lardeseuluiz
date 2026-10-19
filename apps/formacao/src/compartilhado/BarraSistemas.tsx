@@ -68,11 +68,11 @@ export interface BarraSistemasProps {
 }
 
 export function BarraSistemas({ atual, areas, nome, foto, menuAberto, aoAlternarMenu, navegar, extra }: BarraSistemasProps) {
-  const abas: { id: SistemaLsl; rotulo: string; href: string; icone: typeof Globe; mostrar: boolean }[] = [
-    { id: "site", rotulo: "Site", href: "/", icone: Globe, mostrar: true },
-    { id: "governanca", rotulo: "Governança", href: "/app", icone: Landmark, mostrar: !!areas?.governanca },
-    { id: "formacao", rotulo: "Formação", href: areas?.formacao_admin ? "/formacao/admin" : "/formacao/dashboard", icone: GraduationCap, mostrar: areas?.formacao !== false },
-    { id: "atendimento", rotulo: "Atendimento", href: "/atendimento/", icone: HeartPulse, mostrar: !!areas?.atendimento },
+  const abas: { id: SistemaLsl; rotulo: string; curto: string; href: string; icone: typeof Globe; mostrar: boolean }[] = [
+    { id: "site", rotulo: "Site", curto: "Site", href: "/", icone: Globe, mostrar: true },
+    { id: "governanca", rotulo: "Governança", curto: "Gestão", href: "/app", icone: Landmark, mostrar: !!areas?.governanca },
+    { id: "formacao", rotulo: "Formação", curto: "Cursos", href: areas?.formacao_admin ? "/formacao/admin" : "/formacao/dashboard", icone: GraduationCap, mostrar: areas?.formacao !== false },
+    { id: "atendimento", rotulo: "Atendimento", curto: "Macas", href: "/atendimento/", icone: HeartPulse, mostrar: !!areas?.atendimento },
   ];
   const clicar = (href: string) => (e: MouseEvent<HTMLAnchorElement>) => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
@@ -85,7 +85,7 @@ export function BarraSistemas({ atual, areas, nome, foto, menuAberto, aoAlternar
     <header className="lsl-barra" role="navigation" aria-label="Sistemas do Lar de Seu Luiz">
       {aoAlternarMenu && (
         <button type="button" className="lsl-barra__menu" onClick={aoAlternarMenu} aria-label={menuAberto ? "Fechar menu" : "Abrir menu"}>
-          {menuAberto ? <X size={20} /> : <Menu size={20} />}
+          {menuAberto ? <X size={21} /> : <Menu size={21} />}<em>Menu</em>
         </button>
       )}
       <a href="/" className="lsl-barra__marca" onClick={clicar("/")}>
@@ -98,7 +98,7 @@ export function BarraSistemas({ atual, areas, nome, foto, menuAberto, aoAlternar
           return (
             <a key={a.id} href={a.href} onClick={clicar(a.href)} title={a.rotulo}
               className={`lsl-barra__aba${a.id === atual ? " lsl-barra__aba--ativa" : ""}`} aria-current={a.id === atual ? "page" : undefined}>
-              <Icone /><span>{a.rotulo}</span>
+              <Icone /><span>{a.rotulo}</span><em>{a.curto}</em>
             </a>
           );
         })}
@@ -108,6 +108,7 @@ export function BarraSistemas({ atual, areas, nome, foto, menuAberto, aoAlternar
         <a href="/app/perfil" onClick={clicar("/app/perfil")} className={`lsl-barra__perfil${atual === "perfil" ? " lsl-barra__perfil--ativo" : ""}`} title="Meu perfil">
           <span className="lsl-avatar">{fotoExibida ? <img src={fotoExibida} alt="" /> : iniciaisLsl(nomeExibido)}</span>
           <span>Meu perfil</span>
+          <em>Perfil</em>
         </a>
       </div>
     </header>

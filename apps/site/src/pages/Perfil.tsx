@@ -5,13 +5,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { usePermissions, type ModulePermission } from "@/hooks/usePermissions";
 import MinhasAcoes from "@/components/acoes/MinhasAcoes";
-import MinhasTarefas from "@/components/secretarias/MinhasTarefas";
+import { STATUS_COR, STATUS_ROTULO, atrasada, dataAmigavel, type StatusTarefa } from "@/lib/secretarias";
 import MeusVinculos, { useMeusVinculos } from "@/components/perfil/MeusVinculos";
 import { useMinhaJornada } from "@/components/site/JornadaVoluntario";
 import { ETAPA_COR, ETAPA_LABEL, ETAPAS_JORNADA, dataCurta, proximoPasso, semanaDoEstagio } from "@/lib/chamamento";
 import { db } from "@/lib/acoes";
 import { MolduraSimples, useAreasLsl, iniciaisLsl } from "@/compartilhado";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,7 +21,8 @@ import { toast } from "sonner";
 import {
   Camera, Mail, Phone, IdCard, CalendarDays, MapPin, ShieldCheck, Briefcase, KeyRound, Loader2, Pencil,
   GraduationCap, HeartPulse, Landmark, HeartHandshake, ChevronRight, BookOpen, CheckCircle2, Award, Users,
-  Bed, MessagesSquare, Crown, Save, Eye, Footprints, Check,
+  Bed, MessagesSquare, Crown, Save, Eye, Footprints, Check, ArrowLeft, ListChecks, Sparkles, UserRound, Sun, Moon, Sunrise,
+  ChevronDown,
 } from "lucide-react";
 
 // Perfil único da plataforma: dados pessoais editáveis e o resumo de tudo o que a pessoa faz na Casa
@@ -221,550 +221,465 @@ export default function Perfil() {
   const papelPrincipal = isAdmin ? "Administrador" : isGestor ? "Gestor" : funcoes.length ? "Voluntário" : roles[0] ? ROLE_META[roles[0].role]?.label ?? "Frequentador" : "Frequentador";
   const nomesFuncoes = funcoes.map((f) => f.functions?.name).filter(Boolean).join(" · ");
 
+  // Tarefas e escalas da pessoa (mesmas consultas usadas nos outros blocos)
+  const { data: minhasTarefas = [] } = useQuery({
+    queryKey: ["minhas-tarefas"],
+    enabled: !!user && !simulacao?.personId,
+    queryFn: async () => ((await db.rpc("minhas_tarefas")).data ?? []) as { id: string; title: string; status: StatusTarefa; due_date: string | null; secretaria_id: string; secretaria: string }[],
+  });
+  const { data: minhasAcoes } = useQuery({
+    queryKey: ["minhas-acoes"],
+    enabled: !!user && !simulacao?.personId,
+    queryFn: async () => ((await db.rpc("minhas_acoes")).data ?? null) as { escalas: { id: string; data: string; hora: string | null; projeto: string; confirmed: boolean; task: string | null }[] } | null,
+  });
+  const [verAcessos, setVerAcessos] = useState(false);
+  const hojeIso = new Date().toISOString().slice(0, 10);
+  const proximasEscalas = (minhasAcoes?.escalas ?? []).filter((e) => e.data >= hojeIso);
+  const primeiroNome = (nome || "").split(" ")[0];
+  const hora = new Date().getHours();
+  const saudacao = hora < 12 ? "Bom dia" : hora < 18 ? "Boa tarde" : "Boa noite";
+  const IconeSaudacao = hora < 12 ? Sunrise : hora < 18 ? Sun : Moon;
+
+  // Atalhos coloridos da tela inicial do perfil (só aparecem os que fazem sentido para a pessoa)
+  const atalhos: Atalho[] = [
+    { id: "formacao", titulo: "Meus cursos", icone: GraduationCap, cor: "verde",
+      info: cursosAtivos.length ? `${cursosAtivos.length} em andamento` : "Conheça os cursos", mostrar: true },
+    { id: "tarefas", titulo: "Minhas tarefas", icone: ListChecks, cor: "azul",
+      info: minhasTarefas.length ? `${minhasTarefas.length} para fazer` : "Nada pendente", contador: minhasTarefas.length, mostrar: secretariasV.length > 0 || minhasTarefas.length > 0 },
+    { id: "casa", titulo: "Onde eu ajudo", icone: HeartHandshake, cor: "dourado",
+      info: temVinculos ? [...secretariasV.map((s) => s.nome), ...projetosV.map((x) => x.nome)].slice(0, 2).join(", ") : funcoes.length ? nomesFuncoes : "Secretarias e projetos", mostrar: temGovernanca },
+    { id: "acoes", titulo: "Minhas escalas", icone: CalendarDays, cor: "laranja",
+      info: proximasEscalas.length ? `Próxima: ${dataAmigavel(proximasEscalas[0].data)}` : "Ações sociais", contador: proximasEscalas.filter((e) => !e.confirmed).length, mostrar: true },
+    { id: "atendimento", titulo: "Atendimento", icone: HeartPulse, cor: "roxo",
+      info: atendimento ? atendimento.papeis.map((x) => PAPEIS_ATENDIMENTO[x] ?? x).join(" e ") : "", mostrar: !!atendimento },
+    { id: "jornada", titulo: "Ser voluntário", icone: Footprints, cor: "rosa",
+      info: jornada ? ETAPA_LABEL[jornada.etapa] : estagiarios.length ? `${estagiarios.length} estagiário(s)` : "", mostrar: temJornada },
+    { id: "dados", titulo: "Meus dados", icone: UserRound, cor: "cinza", info: "Nome, telefone e endereço", mostrar: true },
+  ];
+
+  // "Para você agora": o que pede atenção, em linguagem simples
+  const avisos: { chave: string; icone: ComponentType<{ className?: string }>; cor: CorAtalho; texto: string; acao: () => void }[] = [];
+  proximasEscalas.filter((e) => !e.confirmed).slice(0, 2).forEach((e) =>
+    avisos.push({ chave: `e${e.id}`, icone: CalendarDays, cor: "laranja", texto: `Confirme sua escala em ${e.projeto} (${dataAmigavel(e.data)})`, acao: () => irPara("acoes") }));
+  minhasTarefas.filter((x) => atrasada(x)).slice(0, 2).forEach((x) =>
+    avisos.push({ chave: `t${x.id}`, icone: ListChecks, cor: "azul", texto: `Tarefa atrasada: ${x.title}`, acao: () => navigate(`/app/secretarias/${x.secretaria_id}/tarefas?tarefa=${x.id}`) }));
+  if (jornada && !["desligado", "colaborador", "voluntario"].includes(jornada.etapa))
+    avisos.push({ chave: "jornada", icone: Footprints, cor: "rosa", texto: proximoPasso(jornada), acao: () => irPara("jornada") });
+  cursosAtivos.filter((c) => c.aulas > 0 && c.concluidas < c.aulas).slice(0, 1).forEach((c) =>
+    avisos.push({ chave: `c${c.id}`, icone: BookOpen, cor: "verde", texto: `Continue o curso ${c.titulo}: ${c.concluidas} de ${c.aulas} aulas`, acao: () => window.location.assign(`/formacao/course/${c.id}`) }));
+
+  const tituloSecao: Record<string, string> = {
+    formacao: "Meus cursos", tarefas: "Minhas tarefas", casa: "Onde eu ajudo", acoes: "Minhas escalas",
+    atendimento: "Atendimento", jornada: "Ser voluntário", dados: "Meus dados",
+  };
+
   return (
     <MolduraSimples sistema="perfil" areas={areas} usuario={{ nome, foto }} navegar={navegar}>
       {carregando ? (
         <div className="flex items-center justify-center py-32 text-muted-foreground gap-2">
-          <Loader2 className="w-4 h-4 animate-spin" /> Carregando perfil...
+          <Loader2 className="w-5 h-5 animate-spin" /> Carregando...
         </div>
       ) : (
-        <div className="space-y-6">
-          {/* Identidade */}
-          <Card className="overflow-hidden">
-            <div className="h-24 sm:h-28" style={{ background: "hsl(var(--primary-dark))" }} />
-            <CardContent className="pb-6">
-              <div className="flex flex-col sm:flex-row sm:items-end gap-4">
-                <div className="relative w-24 h-24 sm:w-28 sm:h-28 shrink-0 -mt-12 sm:-mt-14">
-                  <div className="w-full h-full rounded-full border-4 border-card bg-[hsl(var(--accent))] text-[hsl(var(--primary-dark))] flex items-center justify-center text-2xl font-bold overflow-hidden shadow-md">
-                    {foto ? <img src={foto} alt="" className="w-full h-full object-cover" /> : iniciaisLsl(nome)}
-                  </div>
-                  <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading || !person}
-                    className="absolute bottom-1 right-1 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow border-2 border-card disabled:opacity-60"
-                    aria-label="Trocar foto">
-                    {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
-                  </button>
-                  <input ref={fileInputRef} type="file" accept="image/*" className="hidden"
-                    onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAvatar(f); e.target.value = ""; }} />
-                </div>
-                <div className="flex-1 min-w-0 sm:pb-1">
-                  <h1 className="text-2xl font-bold font-['Playfair_Display'] text-foreground truncate">{nome}</h1>
-                  <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-                    <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">{papelPrincipal}</Badge>
-                    {roles.filter((r) => r.role !== "trabalhador" && ROLE_META[r.role]).map((r) => (
-                      <Badge key={r.id} variant="outline" className={ROLE_META[r.role].tone}>{ROLE_META[r.role].label}</Badge>
-                    ))}
-                    {secretariasV.map((s) => (
-                      <Badge key={`s-${s.id}`} variant="outline" className={s.papel === "coordenador" ? "bg-amber-100 text-amber-800 border-amber-300 gap-1" : "bg-primary/10 text-primary border-primary/20"}>
-                        {s.papel === "coordenador" && <Crown className="w-3 h-3" />}{s.papel === "coordenador" ? `Coordena ${s.nome}` : s.nome}
-                      </Badge>
-                    ))}
-                    {projetosV.filter((p) => p.coordena).map((p) => (
-                      <Badge key={`p-${p.id}`} variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 gap-1"><Crown className="w-3 h-3" />Coordena {p.nome}</Badge>
-                    ))}
-                    {associacao?.status === "ativo" && <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 gap-1"><Crown className="w-3 h-3" /> Associado</Badge>}
-                    {(atendimento?.papeis ?? []).map((p) => (
-                      <Badge key={p} variant="outline" className="bg-sky-100 text-sky-800 border-sky-300">{PAPEIS_ATENDIMENTO[p] ?? p}</Badge>
-                    ))}
-                  </div>
-                  <div className="flex flex-wrap gap-x-5 gap-y-1 mt-2 text-sm text-muted-foreground">
-                    {(person?.email || user?.email) && <span className="inline-flex items-center gap-1.5 min-w-0"><Mail className="w-3.5 h-3.5 shrink-0" /><span className="truncate">{person?.email || user?.email}</span></span>}
-                    {person?.phone && <span className="inline-flex items-center gap-1.5"><Phone className="w-3.5 h-3.5" />{person.phone}</span>}
-                  </div>
-                </div>
-                <Button variant="outline" onClick={() => irPara("dados")} className="sm:mb-1">
-                  <Pencil className="w-4 h-4 mr-2" /> Editar meus dados
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
+        <div className="max-w-3xl mx-auto space-y-6">
           {simulacao?.personId && (
-            <div className="rounded-md border border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-900 flex items-center gap-2">
+            <div className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 flex items-center gap-2">
               <Eye className="w-4 h-4" /> Você está vendo o perfil de outra pessoa. As alterações ficam bloqueadas.
             </div>
           )}
 
-          <Tabs value={aba} onValueChange={irPara}>
-            <div className="overflow-x-auto -mx-1 px-1">
-              <TabsList>
-                <TabsTrigger value="geral">Visão geral</TabsTrigger>
-                <TabsTrigger value="dados">Meus dados</TabsTrigger>
-                <TabsTrigger value="formacao">Formação</TabsTrigger>
-                {atendimento && <TabsTrigger value="atendimento">Atendimento</TabsTrigger>}
-                {temGovernanca && <TabsTrigger value="governanca">Governança</TabsTrigger>}
-                <TabsTrigger value="acoes">Ações sociais</TabsTrigger>
-                {temJornada && <TabsTrigger value="jornada">Voluntariado</TabsTrigger>}
-              </TabsList>
-            </div>
+          {aba === "geral" ? (
+            <>
+              {/* Saudação */}
+              <section className="relative overflow-hidden rounded-3xl p-6 sm:p-8 text-white"
+                style={{ background: "linear-gradient(135deg, hsl(210 100% 38%) 0%, hsl(205 85% 48%) 55%, hsl(44 100% 58%) 140%)" }}>
+                <div className="absolute -right-12 -top-12 w-48 h-48 rounded-full bg-white/10" />
+                <div className="absolute right-16 -bottom-16 w-40 h-40 rounded-full" style={{ background: "hsl(44 100% 60% / 0.35)" }} />
+                <div className="relative flex items-center gap-4 sm:gap-5">
+                  <div className="relative w-20 h-20 sm:w-24 sm:h-24 shrink-0">
+                    <div className="w-full h-full rounded-full ring-4 ring-white/70 bg-[hsl(var(--accent))] text-[hsl(var(--primary-dark))] flex items-center justify-center text-2xl font-bold overflow-hidden shadow-lg">
+                      {foto ? <img src={foto} alt="" className="w-full h-full object-cover" /> : iniciaisLsl(nome)}
+                    </div>
+                    <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading || !person}
+                      className="absolute -bottom-1 -right-1 w-9 h-9 rounded-full bg-white text-primary flex items-center justify-center shadow-md disabled:opacity-60" aria-label="Trocar foto">
+                      {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
+                    </button>
+                    <input ref={fileInputRef} type="file" accept="image/*" className="hidden"
+                      onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAvatar(f); e.target.value = ""; }} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-sm text-white/85 inline-flex items-center gap-1.5"><IconeSaudacao className="w-4 h-4" /> {saudacao},</div>
+                    <h1 className="text-3xl sm:text-4xl font-bold font-['Playfair_Display'] leading-tight truncate">{primeiroNome}!</h1>
+                    <p className="text-sm text-white/85 mt-1">Que bom ter você no Lar de Seu Luiz.</p>
+                  </div>
+                </div>
+                {(secretariasV.some((s) => s.papel === "coordenador") || projetosV.some((x) => x.coordena) || associacao?.status === "ativo" || funcoes.length > 0) && (
+                  <div className="relative flex flex-wrap gap-2 mt-5">
+                    {secretariasV.filter((s) => s.papel === "coordenador").map((s) => <Selo key={s.id} icone={Crown}>Coordena {s.nome}</Selo>)}
+                    {projetosV.filter((x) => x.coordena).map((x) => <Selo key={x.id} icone={Crown}>Coordena {x.nome}</Selo>)}
+                    {funcoes.length > 0 && !secretariasV.some((s) => s.papel === "coordenador") && <Selo icone={Sparkles}>Voluntário</Selo>}
+                    {associacao?.status === "ativo" && <Selo icone={Award}>Associado</Selo>}
+                  </div>
+                )}
+              </section>
 
-            {/* ---------- Visão geral ---------- */}
-            <TabsContent value="geral" className="mt-4 space-y-6">
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <Indicador icone={BookOpen} rotulo="Cursos em andamento" valor={cursosAtivos.length} />
-                <Indicador icone={CheckCircle2} rotulo="Presenças nas aulas" valor={formacao?.presencas ?? 0} />
-                {atendimento
-                  ? <Indicador icone={MessagesSquare} rotulo="Diálogos realizados" valor={atendimento.dialogos} />
-                  : <Indicador icone={Award} rotulo="Avaliações aprovadas" valor={formacao?.avaliacoes_aprovadas ?? 0} />}
-                <Indicador icone={Briefcase} rotulo="Funções na Casa" valor={funcoes.length} />
+              {/* Para você agora */}
+              {avisos.length > 0 && (
+                <section className="space-y-2">
+                  <h2 className="text-lg font-bold font-['Playfair_Display'] px-1">Para você agora</h2>
+                  <div className="space-y-2">
+                    {avisos.map((a) => {
+                      const Icone = a.icone;
+                      return (
+                        <button key={a.chave} type="button" onClick={a.acao}
+                          className="w-full flex items-center gap-3 rounded-2xl bg-card border p-4 text-left hover:shadow-sm active:scale-[0.99] transition">
+                          <span className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 ${CORES[a.cor].fundo} ${CORES[a.cor].texto}`}><Icone className="w-5 h-5" /></span>
+                          <span className="flex-1 text-[15px] leading-snug">{a.texto}</span>
+                          <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
+              )}
+
+              {/* Atalhos */}
+              <section className="space-y-2">
+                <h2 className="text-lg font-bold font-['Playfair_Display'] px-1">O que você quer ver?</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {atalhos.filter((a) => a.mostrar).map((a) => {
+                    const Icone = a.icone;
+                    return (
+                      <button key={a.id} type="button" onClick={() => irPara(a.id)}
+                        className={`relative rounded-3xl p-4 sm:p-5 text-left border-2 ${CORES[a.cor].cartao} hover:shadow-md active:scale-[0.98] transition min-h-[132px] flex flex-col`}>
+                        {!!a.contador && <span className="absolute top-3 right-3 min-w-[24px] h-6 px-2 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center">{a.contador}</span>}
+                        <span className={`w-12 h-12 rounded-2xl flex items-center justify-center ${CORES[a.cor].icone} text-white shadow-sm`}><Icone className="w-6 h-6" /></span>
+                        <span className="mt-auto pt-3">
+                          <span className="block font-semibold text-[16px] text-foreground leading-tight">{a.titulo}</span>
+                          <span className="block text-xs text-muted-foreground mt-1 line-clamp-2">{a.info}</span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+            </>
+          ) : (
+            <>
+              {/* Cabeçalho das seções: simples, com voltar */}
+              <div className="flex items-center gap-3">
+                <button type="button" onClick={() => irPara("geral")} aria-label="Voltar"
+                  className="w-11 h-11 rounded-full bg-card border flex items-center justify-center hover:bg-muted shrink-0"><ArrowLeft className="w-5 h-5" /></button>
+                <h1 className="text-2xl font-bold font-['Playfair_Display']">{tituloSecao[aba] ?? "Meu perfil"}</h1>
               </div>
 
-              <MinhasTarefas desativado={!!simulacao?.personId} />
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <Area icone={GraduationCap} titulo="Formação" href={formacao?.admin ? "/formacao/admin" : "/formacao/dashboard"} externo
-                  resumo={cursosAtivos.length ? `${cursosAtivos.length} curso${cursosAtivos.length > 1 ? "s" : ""} em andamento` : "Nenhum curso em andamento"}
-                  acao={() => irPara("formacao")}>
-                  {cursosAtivos.slice(0, 2).map((c) => <ProgressoCurso key={c.id} curso={c} />)}
-                  {!cursosAtivos.length && <a href="/formacao/explore" className="text-sm text-primary hover:underline">Conhecer os cursos da Casa</a>}
-                </Area>
-
-                {atendimento && (
-                  <Area icone={HeartPulse} titulo="Atendimento" href="/atendimento/" externo
-                    resumo={atendimento.papeis.map((p) => PAPEIS_ATENDIMENTO[p] ?? p).join(" · ")}
-                    acao={() => irPara("atendimento")}>
-                    <div className="grid grid-cols-3 gap-2 text-center">
-                      <MiniNumero valor={atendimento.dialogos_mes} rotulo="Diálogos no mês" />
-                      <MiniNumero valor={atendimento.acompanhamentos_ativos} rotulo="Em tratamento" />
-                      <MiniNumero valor={atendimento.macas.length} rotulo="Macas" />
-                    </div>
-                  </Area>
-                )}
-
-                {temGovernanca && (
-                  <Area icone={Landmark} titulo="Governança" href={areas?.governanca ? "/app" : undefined}
-                    resumo={resumoVinculos || nomesFuncoes || (associacao ? "Associado da Casa" : "Sem função ativa")}
-                    acao={() => irPara("governanca")}>
-                    {temVinculos && (
-                      <div className="flex flex-wrap gap-1.5">
-                        {secretariasV.map((s) => (
-                          <Link key={s.id} to={`/app/secretarias/${s.id}`}
-                            className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium hover:bg-muted ${s.papel === "coordenador" ? "bg-amber-100 text-amber-800 border-amber-300" : ""}`}>
-                            {s.icone} {s.nome}{s.papel === "coordenador" ? " · coordenação" : ""}
-                          </Link>
-                        ))}
-                        {projetosV.map((p) => (
-                          <span key={p.id} className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium ${p.coordena ? "bg-amber-100 text-amber-800 border-amber-300" : ""}`}>
-                            {p.nome}{p.coordena ? " · coordenação" : ""}
-                          </span>
-                        ))}
+              {aba === "dados" && (
+                !person ? (
+                  <Vazio icone={UserRound} cor="cinza" titulo="Cadastro ainda não vinculado" texto="Fale com a secretaria da Casa para ligar o seu cadastro a esta conta." />
+                ) : (
+                  <div className="space-y-4">
+                    <Bloco>
+                      <p className="text-sm text-muted-foreground">O que você mudar aqui vale para tudo: site, cursos e atendimento.</p>
+                      <Campo rotulo="Nome completo"><Input className="h-12 text-base" value={form.full_name} onChange={(e) => setForm((f) => ({ ...f, full_name: e.target.value }))} /></Campo>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <Campo rotulo="WhatsApp"><Input className="h-12 text-base" inputMode="tel" placeholder="(84) 99999-9999" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} /></Campo>
+                        <Campo rotulo="Data de nascimento"><Input className="h-12 text-base" type="date" value={form.birth_date} onChange={(e) => setForm((f) => ({ ...f, birth_date: e.target.value }))} /></Campo>
                       </div>
-                    )}
-                    <div className="flex flex-wrap gap-1.5">
-                      {perms.slice(0, 6).map((p) => PERMISSION_LABELS[p] && <Badge key={p} variant="outline" className="text-xs">{PERMISSION_LABELS[p].label}</Badge>)}
-                      {perms.length > 6 && <Badge variant="outline" className="text-xs">+{perms.length - 6}</Badge>}
-                      {!perms.length && <span className="text-sm text-muted-foreground">Nenhum módulo da gestão liberado.</span>}
-                    </div>
-                  </Area>
-                )}
-
-                {jornada && !["desligado", "colaborador"].includes(jornada.etapa) && (
-                  <Area icone={Footprints} titulo="Jornada de voluntário" resumo={ETAPA_LABEL[jornada.etapa]} acao={() => irPara("jornada")}>
-                    <p className="text-sm text-muted-foreground">{proximoPasso(jornada)}</p>
-                  </Area>
-                )}
-                <Area icone={HeartHandshake} titulo="Ações sociais" href="/#eventos" resumo="Escalas e pedidos de participação" acao={() => irPara("acoes")}>
-                  <p className="text-sm text-muted-foreground">Confirme as suas escalas e acompanhe os pedidos na aba Ações sociais.</p>
-                </Area>
-              </div>
-            </TabsContent>
-
-            {/* ---------- Meus dados (editável) ---------- */}
-            <TabsContent value="dados" className="mt-4">
-              {!person ? (
-                <Card><CardContent className="py-10 text-center text-sm text-muted-foreground">
-                  Seu cadastro ainda não está vinculado a esta conta. Fale com a secretaria da Casa.
-                </CardContent></Card>
-              ) : (
-                <div className="grid gap-6 lg:grid-cols-3">
-                  <Card className="lg:col-span-2">
-                    <CardHeader>
-                      <CardTitle className="font-['Playfair_Display'] text-lg">Dados pessoais</CardTitle>
-                      <CardDescription>O que você alterar aqui vale para o site, a Formação e o Atendimento.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid gap-2">
-                        <Label>Nome completo *</Label>
-                        <Input value={form.full_name} onChange={(e) => setForm((f) => ({ ...f, full_name: e.target.value }))} />
+                    </Bloco>
+                    <Bloco titulo="Endereço">
+                      <div className="grid grid-cols-[2fr_1fr] gap-3">
+                        <Campo rotulo="Rua"><Input className="h-12 text-base" value={form.street} onChange={(e) => setForm((f) => ({ ...f, street: e.target.value }))} /></Campo>
+                        <Campo rotulo="Número"><Input className="h-12 text-base" value={form.number} onChange={(e) => setForm((f) => ({ ...f, number: e.target.value }))} /></Campo>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div className="grid gap-2">
-                          <Label>Telefone / WhatsApp</Label>
-                          <Input inputMode="tel" placeholder="(84) 99999-9999" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} />
-                        </div>
-                        <div className="grid gap-2">
-                          <Label>Data de nascimento</Label>
-                          <Input type="date" value={form.birth_date} onChange={(e) => setForm((f) => ({ ...f, birth_date: e.target.value }))} />
-                        </div>
+                        <Campo rotulo="Complemento"><Input className="h-12 text-base" value={form.complement} onChange={(e) => setForm((f) => ({ ...f, complement: e.target.value }))} /></Campo>
+                        <Campo rotulo="Bairro"><Input className="h-12 text-base" value={form.neighborhood} onChange={(e) => setForm((f) => ({ ...f, neighborhood: e.target.value }))} /></Campo>
                       </div>
-                      <div className="border-t pt-4 space-y-3">
-                        <div className="text-sm font-medium">Endereço</div>
-                        <div className="grid grid-cols-[2fr_1fr] gap-3">
-                          <div className="grid gap-2"><Label>Rua</Label><Input value={form.street} onChange={(e) => setForm((f) => ({ ...f, street: e.target.value }))} /></div>
-                          <div className="grid gap-2"><Label>Número</Label><Input value={form.number} onChange={(e) => setForm((f) => ({ ...f, number: e.target.value }))} /></div>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div className="grid gap-2"><Label>Complemento</Label><Input value={form.complement} onChange={(e) => setForm((f) => ({ ...f, complement: e.target.value }))} /></div>
-                          <div className="grid gap-2"><Label>Bairro</Label><Input value={form.neighborhood} onChange={(e) => setForm((f) => ({ ...f, neighborhood: e.target.value }))} /></div>
-                        </div>
-                        <div className="grid grid-cols-[2fr_64px_1fr] gap-3">
-                          <div className="grid gap-2"><Label>Cidade</Label><Input value={form.city} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} /></div>
-                          <div className="grid gap-2"><Label>UF</Label><Input maxLength={2} value={form.state} onChange={(e) => setForm((f) => ({ ...f, state: e.target.value }))} /></div>
-                          <div className="grid gap-2"><Label>CEP</Label><Input inputMode="numeric" value={form.zip} onChange={(e) => setForm((f) => ({ ...f, zip: e.target.value }))} /></div>
-                        </div>
+                      <div className="grid grid-cols-[2fr_72px] sm:grid-cols-[2fr_72px_1fr] gap-3">
+                        <Campo rotulo="Cidade"><Input className="h-12 text-base" value={form.city} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} /></Campo>
+                        <Campo rotulo="UF"><Input className="h-12 text-base" maxLength={2} value={form.state} onChange={(e) => setForm((f) => ({ ...f, state: e.target.value }))} /></Campo>
+                        <div className="col-span-2 sm:col-span-1"><Campo rotulo="CEP"><Input className="h-12 text-base" inputMode="numeric" value={form.zip} onChange={(e) => setForm((f) => ({ ...f, zip: e.target.value }))} /></Campo></div>
                       </div>
-                      <div className="flex justify-end">
-                        <Button onClick={salvar} disabled={salvando}>
-                          {salvando ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />} Salvar alterações
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="font-['Playfair_Display'] text-lg">Dados da conta</CardTitle>
-                      <CardDescription>Para corrigir estes dados, fale com a secretaria.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-1">
+                    </Bloco>
+                    <Button className="h-12 w-full text-base rounded-2xl" onClick={salvar} disabled={salvando}>
+                      {salvando ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Save className="w-5 h-5 mr-2" />} Salvar meus dados
+                    </Button>
+                    <Bloco titulo="Da sua conta">
+                      <p className="text-xs text-muted-foreground -mt-1">Para mudar estes, fale com a secretaria.</p>
                       <InfoLinha icone={Mail} rotulo="E-mail de acesso" valor={user?.email} />
                       <InfoLinha icone={IdCard} rotulo="CPF" valor={person.cpf ? String(person.cpf).replace(/^(\d{3})\d{6}(\d{2})$/, "$1.***.***-$2") : null} />
-                      <InfoLinha icone={CalendarDays} rotulo="Cadastro desde" valor={dataBR(person.created_at, true)} />
-                      <InfoLinha icone={MapPin} rotulo="Endereço atual" valor={endereco ? [endereco.street, endereco.number, endereco.neighborhood, endereco.city].filter(Boolean).join(", ") : null} />
-                      <div className="pt-3">
-                        <Button variant="outline" size="sm" asChild><Link to="/privacidade"><ShieldCheck className="w-4 h-4 mr-2" /> Política de privacidade</Link></Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                      <InfoLinha icone={CalendarDays} rotulo="Na Casa desde" valor={dataBR(person.created_at, true)} />
+                      <Link to="/privacidade" className="inline-flex items-center gap-2 text-sm text-primary"><ShieldCheck className="w-4 h-4" /> Como cuidamos dos seus dados</Link>
+                    </Bloco>
+                  </div>
+                )
+              )}
+
+              {aba === "formacao" && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-3 gap-3">
+                    <Numero cor="verde" valor={cursosAtivos.length} rotulo="Cursos" />
+                    <Numero cor="azul" valor={formacao?.presencas ?? 0} rotulo="Presenças" />
+                    <Numero cor="dourado" valor={formacao?.avaliacoes_aprovadas ?? 0} rotulo="Avaliações" />
+                  </div>
+                  {(formacao?.cursos ?? []).length === 0 ? (
+                    <Vazio icone={GraduationCap} cor="verde" titulo="Você ainda não está em nenhum curso" texto="Que tal começar? Os cursos da Casa são gratuitos."
+                      acao={<Button className="h-11 rounded-xl" asChild><a href="/formacao/explore">Ver cursos</a></Button>} />
+                  ) : (
+                    <div className="space-y-3">
+                      {formacao!.cursos.map((c) => {
+                        const pct = c.aulas ? Math.round((c.concluidas / c.aulas) * 100) : 0;
+                        return (
+                          <a key={c.id} href={`/formacao/course/${c.id}`} className="flex items-center gap-4 rounded-2xl bg-card border p-4 hover:shadow-sm">
+                            {c.capa ? <img src={c.capa} alt="" className="w-16 h-16 rounded-xl object-cover shrink-0" /> : (
+                              <span className={`w-16 h-16 rounded-xl flex items-center justify-center shrink-0 ${CORES.verde.fundo} ${CORES.verde.texto}`}><GraduationCap className="w-7 h-7" /></span>
+                            )}
+                            <div className="flex-1 min-w-0 space-y-2">
+                              <div className="font-semibold leading-snug">{c.titulo}</div>
+                              {c.status === "approved" && c.aulas > 0 ? (
+                                <div className="flex items-center gap-2">
+                                  <div className="h-2.5 flex-1 rounded-full bg-emerald-100 overflow-hidden"><div className="h-full bg-emerald-500 rounded-full" style={{ width: `${pct}%` }} /></div>
+                                  <span className="text-xs text-muted-foreground whitespace-nowrap">{c.concluidas}/{c.aulas}</span>
+                                </div>
+                              ) : <SituacaoInscricao status={c.status} />}
+                            </div>
+                            <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+                          </a>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <Button variant="outline" className="h-12 w-full rounded-2xl" asChild><a href="/formacao/dashboard">Abrir a área de cursos</a></Button>
                 </div>
               )}
-            </TabsContent>
 
-            {/* ---------- Formação ---------- */}
-            <TabsContent value="formacao" className="mt-4 space-y-6">
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <Indicador icone={BookOpen} rotulo="Cursos em andamento" valor={cursosAtivos.length} />
-                <Indicador icone={CheckCircle2} rotulo="Presenças nas aulas" valor={formacao?.presencas ?? 0} />
-                <Indicador icone={Award} rotulo="Avaliações aprovadas" valor={formacao?.avaliacoes_aprovadas ?? 0} />
-              </div>
-              <Card>
-                <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
-                  <div>
-                    <CardTitle className="font-['Playfair_Display'] text-lg">Meus cursos</CardTitle>
-                    <CardDescription>Inscrições e progresso nas aulas</CardDescription>
-                  </div>
-                  <Button variant="outline" size="sm" asChild><a href="/formacao/dashboard">Abrir a Formação</a></Button>
-                </CardHeader>
-                <CardContent>
-                  {(formacao?.cursos ?? []).length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-8">
-                      Você ainda não está inscrito em nenhum curso. <a href="/formacao/explore" className="text-primary hover:underline">Ver cursos</a>
-                    </p>
-                  ) : (
-                    <ul className="divide-y divide-border">
-                      {formacao!.cursos.map((c) => (
-                        <li key={c.id} className="py-3 flex items-center gap-4">
-                          {c.capa ? <img src={c.capa} alt="" className="w-16 h-12 rounded-md object-cover shrink-0" /> : (
-                            <div className="w-16 h-12 rounded-md shrink-0 flex items-center justify-center" style={{ background: "hsl(var(--primary) / 0.1)" }}>
-                              <GraduationCap className="w-5 h-5 text-primary" />
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <a href={`/formacao/course/${c.id}`} className="font-medium hover:underline truncate">{c.titulo}</a>
-                              <SituacaoInscricao status={c.status} />
-                            </div>
-                            {c.status === "approved" && c.aulas > 0 ? <ProgressoCurso curso={c} semTitulo /> : (
-                              <div className="text-xs text-muted-foreground mt-0.5">{[c.horario, c.inicio ? `início ${dataBR(c.inicio)}` : null].filter(Boolean).join(" · ")}</div>
-                            )}
+              {aba === "tarefas" && (
+                minhasTarefas.length === 0 ? (
+                  <Vazio icone={ListChecks} cor="azul" titulo="Nenhuma tarefa pendente" texto="Quando alguém colocar você numa tarefa da secretaria, ela aparece aqui."
+                    acao={<Button variant="outline" className="h-11 rounded-xl" asChild><Link to="/app/secretarias">Ver minhas secretarias</Link></Button>} />
+                ) : (
+                  <div className="space-y-3">
+                    {minhasTarefas.map((x) => (
+                      <Link key={x.id} to={`/app/secretarias/${x.secretaria_id}/tarefas?tarefa=${x.id}`} className="flex items-center gap-3 rounded-2xl bg-card border p-4 hover:shadow-sm">
+                        <span className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 ${CORES.azul.fundo} ${CORES.azul.texto}`}><ListChecks className="w-5 h-5" /></span>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium leading-snug">{x.title}</div>
+                          <div className="text-xs text-muted-foreground mt-1 flex flex-wrap items-center gap-2">
+                            <span>{x.secretaria}</span>
+                            <span className={`rounded-full border px-2 py-0.5 ${STATUS_COR[x.status]}`}>{STATUS_ROTULO[x.status]}</span>
+                            {x.due_date && <span className={atrasada(x) ? "text-red-600 font-medium" : ""}>{atrasada(x) ? "atrasada · " : "até "}{dataAmigavel(x.due_date)}</span>}
                           </div>
-                          <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
+                        </div>
+                        <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+                      </Link>
+                    ))}
+                  </div>
+                )
+              )}
 
-            {/* ---------- Atendimento ---------- */}
-            {atendimento && (
-              <TabsContent value="atendimento" className="mt-4 space-y-6">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <Indicador icone={MessagesSquare} rotulo="Diálogos realizados" valor={atendimento.dialogos} />
-                  <Indicador icone={CalendarDays} rotulo="Diálogos neste mês" valor={atendimento.dialogos_mes} />
-                  <Indicador icone={Users} rotulo="Consulentes em tratamento" valor={atendimento.acompanhamentos_ativos} />
-                  <Indicador icone={Bed} rotulo="Macas em que atua" valor={atendimento.macas.length} />
-                </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="font-['Playfair_Display'] text-lg">Meus papéis</CardTitle>
-                      <CardDescription>O que você faz no Atendimento</CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex flex-wrap gap-2">
-                      {atendimento.papeis.map((p) => <Badge key={p} variant="outline" className="bg-sky-100 text-sky-800 border-sky-300">{PAPEIS_ATENDIMENTO[p] ?? p}</Badge>)}
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
-                      <div>
-                        <CardTitle className="font-['Playfair_Display'] text-lg">Minhas macas</CardTitle>
-                        <CardDescription>Macas em que você atua como médium</CardDescription>
-                      </div>
-                      <Button variant="outline" size="sm" asChild><a href="/atendimento/">Abrir o Atendimento</a></Button>
-                    </CardHeader>
-                    <CardContent>
-                      {atendimento.macas.length === 0 ? <p className="text-sm text-muted-foreground text-center py-4">Nenhuma maca atribuída.</p> : (
-                        <ul className="divide-y divide-border">
-                          {atendimento.macas.map((m) => (
-                            <li key={m.numero} className="py-2.5 flex items-center gap-3">
-                              <span className="w-8 h-8 rounded-md flex items-center justify-center text-xs font-bold text-white shrink-0" style={{ background: m.cor || "hsl(var(--primary))" }}>{m.numero}</span>
-                              <div className="min-w-0">
-                                <div className="font-medium text-sm">{m.nome}</div>
-                                {m.dia && <div className="text-xs text-muted-foreground">{DIAS[m.dia] ?? m.dia}</div>}
-                              </div>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </CardContent>
-                  </Card>
-                </div>
-              </TabsContent>
-            )}
-
-            {/* ---------- Governança ---------- */}
-            {temGovernanca && (
-              <TabsContent value="governanca" className="mt-4">
-                <div className="grid gap-6 lg:grid-cols-3">
+              {aba === "casa" && (
+                <div className="space-y-4">
                   {vinculos && <MeusVinculos vinculos={vinculos} operaAcoes={isAdmin || isGestor || permissions.has("modulo_projetos")} />}
-                  <Card className="lg:col-span-2">
-                    <CardHeader>
-                      <CardTitle className="font-['Playfair_Display'] text-lg flex items-center gap-2"><Briefcase className="w-4 h-4 text-primary" /> Minhas funções</CardTitle>
-                      <CardDescription>Atribuições ativas na Casa</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      {funcoes.length === 0 ? <p className="text-sm text-muted-foreground text-center py-8">Nenhuma função ativa atribuída no momento.</p> : (
-                        <ul className="divide-y divide-border">
-                          {funcoes.map((a) => (
-                            <li key={a.id} className="py-3 flex items-start justify-between gap-4">
-                              <div>
-                                <div className="font-medium text-foreground">{a.functions?.name || "Função"}</div>
-                                {a.functions?.description && <div className="text-xs text-muted-foreground mt-0.5">{a.functions.description}</div>}
-                                <div className="text-[11px] text-muted-foreground mt-1 uppercase tracking-wider">{a.context_type} · desde {dataBR(a.started_at, true)}</div>
-                              </div>
-                              {a.functions?.category && <Badge variant="outline" className="capitalize shrink-0">{String(a.functions.category).replace(/_/g, " ")}</Badge>}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="font-['Playfair_Display'] text-lg flex items-center gap-2"><Crown className="w-4 h-4 text-[hsl(var(--accent-dark))]" /> Associação</CardTitle>
-                      <CardDescription>Vínculo associativo com a Casa</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-3 text-sm">
-                      {associacao ? (
-                        <>
-                          <div className="flex items-center justify-between"><span className="text-muted-foreground">Situação</span>
-                            <Badge variant="outline" className={`capitalize ${associacao.status === "ativo" ? "bg-emerald-100 text-emerald-800 border-emerald-300" : "bg-amber-100 text-amber-800 border-amber-300"}`}>{associacao.status}</Badge></div>
-                          {associacao.category && <div className="flex items-center justify-between"><span className="text-muted-foreground">Categoria</span><span className="capitalize">{String(associacao.category).replace(/_/g, " ")}</span></div>}
-                          <div className="flex items-center justify-between"><span className="text-muted-foreground">Desde</span><span>{dataBR(associacao.admission_date, true)}</span></div>
-                          {(gov?.contribuicoes ?? []).length > 0 && (
-                            <div className="border-t pt-3 space-y-1.5">
-                              <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Últimas contribuições</div>
-                              {gov!.contribuicoes.map((c) => (
-                                <div key={c.id} className="flex justify-between"><span>{c.reference_month}</span><span className="font-medium">{Number(c.amount).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span></div>
-                              ))}
+                  {funcoes.length > 0 && (
+                    <Bloco titulo="Minhas funções">
+                      <div className="space-y-2">
+                        {funcoes.map((a) => (
+                          <div key={a.id} className="flex items-start gap-3 rounded-xl bg-amber-50 border border-amber-200 p-3">
+                            <span className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${CORES.dourado.fundo} ${CORES.dourado.texto}`}><Briefcase className="w-5 h-5" /></span>
+                            <div className="min-w-0">
+                              <div className="font-medium">{a.functions?.name || "Função"}</div>
+                              {a.functions?.description && <div className="text-xs text-muted-foreground">{a.functions.description}</div>}
+                              <div className="text-xs text-muted-foreground mt-0.5">desde {dataBR(a.started_at, true)}</div>
                             </div>
-                          )}
-                          <Button variant="outline" size="sm" className="w-full" asChild><Link to="/meu-painel">Painel do associado</Link></Button>
-                        </>
-                      ) : <p className="text-muted-foreground text-center py-4">Você ainda não possui vínculo associativo registrado.</p>}
-                    </CardContent>
-                  </Card>
-
-                  <Card className="lg:col-span-3">
-                    <CardHeader>
-                      <CardTitle className="font-['Playfair_Display'] text-lg flex items-center gap-2"><KeyRound className="w-4 h-4 text-primary" /> Recursos liberados</CardTitle>
-                      <CardDescription>Módulos da gestão que você pode acessar</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      {perms.length === 0 ? <p className="text-sm text-muted-foreground text-center py-6">Nenhum módulo liberado.</p> : (
-                        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                          {perms.map((p) => PERMISSION_LABELS[p] && (
-                            <div key={p} className="flex items-start gap-3 p-2.5 rounded-md border bg-card">
-                              <div className="w-8 h-8 rounded-md flex items-center justify-center shrink-0" style={{ background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary))" }}>
-                                <ShieldCheck className="w-4 h-4" />
-                              </div>
-                              <div className="min-w-0">
-                                <div className="text-sm font-medium">{PERMISSION_LABELS[p].label}</div>
-                                <div className="text-xs text-muted-foreground">{PERMISSION_LABELS[p].description}</div>
-                              </div>
-                            </div>
-                          ))}
+                          </div>
+                        ))}
+                      </div>
+                    </Bloco>
+                  )}
+                  {associacao && (
+                    <Bloco titulo="Associação">
+                      <div className="flex items-center justify-between text-sm"><span className="text-muted-foreground">Situação</span>
+                        <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${associacao.status === "ativo" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>{associacao.status}</span></div>
+                      <div className="flex items-center justify-between text-sm"><span className="text-muted-foreground">Desde</span><span>{dataBR(associacao.admission_date, true)}</span></div>
+                      {(gov?.contribuicoes ?? []).slice(0, 2).map((c) => (
+                        <div key={c.id} className="flex items-center justify-between text-sm"><span className="text-muted-foreground">Contribuição {c.reference_month}</span><span className="font-medium">{Number(c.amount).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span></div>
+                      ))}
+                      <Button variant="outline" className="h-11 w-full rounded-xl" asChild><Link to="/meu-painel">Painel do associado</Link></Button>
+                    </Bloco>
+                  )}
+                  {perms.length > 0 && (
+                    <div className="rounded-2xl border bg-card">
+                      <button type="button" onClick={() => setVerAcessos((v) => !v)} className="w-full flex items-center justify-between p-4 text-left">
+                        <span className="inline-flex items-center gap-2 text-sm font-medium"><KeyRound className="w-4 h-4 text-muted-foreground" /> Acessos da minha conta</span>
+                        <ChevronDown className={`w-4 h-4 transition-transform ${verAcessos ? "rotate-180" : ""}`} />
+                      </button>
+                      {verAcessos && (
+                        <div className="px-4 pb-4 flex flex-wrap gap-2">
+                          {perms.map((x) => PERMISSION_LABELS[x] && <span key={x} className="rounded-full bg-muted px-3 py-1 text-xs">{PERMISSION_LABELS[x].label}</span>)}
                         </div>
                       )}
-                    </CardContent>
-                  </Card>
+                    </div>
+                  )}
+                  {areas?.governanca && <Button variant="outline" className="h-12 w-full rounded-2xl" asChild><Link to="/app"><Landmark className="w-4 h-4 mr-2" /> Abrir a Governança</Link></Button>}
                 </div>
-              </TabsContent>
-            )}
+              )}
 
-            {/* ---------- Jornada de voluntário (Chamamento) ---------- */}
-            {temJornada && (
-              <TabsContent value="jornada" className="mt-4 space-y-6">
-                {jornada && (
-                  <Card>
-                    <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
-                      <div>
-                        <CardTitle className="font-['Playfair_Display'] text-lg flex items-center gap-2"><Footprints className="w-4 h-4 text-primary" /> Minha jornada de voluntário</CardTitle>
-                        <CardDescription>{jornada.ciclo?.nome ?? "Chamamento"} · desde {dataCurta(jornada.criado_em)}</CardDescription>
+              {aba === "acoes" && (
+                <div className="space-y-4">
+                  <div className="grid gap-6"><MinhasAcoes simulandoOutraPessoa={!!simulacao?.personId} /></div>
+                  <Button variant="outline" className="h-12 w-full rounded-2xl" asChild><Link to="/#eventos"><HeartHandshake className="w-4 h-4 mr-2" /> Conhecer as ações sociais</Link></Button>
+                </div>
+              )}
+
+              {aba === "atendimento" && atendimento && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-3 gap-3">
+                    <Numero cor="roxo" valor={atendimento.dialogos_mes} rotulo="Diálogos no mês" />
+                    <Numero cor="azul" valor={atendimento.acompanhamentos_ativos} rotulo="Em tratamento" />
+                    <Numero cor="verde" valor={atendimento.dialogos} rotulo="Diálogos no total" />
+                  </div>
+                  <Bloco titulo="O que eu faço">
+                    <div className="flex flex-wrap gap-2">
+                      {atendimento.papeis.map((x) => <span key={x} className={`rounded-full px-3 py-1.5 text-sm font-medium ${CORES.roxo.fundo} ${CORES.roxo.texto}`}>{PAPEIS_ATENDIMENTO[x] ?? x}</span>)}
+                    </div>
+                  </Bloco>
+                  {atendimento.macas.length > 0 && (
+                    <Bloco titulo="Minhas macas">
+                      <div className="space-y-2">
+                        {atendimento.macas.map((m) => (
+                          <div key={m.numero} className="flex items-center gap-3">
+                            <span className="w-11 h-11 rounded-xl flex items-center justify-center text-sm font-bold text-white shrink-0" style={{ background: m.cor || "hsl(var(--primary))" }}>{m.numero}</span>
+                            <div><div className="font-medium">{m.nome}</div>{m.dia && <div className="text-xs text-muted-foreground">{DIAS[m.dia] ?? m.dia}</div>}</div>
+                          </div>
+                        ))}
                       </div>
-                      <Badge variant="outline" className={ETAPA_COR[jornada.etapa]}>{ETAPA_LABEL[jornada.etapa]}</Badge>
-                    </CardHeader>
-                    <CardContent className="space-y-5">
-                      <ol className="grid grid-cols-3 md:grid-cols-6 gap-3">
+                    </Bloco>
+                  )}
+                  <Button className="h-12 w-full rounded-2xl" asChild><a href="/atendimento/">Abrir o Atendimento</a></Button>
+                </div>
+              )}
+
+              {aba === "jornada" && (
+                <div className="space-y-4">
+                  {jornada && (
+                    <Bloco>
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="font-semibold">{jornada.ciclo?.nome ?? "Sua jornada"}</div>
+                        <Badge variant="outline" className={ETAPA_COR[jornada.etapa]}>{ETAPA_LABEL[jornada.etapa]}</Badge>
+                      </div>
+                      <ol className="space-y-3">
                         {ETAPAS_JORNADA.map((e, i) => {
                           const idx = ETAPAS_JORNADA.findIndex((x) => x.etapa === jornada.etapa);
                           const feito = idx >= 0 && (i < idx || jornada.etapa === "voluntario");
                           const atual = i === idx && jornada.etapa !== "voluntario";
                           return (
-                            <li key={e.etapa} className="flex flex-col gap-1.5">
-                              <div className={`h-1.5 rounded-full ${feito ? "bg-primary" : atual ? "bg-[hsl(var(--accent))]" : "bg-muted"}`} />
-                              <div className={`text-xs font-semibold ${atual ? "text-foreground" : feito ? "text-primary" : "text-muted-foreground"}`}>{feito && <Check className="w-3 h-3 inline mr-1" />}{e.curto}</div>
+                            <li key={e.etapa} className="flex items-center gap-3">
+                              <span className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${feito ? "bg-emerald-500 text-white" : atual ? "bg-pink-500 text-white ring-4 ring-pink-100" : "bg-muted text-muted-foreground"}`}>
+                                {feito ? <Check className="w-4 h-4" /> : i + 1}
+                              </span>
+                              <span className={`text-[15px] ${atual ? "font-semibold" : feito ? "text-muted-foreground" : "text-muted-foreground"}`}>{e.rotulo}</span>
                             </li>
                           );
                         })}
                       </ol>
-                      <p className="text-sm rounded-md bg-muted px-4 py-3">{proximoPasso(jornada)}</p>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                        <InfoLinha icone={GraduationCap} rotulo="Curso" valor={jornada.ciclo?.curso_em ? dataCurta(jornada.ciclo.curso_em) : null} />
-                        <InfoLinha icone={Footprints} rotulo="Estágio" valor={jornada.ciclo?.estagio_inicio ? `${dataCurta(jornada.ciclo.estagio_inicio)} a ${dataCurta(jornada.ciclo.estagio_fim)}` : null} />
-                        <InfoLinha icone={Users} rotulo="Tutor" valor={jornada.tutor} />
-                        <InfoLinha icone={CheckCircle2} rotulo="Presenças no estágio" valor={jornada.registros ? `${jornada.presencas} de ${jornada.registros}` : null} />
-                      </div>
+                      <p className="text-[15px] rounded-xl bg-pink-50 border border-pink-200 px-4 py-3">{proximoPasso(jornada)}</p>
+                      {jornada.tutor && <p className="text-sm text-muted-foreground">Seu tutor: <span className="text-foreground font-medium">{jornada.tutor}</span></p>}
                       {jornada.ciclo?.curso_id && ["curso", "estagio"].includes(jornada.etapa) && (
-                        <Button variant="outline" size="sm" asChild><a href={`/formacao/course/${jornada.ciclo.curso_id}`}>Abrir o curso na Formação</a></Button>
+                        <Button variant="outline" className="h-11 w-full rounded-xl" asChild><a href={`/formacao/course/${jornada.ciclo.curso_id}`}>Abrir o curso</a></Button>
                       )}
-                    </CardContent>
-                  </Card>
-                )}
-                {estagiarios.length > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="font-['Playfair_Display'] text-lg">Estagiários que acompanho</CardTitle>
-                      <CardDescription>Registre as presenças, o checkpoint da semana 4 e a avaliação final.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <ul className="divide-y divide-border">
+                    </Bloco>
+                  )}
+                  {estagiarios.length > 0 && (
+                    <Bloco titulo="Estagiários que acompanho">
+                      <div className="space-y-2">
                         {estagiarios.map((x) => (
-                          <li key={x.id} className="py-3 flex items-center justify-between gap-3">
-                            <div className="min-w-0">
-                              <Link to={`/app/chamamento/${x.id}?aba=estagio`} className="font-medium hover:underline">{x.nome}</Link>
+                          <Link key={x.id} to={`/app/chamamento/${x.id}?aba=estagio`} className="flex items-center gap-3 rounded-xl border p-3 hover:bg-muted/50">
+                            <span className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${CORES.rosa.fundo} ${CORES.rosa.texto}`}>{iniciaisLsl(x.nome)}</span>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium truncate">{x.nome}</div>
                               {x.etapa === "estagio" && x.estagio_inicio && <div className="text-xs text-muted-foreground">Semana {semanaDoEstagio(x.estagio_inicio)} de 8</div>}
                             </div>
-                            <Badge variant="outline" className={`text-xs ${ETAPA_COR[x.etapa]}`}>{ETAPA_LABEL[x.etapa]}</Badge>
-                          </li>
+                            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                          </Link>
                         ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                )}
-              </TabsContent>
-            )}
-
-            {/* ---------- Ações sociais ---------- */}
-            <TabsContent value="acoes" className="mt-4">
-              <div className="grid gap-6 lg:grid-cols-3"><MinhasAcoes simulandoOutraPessoa={!!simulacao?.personId} /></div>
-            </TabsContent>
-          </Tabs>
+                      </div>
+                    </Bloco>
+                  )}
+                </div>
+              )}
+            </>
+          )}
         </div>
       )}
     </MolduraSimples>
   );
 }
 
-function Indicador({ icone: Icone, rotulo, valor }: { icone: ComponentType<{ className?: string }>; rotulo: string; valor: number | string }) {
+// ---------- Peças visuais do perfil ----------
+type CorAtalho = "verde" | "azul" | "dourado" | "laranja" | "roxo" | "rosa" | "cinza";
+type Atalho = { id: string; titulo: string; icone: ComponentType<{ className?: string }>; cor: CorAtalho; info: string; contador?: number; mostrar: boolean };
+
+/** Cores de área: cada assunto tem a sua, para reconhecer de longe (como os ícones do celular). */
+const CORES: Record<CorAtalho, { cartao: string; icone: string; fundo: string; texto: string; numero: string }> = {
+  verde: { cartao: "bg-emerald-50 border-emerald-100", icone: "bg-emerald-500", fundo: "bg-emerald-100", texto: "text-emerald-700", numero: "text-emerald-600" },
+  azul: { cartao: "bg-sky-50 border-sky-100", icone: "bg-sky-500", fundo: "bg-sky-100", texto: "text-sky-700", numero: "text-sky-600" },
+  dourado: { cartao: "bg-amber-50 border-amber-100", icone: "bg-amber-500", fundo: "bg-amber-100", texto: "text-amber-700", numero: "text-amber-600" },
+  laranja: { cartao: "bg-orange-50 border-orange-100", icone: "bg-orange-500", fundo: "bg-orange-100", texto: "text-orange-700", numero: "text-orange-600" },
+  roxo: { cartao: "bg-violet-50 border-violet-100", icone: "bg-violet-500", fundo: "bg-violet-100", texto: "text-violet-700", numero: "text-violet-600" },
+  rosa: { cartao: "bg-pink-50 border-pink-100", icone: "bg-pink-500", fundo: "bg-pink-100", texto: "text-pink-700", numero: "text-pink-600" },
+  cinza: { cartao: "bg-slate-50 border-slate-200", icone: "bg-slate-500", fundo: "bg-slate-100", texto: "text-slate-700", numero: "text-slate-600" },
+};
+
+function Selo({ icone: Icone, children }: { icone: ComponentType<{ className?: string }>; children: ReactNode }) {
+  return <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur px-3 py-1 text-xs font-medium"><Icone className="w-3.5 h-3.5" />{children}</span>;
+}
+
+function Bloco({ titulo, children }: { titulo?: string; children: ReactNode }) {
   return (
-    <Card>
-      <CardContent className="p-4 sm:p-5 flex items-center gap-3 sm:gap-4">
-        <div className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0" style={{ background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary))" }}>
-          <Icone className="w-5 h-5" />
-        </div>
-        <div className="min-w-0">
-          <div className="text-2xl font-bold text-foreground">{valor}</div>
-          <div className="text-xs text-muted-foreground leading-tight">{rotulo}</div>
-        </div>
-      </CardContent>
-    </Card>
+    <section className="rounded-2xl bg-card border p-4 sm:p-5 space-y-4">
+      {titulo && <h2 className="font-bold font-['Playfair_Display'] text-lg">{titulo}</h2>}
+      {children}
+    </section>
   );
 }
 
-function Area({ icone: Icone, titulo, resumo, href, externo, acao, children }: {
-  icone: ComponentType<{ className?: string }>; titulo: string; resumo: string; href?: string; externo?: boolean; acao: () => void; children: ReactNode;
-}) {
-  return (
-    <Card className="flex flex-col">
-      <CardHeader className="flex flex-row items-start gap-3 space-y-0 pb-3">
-        <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary))" }}>
-          <Icone className="w-5 h-5" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <CardTitle className="font-['Playfair_Display'] text-lg">{titulo}</CardTitle>
-          <CardDescription className="truncate">{resumo}</CardDescription>
-        </div>
-      </CardHeader>
-      <CardContent className="flex-1 space-y-3">{children}</CardContent>
-      <div className="px-6 pb-5 flex gap-2">
-        <Button variant="outline" size="sm" onClick={acao}>Ver detalhes</Button>
-        {href && (externo
-          ? <Button variant="ghost" size="sm" asChild><a href={href}>Abrir <ChevronRight className="w-4 h-4 ml-1" /></a></Button>
-          : <Button variant="ghost" size="sm" asChild><Link to={href}>Abrir <ChevronRight className="w-4 h-4 ml-1" /></Link></Button>)}
-      </div>
-    </Card>
-  );
+function Campo({ rotulo, children }: { rotulo: string; children: ReactNode }) {
+  return <div className="grid gap-1.5"><Label className="text-sm">{rotulo}</Label>{children}</div>;
 }
 
-function ProgressoCurso({ curso, semTitulo }: { curso: CursoResumo; semTitulo?: boolean }) {
-  const pct = curso.aulas ? Math.round((curso.concluidas / curso.aulas) * 100) : 0;
+function Numero({ cor, valor, rotulo }: { cor: CorAtalho; valor: number; rotulo: string }) {
   return (
-    <div className="space-y-1">
-      {!semTitulo && <div className="text-sm font-medium truncate">{curso.titulo}</div>}
-      <div className="flex items-center gap-2">
-        <Progress value={pct} className="h-2 flex-1 bg-muted" />
-        <span className="text-xs text-muted-foreground whitespace-nowrap">{curso.concluidas}/{curso.aulas} aulas</span>
-      </div>
+    <div className={`rounded-2xl border-2 p-3 sm:p-4 text-center ${CORES[cor].cartao}`}>
+      <div className={`text-2xl sm:text-3xl font-bold ${CORES[cor].numero}`}>{valor}</div>
+      <div className="text-xs text-muted-foreground leading-tight mt-0.5">{rotulo}</div>
     </div>
   );
 }
 
-function MiniNumero({ valor, rotulo }: { valor: number; rotulo: string }) {
+function Vazio({ icone: Icone, cor, titulo, texto, acao }: { icone: ComponentType<{ className?: string }>; cor: CorAtalho; titulo: string; texto: string; acao?: ReactNode }) {
   return (
-    <div className="rounded-md bg-muted px-2 py-2">
-      <div className="text-lg font-bold">{valor}</div>
-      <div className="text-[11px] text-muted-foreground leading-tight">{rotulo}</div>
+    <div className="rounded-3xl border-2 border-dashed bg-card p-8 text-center space-y-3">
+      <span className={`w-16 h-16 rounded-full mx-auto flex items-center justify-center ${CORES[cor].fundo} ${CORES[cor].texto}`}><Icone className="w-8 h-8" /></span>
+      <div className="font-semibold text-lg">{titulo}</div>
+      <p className="text-sm text-muted-foreground max-w-sm mx-auto">{texto}</p>
+      {acao}
     </div>
   );
 }
 
 function SituacaoInscricao({ status }: { status: string }) {
   const m: Record<string, [string, string]> = {
-    approved: ["Inscrito", "bg-emerald-100 text-emerald-800 border-emerald-300"],
-    pending: ["Aguardando aprovação", "bg-amber-100 text-amber-800 border-amber-300"],
-    rejected: ["Não aprovada", "bg-muted text-muted-foreground border-border"],
-    completed: ["Concluído", "bg-sky-100 text-sky-800 border-sky-300"],
+    approved: ["Inscrito", "bg-emerald-100 text-emerald-800"],
+    pending: ["Aguardando aprovação", "bg-amber-100 text-amber-800"],
+    rejected: ["Não aprovada", "bg-muted text-muted-foreground"],
+    completed: ["Concluído", "bg-sky-100 text-sky-800"],
   };
-  const [rotulo, cor] = m[status] ?? [status, "bg-muted text-muted-foreground border-border"];
-  return <Badge variant="outline" className={`text-[10px] ${cor}`}>{rotulo}</Badge>;
+  const [rotulo, cor] = m[status] ?? [status, "bg-muted text-muted-foreground"];
+  return <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${cor}`}>{rotulo}</span>;
 }
 
 function InfoLinha({ icone: Icone, rotulo, valor }: { icone: ComponentType<{ className?: string }>; rotulo: string; valor?: string | null }) {
   return (
-    <div className="flex items-start gap-3 py-2">
+    <div className="flex items-start gap-3">
       <Icone className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
       <div className="min-w-0">
         <div className="text-xs text-muted-foreground">{rotulo}</div>
