@@ -465,6 +465,7 @@ export default function LessonPage() {
 
         {/* Mobile fixed bottom nav: Anterior / posição / Próxima */}
         <div
+          data-lsl-barra-inferior
           className="fixed left-0 right-0 z-30 md:hidden bg-card border-t px-3 py-2"
           style={{ bottom: 0, paddingBottom: 'calc(8px + env(safe-area-inset-bottom))' }}
         >

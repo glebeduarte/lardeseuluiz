@@ -2,6 +2,7 @@
 import { useEffect, useState, type ComponentType, type ReactNode } from "react";
 import { ChevronsLeft, ChevronsRight, LogOut } from "lucide-react";
 import { BarraSistemas, iniciaisLsl, type AreasLsl, type SistemaLsl } from "./BarraSistemas";
+import { OQueFazer } from "./OQueFazer";
 import "./lsl-moldura.css";
 
 // Moldura única das áreas logadas: barra de sistemas no topo, barra lateral azul da Governança e o conteúdo.
@@ -132,6 +133,7 @@ export function MolduraSistema(p: MolduraSistemaProps) {
         {p.avisos}
         <main className={`lsl-conteudo${p.larguraTotal ? " lsl-conteudo--total" : ""}`}>{p.children}</main>
       </div>
+      <OQueFazer areas={p.areas} navegar={p.navegar} />
     </>
   );
 }
@@ -148,6 +150,7 @@ export function MolduraSimples({ sistema, areas, usuario, navegar, children, avi
         {avisos}
         <main className="lsl-conteudo">{children}</main>
       </div>
+      <OQueFazer areas={areas} navegar={navegar} />
     </>
   );
 }

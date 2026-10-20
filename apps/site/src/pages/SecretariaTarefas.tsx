@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import AppLayout from "@/components/app/AppLayout";
@@ -35,6 +35,14 @@ export default function SecretariaTarefas() {
   const [nova, setNova] = useState<null | { modo: "nova" | "registrar"; status?: StatusTarefa }>(null);
   const [verCanceladas, setVerCanceladas] = useState(false);
   const [alvo, setAlvo] = useState<StatusTarefa | null>(null);
+
+  // Atalho "Registrar o que eu fiz" (painel e lançador) chega com ?registrar=1.
+  useEffect(() => {
+    if (params.get("registrar")) {
+      setNova({ modo: "registrar" });
+      setParams((p) => { p.delete("registrar"); return p; }, { replace: true });
+    }
+  }, [params, setParams]);
 
   const tarefaId = params.get("tarefa");
   const aberta = tarefas.find((t) => t.id === tarefaId) ?? null;
@@ -187,7 +195,7 @@ export default function SecretariaTarefas() {
       </div>
 
       {/* Botão fixo no celular */}
-      <div className="md:hidden fixed bottom-4 inset-x-4 z-30 grid grid-cols-2 gap-2">
+      <div data-lsl-barra-inferior className="md:hidden fixed bottom-4 inset-x-4 z-30 grid grid-cols-2 gap-2">
         <Button variant="outline" className="h-12 bg-card shadow-lg" onClick={() => setNova({ modo: "registrar" })}><ClipboardCheck className="w-4 h-4 mr-2" /> Registrar</Button>
         <Button className="h-12 shadow-lg" onClick={() => setNova({ modo: "nova", status: vista === "lista" && aba !== "feita" ? aba : "a_fazer" })}><Plus className="w-4 h-4 mr-2" /> Nova tarefa</Button>
       </div>

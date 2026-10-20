@@ -74,6 +74,7 @@ export function BottomNav() {
 
   return (
     <nav
+      data-lsl-barra-inferior
       className="fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-lg border-t border-border md:hidden"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       aria-label="Navegação principal"

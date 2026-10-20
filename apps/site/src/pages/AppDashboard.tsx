@@ -14,7 +14,8 @@ import { toast } from "sonner";
 import AppLayout from "@/components/app/AppLayout";
 import { useAreasLsl } from "@/compartilhado";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, CartesianGrid, Legend } from "recharts";
-import { Pencil, Trash2, Link2, Download, Search } from "lucide-react";
+import { Pencil, Trash2, Link2, Download, Search, Users, UserCheck, AlertTriangle, Wallet } from "lucide-react";
+import ParaVoceAgora from "@/components/app/ParaVoceAgora";
 import * as XLSX from "xlsx";
 
 interface Associate {
@@ -223,10 +224,10 @@ const AppDashboard = () => {
   const balance = stats.totalContributions - stats.totalExpenses;
 
   const statCards = [
-    { label: "Associados", value: stats.totalAssociates, color: "hsl(var(--primary))", muted: "hsl(var(--primary-muted))", icon: "👥" },
-    { label: "Ativos", value: stats.active, color: "hsl(142 64% 38%)", muted: "hsl(142 50% 95%)", icon: "✅" },
-    { label: "Inadimplentes", value: stats.inadimplente, color: "hsl(var(--destructive))", muted: "hsl(var(--destructive-muted))", icon: "⚠️" },
-    { label: "Saldo", value: fmtCurrency(balance), color: balance >= 0 ? "hsl(var(--accent-dark))" : "hsl(var(--destructive))", muted: balance >= 0 ? "hsl(var(--accent-muted))" : "hsl(var(--destructive-muted))", icon: "💰" },
+    { label: "Associados", value: stats.totalAssociates, color: "hsl(var(--primary))", muted: "hsl(var(--primary-muted))", icon: Users },
+    { label: "Ativos", value: stats.active, color: "hsl(142 64% 38%)", muted: "hsl(142 50% 95%)", icon: UserCheck },
+    { label: "Inadimplentes", value: stats.inadimplente, color: "hsl(var(--destructive))", muted: "hsl(var(--destructive-muted))", icon: AlertTriangle },
+    { label: "Saldo", value: fmtCurrency(balance), color: balance >= 0 ? "hsl(var(--accent-dark))" : "hsl(var(--destructive))", muted: balance >= 0 ? "hsl(var(--accent-muted))" : "hsl(var(--destructive-muted))", icon: Wallet },
   ];
 
   const getUserName = (userId: string | null) => {
@@ -308,6 +309,7 @@ const AppDashboard = () => {
     </form>
   );
 
+  const verNumeros = !!areas?.gestao;
   const today = new Date();
   // Nome do cadastro único (primeiro nome); se ainda não houver, usa o começo do e-mail
   const userName = (areas?.nome || "").trim().split(/\s+/)[0] || user?.email?.split("@")[0] || "diretoria";
@@ -320,15 +322,15 @@ const AppDashboard = () => {
       {/* Hero / welcome banner */}
       <div
         className="relative overflow-hidden rounded-2xl mb-8 px-7 py-7 sm:px-8 sm:py-8 text-white"
-        style={{ background: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%)" }}
+        style={{ background: "hsl(var(--primary-dark))" }}
       >
         <div className="absolute -right-10 -top-16 w-72 h-72 rounded-full" style={{ background: "rgba(255,255,255,0.07)" }} />
         <div className="absolute right-24 -bottom-24 w-56 h-56 rounded-full" style={{ background: "rgba(255,255,255,0.05)" }} />
         <div className="relative flex flex-wrap items-end justify-between gap-4">
           <div>
-            <div className="text-[13px] text-white/80">Bem-vindo(a) de volta,</div>
+            <div className="text-sm text-white/85">Olá,</div>
             <h1 className="font-['Playfair_Display'] text-3xl sm:text-4xl font-bold mt-1">{userName.charAt(0).toUpperCase() + userName.slice(1)}</h1>
-            <p className="text-sm text-white/75 mt-1">Painel da Diretoria · Centro Espiritualista Lar de Seu Luiz</p>
+            <p className="text-[15px] text-white/85 mt-1">Que bom ter você aqui. Veja o que pede atenção hoje.</p>
           </div>
           <div className="flex items-center gap-3 rounded-xl bg-white/10 border border-white/15 pl-2 pr-4 py-2 w-full sm:w-auto">
             <div className="w-12 h-12 rounded-lg bg-white text-[hsl(var(--primary-dark))] flex flex-col items-center justify-center leading-none shrink-0">
@@ -343,6 +345,15 @@ const AppDashboard = () => {
         </div>
       </div>
 
+      <ParaVoceAgora />
+
+      {verNumeros && (<>
+      {/* Section title */}
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-1 h-6 rounded-sm" style={{ background: "hsl(var(--accent))" }} />
+        <h2 className="font-['Playfair_Display'] text-xl font-bold text-foreground">Números da casa</h2>
+      </div>
+
       {/* KPI cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {statCards.map(s => (
@@ -351,7 +362,7 @@ const AppDashboard = () => {
               <div className="flex items-start justify-between">
                 <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{s.label}</div>
                 <div className="w-9 h-9 rounded-lg flex items-center justify-center text-base" style={{ background: s.muted }}>
-                  <span>{s.icon}</span>
+                  <s.icon className="w-[18px] h-[18px]" style={{ color: s.color }} />
                 </div>
               </div>
               <div className="text-2xl sm:text-[32px] font-bold mt-2 leading-tight" style={{ color: s.color }}>{s.value}</div>
@@ -360,11 +371,6 @@ const AppDashboard = () => {
         ))}
       </div>
 
-      {/* Section title */}
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-1 h-6 rounded-sm" style={{ background: "hsl(var(--accent))" }} />
-        <h2 className="font-['Playfair_Display'] text-xl font-bold text-foreground">Visão Geral</h2>
-      </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
@@ -419,7 +425,7 @@ const AppDashboard = () => {
 
       <Card>
         <CardHeader className="flex flex-col gap-4">
-          <div className="flex flex-row items-center justify-between">
+          <div className="flex flex-row flex-wrap items-center justify-between gap-3">
             <CardTitle className="font-['Playfair_Display']">Associados</CardTitle>
             <div className="flex items-center gap-2">
               <div className="relative">
@@ -581,6 +587,7 @@ const AppDashboard = () => {
           </div>
         </DialogContent>
       </Dialog>
+      </>)}
     </AppLayout>
   );
 };
