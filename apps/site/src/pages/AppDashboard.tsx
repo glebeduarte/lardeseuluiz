@@ -331,14 +331,14 @@ const AppDashboard = () => {
             <h1 className="font-['Playfair_Display'] text-3xl sm:text-4xl font-bold mt-1">{userName.charAt(0).toUpperCase() + userName.slice(1)}</h1>
             <p className="text-[15px] text-white/85 mt-1">Que bom ter você aqui. Veja o que pede atenção hoje.</p>
           </div>
-          <div className="flex items-center gap-3 rounded-xl bg-white/10 border border-white/15 pl-2 pr-4 py-2 w-full sm:w-auto">
-            <div className="w-12 h-12 rounded-lg bg-white text-[hsl(var(--primary-dark))] flex flex-col items-center justify-center leading-none shrink-0">
+          <div className="relative flex items-center gap-3 rounded-2xl bg-white text-[hsl(var(--primary-dark))] pl-2 pr-4 py-2 w-full sm:w-auto sm:mr-24">
+            <div className="w-12 h-12 rounded-xl bg-[#fff3cc] text-[hsl(var(--primary-dark))] flex flex-col items-center justify-center leading-none shrink-0">
               <span className="text-[10px] font-semibold uppercase tracking-wide">{today.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}</span>
               <span className="font-['Playfair_Display'] text-xl font-bold">{today.getDate()}</span>
             </div>
             <div className="min-w-0">
               <div className="text-sm font-semibold">{diaSemanaRotulo}</div>
-              <div className="text-xs text-white/80">{dataPorExtenso}</div>
+              <div className="text-xs text-muted-foreground">{dataPorExtenso}</div>
             </div>
           </div>
         </div>
@@ -356,10 +356,10 @@ const AppDashboard = () => {
       {/* KPI cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {statCards.map(s => (
-          <Card key={s.label} className="border-0 border-t-[3px]" style={{ borderTopColor: s.color, boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
+          <Card key={s.label}>
             <CardContent className="pt-5 pb-4">
               <div className="flex items-start justify-between">
-                <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{s.label}</div>
+                <div className="text-sm font-medium text-muted-foreground">{s.label}</div>
                 <div className="w-9 h-9 rounded-lg flex items-center justify-center text-base" style={{ background: s.muted }}>
                   <s.icon className="w-[18px] h-[18px]" style={{ color: s.color }} />
                 </div>
@@ -373,7 +373,7 @@ const AppDashboard = () => {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <Card style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }} className="border-0">
+        <Card >
           <CardHeader><CardTitle className="text-base">Receitas vs Despesas</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
@@ -390,7 +390,7 @@ const AppDashboard = () => {
           </CardContent>
         </Card>
 
-        <Card style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }} className="border-0">
+        <Card >
           <CardHeader><CardTitle className="text-base">Associados por Categoria</CardTitle></CardHeader>
           <CardContent className="flex items-center justify-center">
             {categoryData.length > 0 ? (
@@ -406,7 +406,7 @@ const AppDashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-2 border-0" style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
+        <Card className="lg:col-span-2">
           <CardHeader><CardTitle className="text-base">Atendimentos por Mês</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={200}>

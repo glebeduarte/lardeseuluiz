@@ -571,7 +571,7 @@ export default function AdminDashboard() {
           <Card>
             <CardContent className="p-5">
               <h3 className="font-['Playfair_Display'] font-semibold text-lg mb-3 pb-3 border-b flex items-center gap-2">
-                <span className="text-base">⚡</span> Ações Rápidas
+                <span className="text-base"></span> Ações Rápidas
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
                 <QuickAction icon={Plus} label="Novo Curso" onClick={() => navigate('/admin/courses/new')} tone="primary" />
