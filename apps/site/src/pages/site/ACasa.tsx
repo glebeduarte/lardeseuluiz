@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { FileText } from "lucide-react";
+import { FileText, ArrowUpRight } from "lucide-react";
 import { PaginaSite, Secao, ListaSol, ConviteFinal, surgir } from "@/components/inicio/Pagina";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -20,6 +21,104 @@ const valores = [
   { titulo: "Independência", texto: "Preservamos nossa independência administrativa e nossa missão espiritual." },
 ];
 
+type Sec = { id: string; name: string; description: string | null };
+
+// As secretarias em volta da Diretoria Geral, como um sol com seus raios. No celular vira uma lista que abre ao toque.
+function Organograma({ secretarias }: { secretarias: Sec[] }) {
+  const centro = secretarias.find((s) => /diretoria/i.test(s.name));
+  const roda = secretarias.filter((s) => s !== centro);
+  const [sel, setSel] = useState<string | null>(null);
+  const atual = secretarias.find((s) => s.id === sel) ?? centro ?? roda[0];
+  if (!secretarias.length) return null;
+  return (
+    <div className="ini-orbita">
+      <div className="ini-orbita__roda" role="list">
+        <button type="button" role="listitem" className={`ini-orbita__centro${atual?.id === centro?.id ? " ativo" : ""}`}
+          onClick={() => centro && setSel(centro.id)} aria-pressed={atual?.id === centro?.id}>
+          {centro?.name ?? "Lar de Seu Luiz"}
+        </button>
+        {roda.map((s, i) => {
+          const ang = (i / roda.length) * Math.PI * 2 - Math.PI / 2;
+          return (
+            <button key={s.id} type="button" role="listitem" aria-pressed={atual?.id === s.id}
+              className={`ini-orbita__item${atual?.id === s.id ? " ativo" : ""}`}
+              style={{ left: `${50 + Math.cos(ang) * 41}%`, top: `${50 + Math.sin(ang) * 41}%` }}
+              onClick={() => setSel(s.id)}>
+              <span className="ini-orbita__ponto" aria-hidden="true" />{s.name}
+            </button>
+          );
+        })}
+      </div>
+      {atual && (
+        <div className="ini-orbita__painel" aria-live="polite">
+          <h3 className="ini-lead">{atual.name}</h3>
+          <p className="ini-corpo">{atual.description ?? "Uma das secretarias de trabalho da casa."}</p>
+          <p className="ini-pequeno">{secretarias.length} secretarias trabalham juntas na casa.</p>
+        </div>
+      )}
+      <ul className="ini-orbita__lista">
+        {[...(centro ? [centro] : []), ...roda].map((s) => (
+          <li key={s.id}>
+            <details open={s.id === centro?.id}>
+              <summary><span className="ini-orbita__ponto" aria-hidden="true" />{s.name}</summary>
+              <p>{s.description ?? "Uma das secretarias de trabalho da casa."}</p>
+            </details>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+type Doc = { id: string; title: string; description: string | null; file_url: string; doc_type: string | null; reference_date: string | null };
+const TIPO_DOC: Record<string, string> = { estatuto: "Estatuto", ata: "Ata", balancete: "Balancete", relatorio: "Relatório", regimento: "Regimento" };
+
+// Os documentos como um arquivo: uma linha por documento, com o tipo, a data e o link para abrir.
+function Arquivo({ documentos }: { documentos?: Doc[] }) {
+  if (!documentos) return null;
+  if (documentos.length === 0) {
+    const previstos = [
+      { t: "Estatuto Social", d: "Aprovado na Assembleia Geral de constituição", tipo: "Estatuto" },
+      { t: "Ata da Assembleia Geral de Constituição", d: "Fundação do Lar de Seu Luiz, em 12 de setembro de 2025", tipo: "Ata" },
+      { t: "Relatórios financeiros", d: "Entradas, saídas e saldo de cada período, depois de aprovados", tipo: "Relatório" },
+    ];
+    return (
+      <ul className="ini-arquivo">
+        {previstos.map((x) => (
+          <li key={x.t}>
+            <div className="ini-arquivo__linha ini-arquivo__linha--breve">
+              <span className="ini-arquivo__icone" aria-hidden="true"><FileText size={22} /></span>
+              <span className="ini-arquivo__texto"><strong>{x.t}</strong><em>{x.d}</em></span>
+              <span className="ini-arquivo__meta"><span className="ini-selo">{x.tipo}</span></span>
+              <span className="ini-arquivo__abrir ini-arquivo__abrir--breve">Em publicação</span>
+            </div>
+          </li>
+        ))}
+      </ul>
+    );
+  }
+  return (
+    <ul className="ini-arquivo">
+      {documentos.map((d) => (
+        <li key={d.id}>
+          <a href={d.file_url} target="_blank" rel="noopener noreferrer" className="ini-arquivo__linha">
+            <span className="ini-arquivo__icone" aria-hidden="true"><FileText size={22} /></span>
+            <span className="ini-arquivo__texto">
+              <strong>{d.title}</strong>
+              {d.description && <em>{d.description}</em>}
+            </span>
+            <span className="ini-arquivo__meta">
+              {d.doc_type && <span className="ini-selo">{TIPO_DOC[d.doc_type] ?? d.doc_type}</span>}
+              {d.reference_date && <span>{new Date(d.reference_date + "T12:00:00").toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}</span>}
+            </span>
+            <span className="ini-arquivo__abrir">Abrir <ArrowUpRight size={18} /></span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 const ACasa = () => {
   const secretarias = useQuery({
     queryKey: ["site-secretarias"],
@@ -31,7 +130,7 @@ const ACasa = () => {
   const documentos = useQuery({
     queryKey: ["site-documentos-publicos"],
     queryFn: async () => {
-      const { data } = await supabase.from("documents").select("id, title, description, file_url, doc_type").eq("is_public", true).order("reference_date", { ascending: false });
+      const { data } = await supabase.from("documents").select("id, title, description, file_url, doc_type, reference_date").eq("is_public", true).order("reference_date", { ascending: false });
       return data ?? [];
     },
   });
@@ -61,33 +160,27 @@ const ACasa = () => {
         <ListaSol itens={finalidades.map((f, i) => ({ id: f.titulo, marca: ["I", "II", "III", "IV"][i], titulo: f.titulo, texto: f.texto }))} />
       </Secao>
 
-      <Secao titulo="Nossos valores" fundo="papel">
-        <ul className="ini-cartoes">
-          {valores.map((v) => <li key={v.titulo}><div className="ini-cartao"><strong>{v.titulo}</strong><p>{v.texto}</p></div></li>)}
-        </ul>
+      <Secao titulo="Nossos valores" fundo="papel"
+        intro="Seis princípios que orientam cada decisão da casa, do atendimento à prestação de contas.">
+        <ol className="ini-valores">
+          {valores.map((v, i) => (
+            <motion.li key={v.titulo} className="ini-valor" {...surgir(i * 0.05)}>
+              <span className="ini-valor__sol" aria-hidden="true" />
+              <h3 className="ini-valor__nome">{v.titulo}</h3>
+              <p>{v.texto}</p>
+            </motion.li>
+          ))}
+        </ol>
       </Secao>
 
       <Secao id="secretarias" titulo="Como nos organizamos" fundo="teal-claro"
-        intro="Cada secretaria cuida de uma parte do trabalho da casa, com coordenação e voluntários próprios.">
-        <ul className="ini-cartoes">
-          {(secretarias.data ?? []).map((s) => (
-            <li key={s.id}><div className="ini-cartao"><span className="ini-cartao__marca" aria-hidden="true">{s.name.charAt(0)}</span><strong>{s.name}</strong>{s.description && <p>{s.description}</p>}</div></li>
-          ))}
-        </ul>
+        intro="A Diretoria Geral fica no centro e as secretarias giram em volta, cada uma com coordenação e voluntários próprios. Toque numa secretaria para saber o que ela faz.">
+        <Organograma secretarias={secretarias.data ?? []} />
       </Secao>
 
       <Secao id="transparencia" titulo="Prestação de contas" fundo="papel"
         intro="Estatuto social, atas de assembleia e balancetes aprovados ficam disponíveis aqui. Os associados também acessam os documentos internos pela área restrita.">
-        <ul className="ini-cartoes">
-          {(documentos.data ?? []).map((d) => (
-            <li key={d.id}><a href={d.file_url} target="_blank" rel="noopener noreferrer" className="ini-cartao">
-              <span className="ini-cartao__marca"><FileText size={22} /></span><strong>{d.title}</strong>{d.description && <p>{d.description}</p>}
-            </a></li>
-          ))}
-          {documentos.data && documentos.data.length === 0 && (
-            <li><div className="ini-cartao"><span className="ini-cartao__marca"><FileText size={22} /></span><strong>Documentos em publicação</strong><p>Os documentos públicos estão sendo organizados e aparecem aqui em breve.</p></div></li>
-          )}
-        </ul>
+        <Arquivo documentos={documentos.data} />
       </Secao>
 
       <ConviteFinal titulo="Quer servir na casa?" botao="Quero ser voluntário" para="/voluntariado"
