@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import SitePage from "@/components/site/SitePage";
+import { PaginaSite, Secao, ListaSol } from "@/components/inicio/Pagina";
+import { Sprout, MessageCircle, GraduationCap, Users, ClipboardCheck, HeartHandshake } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProjetos } from "@/lib/site-dados";
 import JornadaVoluntario, { useProximoCiclo } from "@/components/site/JornadaVoluntario";
@@ -9,11 +10,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { dataCurta } from "@/lib/chamamento";
 
 const etapas = [
-  { titulo: "Chamamento e entrevista", texto: "Depois da reunião pública, procure a recepção. A Secretaria de Acolhimento conversa com você sobre motivação, disponibilidade e áreas de interesse." },
-  { titulo: "Curso O Trabalho Voluntário na Casa Espírita", texto: "Um sábado pela manhã de formação, integração e acolhimento, com testemunhos de quem já serve na casa." },
-  { titulo: "Estágio de 8 semanas", texto: "Com um tutor ao seu lado, você conhece na prática a recepção, o apoio logístico e a organização dos espaços." },
-  { titulo: "Avaliação final", texto: "Uma conversa fraterna com o tutor e os coordenadores sobre o caminho percorrido." },
-  { titulo: "Integração oficial", texto: "Boas-vindas na roda de preparação antes da reunião pública e inclusão na escala de trabalho." },
+  { Icone: MessageCircle, titulo: "Chamamento e entrevista", texto: "Depois da reunião pública, procure a recepção. A Secretaria de Acolhimento conversa com você sobre motivação, disponibilidade e áreas de interesse." },
+  { Icone: GraduationCap, titulo: "Curso O Trabalho Voluntário na Casa Espírita", texto: "Um sábado pela manhã de formação, integração e acolhimento, com testemunhos de quem já serve na casa." },
+  { Icone: Users, titulo: "Estágio de 8 semanas", texto: "Com um tutor ao seu lado, você conhece na prática a recepção, o apoio logístico e a organização dos espaços." },
+  { Icone: ClipboardCheck, titulo: "Avaliação final", texto: "Uma conversa fraterna com o tutor e os coordenadores sobre o caminho percorrido." },
+  { Icone: HeartHandshake, titulo: "Integração oficial", texto: "Boas-vindas na roda de preparação antes da reunião pública e inclusão na escala de trabalho." },
 ];
 
 const AREAS = ["Acolhimento", "Atendimento espiritual", "Evangelização", "Ações sociais", "Comunicação", "Infraestrutura", "Outra"];
@@ -39,34 +40,29 @@ const Voluntariado = () => {
   };
 
   return (
-    <SitePage documento="Seja voluntário" tag="Faça Parte" titulo="Seja voluntário"
-      intro="O trabalho voluntário é a essência da nossa casa. Veja como funciona e deixe seu contato: a coordenação do Acolhimento fala com você.">
-      <section className="pg-secao pg-secao--clara">
-        <div className="pg-secao__inner pg-secao__inner--estreito">
-          <div className="pg-etapas">
-            {etapas.map((et, i) => (
-              <motion.div key={et.titulo} className="pg-etapa" initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: i * 0.08 }}>
-                <div className="pg-etapa__num">{i + 1}</div>
-                <div><h3>{et.titulo}</h3><p>{et.texto}</p></div>
-              </motion.div>
-            ))}
-          </div>
-
-          {ciclo && (
-            <div className="pg-grupo" style={{ background: "hsl(var(--primary) / 0.06)", borderColor: "hsl(var(--primary) / 0.2)", marginBottom: 32 }}>
-              <div>
-                <div className="pg-grupo__titulo">Próximo ciclo: {ciclo.name}</div>
-                <div className="pg-edicao__info">
-                  {[ciclo.interviews_until && `Entrevistas até ${dataCurta(ciclo.interviews_until)}`, ciclo.course_on && `curso no sábado ${dataCurta(ciclo.course_on)}`, ciclo.integration_on && `integração em ${dataCurta(ciclo.integration_on)}`].filter(Boolean).join(" · ")}
-                </div>
+    <PaginaSite documento="Seja voluntário" titulo="Seja voluntário" foto="/imagens/sopa-solidaria.jpg" fotoAlt="Voluntários preparando a Sopa Solidária"
+      intro="O trabalho voluntário é a essência da nossa casa. Veja como funciona e deixe seu contato: a coordenação do Acolhimento fala com você."
+      acoes={<a href="#quero" className="ini-botao">Quero começar</a>}>
+      <Secao titulo="Como é o caminho" fundo="papel" intro="Cinco passos, sem pressa, com alguém da casa ao seu lado do começo ao fim.">
+        <ListaSol colunas={1} itens={etapas.map((et, i) => ({ id: et.titulo, marca: <et.Icone size={24} />, destaque: i === 0, titulo: et.titulo, texto: et.texto }))} />
+        {ciclo && (
+          <div className="pg-grupo" style={{ marginTop: 40, maxWidth: 860 }}>
+            <div>
+              <div className="pg-grupo__titulo"><Sprout size={18} style={{ display: "inline", marginRight: 8, verticalAlign: "-3px" }} />Próximo ciclo: {ciclo.name}</div>
+              <div className="pg-edicao__info">
+                {[ciclo.interviews_until && `Entrevistas até ${dataCurta(ciclo.interviews_until)}`, ciclo.course_on && `curso no sábado ${dataCurta(ciclo.course_on)}`, ciclo.integration_on && `integração em ${dataCurta(ciclo.integration_on)}`].filter(Boolean).join(" · ")}
               </div>
             </div>
-          )}
+          </div>
+        )}
+      </Secao>
 
+      <Secao id="quero" titulo={user ? "Sua jornada" : "Deixe seu contato"} estreita
+        intro={user ? "Acompanhe cada etapa pelo seu perfil." : "A Secretaria de Acolhimento recebe seu contato e combina a primeira conversa."}>
           <JornadaVoluntario />
 
           {user ? null : enviado ? (
-            <p className="pg-ok">✅ Obrigado pelo interesse! Entraremos em contato em breve.</p>
+            <p className="pg-ok">Obrigado pelo interesse! Entraremos em contato em breve.</p>
           ) : (
             <form className="pg-form" onSubmit={enviar}>
               <div className="field">
@@ -104,13 +100,12 @@ const Voluntariado = () => {
                 <textarea className="field-textarea" value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} placeholder="Conte um pouco sobre você e sua disponibilidade" />
               </div>
               <button className="ds-btn ds-btn-primary ds-btn-lg" type="submit" disabled={enviando}>
-                {enviando ? "Enviando..." : "✦ Quero ser voluntário"}
+                {enviando ? "Enviando..." : "Quero ser voluntário"}
               </button>
             </form>
           )}
-        </div>
-      </section>
-    </SitePage>
+      </Secao>
+    </PaginaSite>
   );
 };
 

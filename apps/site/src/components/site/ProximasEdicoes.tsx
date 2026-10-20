@@ -68,7 +68,7 @@ export default function ProximasEdicoes({ projetoId, slug, grupoWhatsapp }: { pr
               </div>
               {minha ? (
                 <span className="pg-edicao__status">
-                  {minha === "pendente" ? "✅ Pedido enviado. A coordenação vai confirmar." : `Sua participação: ${CANDIDATURA_LABEL[minha].toLowerCase()}`}
+                  {minha === "pendente" ? "Pedido enviado. A coordenação vai confirmar." : `Sua participação: ${CANDIDATURA_LABEL[minha].toLowerCase()}`}
                 </span>
               ) : !abertas ? (
                 <span className="pg-edicao__info">Inscrições em breve</span>

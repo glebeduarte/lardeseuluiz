@@ -64,7 +64,7 @@ const SiteFooter = () => (
       <Link to="/login" className="ini-botao ini-botao--claro">Entrar</Link>
     </div>
     <p className="ini-rodape__creditos">
-      Fotos de Nísia Floresta: <a href="https://commons.wikimedia.org/wiki/File:N%C3%ADsia_Floresta_-_State_of_Rio_Grande_do_Norte,_Brazil_-_panoramio.jpg">estrada</a>, por itoninho, <a href="https://creativecommons.org/licenses/by-sa/3.0">CC BY-SA 3.0</a>; <a href="https://commons.wikimedia.org/wiki/File:N%C3%ADsia_Floresta_-_State_of_Rio_Grande_do_Norte,_Brazil_-_panoramio_(1).jpg">litoral</a>, por Luiz Henrique, <a href="https://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>, via Wikimedia Commons.
+      Foto do litoral de Nísia Floresta: <a href="https://commons.wikimedia.org/wiki/File:N%C3%ADsia_Floresta_-_State_of_Rio_Grande_do_Norte,_Brazil_-_panoramio_(1).jpg">Luiz Henrique</a>, <a href="https://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>, via Wikimedia Commons.
     </p>
   </footer>
 );

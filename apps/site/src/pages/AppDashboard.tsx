@@ -324,8 +324,7 @@ const AppDashboard = () => {
         className="relative overflow-hidden rounded-2xl mb-8 px-7 py-7 sm:px-8 sm:py-8 text-white"
         style={{ background: "hsl(var(--primary-dark))" }}
       >
-        <div className="absolute -right-10 -top-16 w-72 h-72 rounded-full" style={{ background: "rgba(255,255,255,0.07)" }} />
-        <div className="absolute right-24 -bottom-24 w-56 h-56 rounded-full" style={{ background: "rgba(255,255,255,0.05)" }} />
+        <div className="absolute -right-14 -top-16 w-32 h-32 sm:w-44 sm:h-44 rounded-full" style={{ background: "#ffc116" }} aria-hidden="true" />
         <div className="relative flex flex-wrap items-end justify-between gap-4">
           <div>
             <div className="text-sm text-white/85">Olá,</div>

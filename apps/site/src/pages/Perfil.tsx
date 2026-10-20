@@ -291,9 +291,9 @@ export default function Perfil() {
             <>
               {/* Saudação */}
               <section className="relative overflow-hidden rounded-3xl p-6 sm:p-8 text-white"
-                style={{ background: "linear-gradient(135deg, hsl(210 100% 38%) 0%, hsl(205 85% 48%) 55%, hsl(44 100% 58%) 140%)" }}>
-                <div className="absolute -right-12 -top-12 w-48 h-48 rounded-full bg-white/10" />
-                <div className="absolute right-16 -bottom-16 w-40 h-40 rounded-full" style={{ background: "hsl(44 100% 60% / 0.35)" }} />
+                style={{ background: "hsl(211 100% 25%)" }}>
+                {/* O sol do logo do Lar, como no site */}
+                <div className="absolute -right-14 -top-16 w-32 h-32 sm:w-48 sm:h-48 rounded-full" style={{ background: "#ffc116" }} aria-hidden="true" />
                 <div className="relative flex items-center gap-4 sm:gap-5">
                   <div className="relative w-20 h-20 sm:w-24 sm:h-24 shrink-0">
                     <div className="w-full h-full rounded-full ring-4 ring-white/70 bg-[hsl(var(--accent))] text-[hsl(var(--primary-dark))] flex items-center justify-center text-2xl font-bold overflow-hidden shadow-lg">

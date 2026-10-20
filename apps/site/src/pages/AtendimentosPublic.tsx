@@ -1,177 +1,74 @@
-import { useEffect } from "react";
-import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Lock, Heart, Gift } from "lucide-react";
-import SiteNav from "@/components/site/SiteNav";
-import SiteFooter from "@/components/site/SiteFooter";
-import CookieBanner from "@/components/site/CookieBanner";
-import WeeklyCalendar from "@/components/site/WeeklyCalendar";
-import iconCura from "@/assets/icon-cura.png";
-import iconPasses from "@/assets/icon-passes.png";
-import iconDesobsessao from "@/assets/icon-desobsessao.png";
-import iconDialogo from "@/assets/icon-dialogo.png";
-
-const reveal = (delay = 0) => ({
-  initial: { opacity: 0, y: 36 } as const,
-  whileInView: { opacity: 1, y: 0 } as const,
-  viewport: { once: true, margin: "-40px" as const },
-  transition: { duration: 0.7, delay },
-});
+import { Lock, Heart, Gift, MessageCircle, HandHeart, BedSingle, Sparkles } from "lucide-react";
+import { PaginaSite, Secao, ListaSol, ConviteFinal } from "@/components/inicio/Pagina";
+import { SEMANA, diaDeHojeNoLar } from "@/components/inicio/agenda-casa";
 
 const servicos = [
   {
-    icon: iconCura,
-    name: "Tratamento Espiritual",
-    desc: "Atendimento espiritual individualizado com trabalho mediúnico de equilíbrio e harmonização. Realizado em ambiente adequado com equipe preparada. Indicado para pessoas que buscam equilíbrio físico, emocional e espiritual.",
-    dias: "Terças-feiras · 17h às 18h30 | Sábados quinzenais · 16h30 às 19h",
-    badge: "Agendado via Diálogo Fraterno",
-    badgeColor: "gold",
+    Icone: MessageCircle, nome: "Diálogo Fraterno", selo: "O primeiro passo",
+    texto: "Escuta, acolhimento e orientação para quem precisa ser ouvido. Disponível em todos os dias de trabalho aberto ao público.",
+    dias: "Terças, 14h às 15h15. Sextas, 15h30 às 16h. Sábados, 14h30 às 15h45.",
   },
   {
-    icon: iconPasses,
-    name: "Passes",
-    desc: "Atendimento espiritual com imposição de mãos, realizado por médiuns devidamente preparados. Promove equilíbrio e alívio espiritual.",
-    dias: "Terças-feiras · 17h às 18h30 | Sextas-feiras · 17h às 18h45 | Sábados quinzenais · 17h às 19h",
-    badge: "Gratuito",
-    badgeColor: "teal",
+    Icone: HandHeart, nome: "Passes", selo: "Gratuito",
+    texto: "Imposição de mãos feita por médiuns preparados. Promove equilíbrio e alívio espiritual.",
+    dias: "Terças, 17h às 18h30. Sextas, 17h às 18h45. Sábados quinzenais, 17h às 19h.",
   },
   {
-    icon: iconDesobsessao,
-    name: "Atendimento de Desobsessão",
-    desc: "Trabalho mediúnico especializado realizado pela equipe da Secretaria Mediúnica, para equilíbrio e harmonização espiritual do perispírito. Realizado nas sessões de sexta-feira.",
-    dias: "Sextas-feiras · 15h30 às 18h45",
-    badge: "Com avaliação prévia",
-    badgeColor: "gold",
+    Icone: BedSingle, nome: "Tratamento Espiritual", selo: "Marcado no Diálogo Fraterno",
+    texto: "Atendimento individual nas macas, com trabalho mediúnico de equilíbrio e harmonização, para quem busca equilíbrio físico, emocional e espiritual.",
+    dias: "Terças, 17h às 18h30. Sábados quinzenais, 16h30 às 19h.",
   },
   {
-    icon: iconDialogo,
-    name: "Diálogo Fraterno",
-    desc: "Espaço de escuta ativa para quem precisa ser ouvido, orientado e amparado. Disponível em todos os dias de trabalho aberto ao público.",
-    dias: "Terças · 14h–15h15 | Sextas · 15h30–16h | Sábados · 14h30–15h45",
-    badge: "Gratuito · Aberto a Todos",
-    badgeColor: "teal",
+    Icone: Sparkles, nome: "Atendimento de Desobsessão", selo: "Com avaliação antes",
+    texto: "Trabalho mediúnico feito pela equipe da Secretaria Mediúnica, para equilíbrio e harmonização espiritual do perispírito.",
+    dias: "Sextas, 15h30 às 18h45.",
   },
 ];
 
+const garantias = [
+  { Icone: Lock, titulo: "Sigiloso", texto: "Tudo o que é dito fica entre você e quem te atende." },
+  { Icone: Heart, titulo: "Sem julgamentos", texto: "Acolhemos qualquer pessoa, de qualquer crença ou situação." },
+  { Icone: Gift, titulo: "Gratuito", texto: "Como todo serviço da casa. Nada é cobrado, nunca." },
+];
+
 const AtendimentosPublic = () => {
-  useEffect(() => {
-    document.title = "Atendimentos | Lar de Seu Luiz";
-    window.scrollTo(0, 0);
-  }, []);
-
+  const hoje = diaDeHojeNoLar();
   return (
-    <div className="site-root">
-      <SiteNav />
+    <PaginaSite documento="Atendimentos" titulo="Como funcionam os atendimentos"
+      intro="Todos os atendimentos são gratuitos, sigilosos e abertos a qualquer pessoa, sem distinção de religião, raça ou condição social. Nenhum julgamento, nenhuma cobrança. Só acolhimento."
+      acoes={<a href="/#visite" className="ini-botao">Ver como chegar</a>}>
 
-      {/* Hero */}
-      <section className="atd-hero">
-        <div className="atd-hero__inner">
-          <motion.div {...reveal()}>
-            <div className="site-tag site-tag--light">
-              <span className="site-tag__bar" />
-              Para Você que Busca Ajuda
-            </div>
-            <h1 className="atd-hero__title">Como funcionam os atendimentos</h1>
-            <p className="atd-hero__sub">
-              Todos os atendimentos no Lar de Seu Luiz são gratuitos, sigilosos e abertos a qualquer pessoa — sem distinção de religião, raça ou condição social. Nenhum julgamento. Nenhuma cobrança. Só acolhimento.
-            </p>
-          </motion.div>
-        </div>
-      </section>
+      <Secao titulo="Tudo começa pelo Diálogo Fraterno" fundo="papel" intro={<>
+        <p>Toda pessoa que chega ao Lar começa por uma conversa individual, em lugar reservado. Você conta suas dificuldades e dúvidas com liberdade.</p>
+        <p>Quem te atende é preparado pelos princípios do Evangelho à luz da Doutrina Espírita: ouve com respeito e não impõe crenças. Depois da conversa, você sabe qual atendimento combina com o seu momento.</p>
+      </>}>
+        <ul className="ini-cartoes">
+          {garantias.map(({ Icone, titulo, texto }) => (
+            <li key={titulo}><div className="ini-cartao"><span className="ini-cartao__marca"><Icone size={22} /></span><strong>{titulo}</strong><p>{texto}</p></div></li>
+          ))}
+        </ul>
+      </Secao>
 
-      {/* Seção 1 - Diálogo Fraterno */}
-      <section className="atd-dialogo">
-        <div className="atd-dialogo__inner">
-          <motion.div {...reveal()}>
-            <div className="site-tag site-tag--teal">
-              <span className="site-tag__bar" />
-              O Primeiro Passo
-            </div>
-            <h2 className="atd-dialogo__title">O Diálogo Fraterno</h2>
-            <div className="atd-dialogo__text">
-              <p>
-                Toda pessoa que busca atendimento no Lar de Seu Luiz começa pelo Diálogo Fraterno — um espaço de escuta ativa, acolhimento e orientação individual.
-              </p>
-              <p>
-                Em ambiente privativo e sigiloso, você tem a oportunidade de expor livremente suas dificuldades, dúvidas e necessidades. Nossos atendentes, preparados e orientados pelos princípios do Evangelho à luz da Doutrina Espírita, ouvem com respeito, sem julgamentos e sem impor crenças.
-              </p>
-              <p>
-                A partir desse diálogo, você é orientado sobre o tipo de atendimento mais adequado para sua situação — seja um passe, tratamento espiritual ou acompanhamento espiritual.
-              </p>
-            </div>
-          </motion.div>
+      <Secao titulo="O que oferecemos" intro="Cada atendimento tem seus dias e horários. Na dúvida, chegue no horário do Diálogo Fraterno.">
+        <ListaSol colunas={2} itens={servicos.map((s, i) => ({
+          id: s.nome, marca: <s.Icone size={24} />, destaque: i === 0,
+          titulo: s.nome, texto: s.texto,
+          extra: <div className="ini-selos" style={{ margin: "12px 0 0" }}><span className="ini-selo ini-selo--ouro">{s.selo}</span><span className="ini-selo">{s.dias}</span></div>,
+        }))} />
+      </Secao>
 
-          <div className="atd-dialogo__cards">
-            {[
-              { Icon: Lock, title: "Sigiloso", desc: "Tudo que é dito permanece entre você e o atendente" },
-              { Icon: Heart, title: "Sem julgamentos", desc: "Acolhemos independente de crença ou situação" },
-              { Icon: Gift, title: "Gratuito", desc: "Como todo serviço da casa" },
-            ].map((item, i) => (
-              <motion.div key={item.title} className="atd-dialogo__card" {...reveal((i + 1) * 0.12)}>
-                <div className="atd-dialogo__card-icon">
-                  <item.Icon size={28} strokeWidth={1.75} />
-                </div>
-                <div className="atd-dialogo__card-title">{item.title}</div>
-                <div className="atd-dialogo__card-desc">{item.desc}</div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <Secao titulo="A semana da casa" fundo="teal-claro" intro={<>Os dias em que a casa abre. As palestras de cada data estão na <Link to="/agenda" className="underline">agenda</Link>.</>}>
+        <ListaSol itens={SEMANA.map((t) => ({
+          id: t.id, destaque: t.dia === hoje, marca: t.rotuloDia.slice(0, 3),
+          titulo: t.nome, lado: t.horario, texto: `${t.rotuloDia}${t.dia === hoje ? ", hoje" : ""}. ${t.descricao}`,
+        }))} />
+      </Secao>
 
-      {/* Seção 2 - Tipos de atendimento */}
-      <section className="atd-servicos">
-        <div className="atd-servicos__inner">
-          <motion.div {...reveal()}>
-            <div className="site-tag site-tag--light">
-              <span className="site-tag__bar" />
-              Nossos Serviços
-            </div>
-            <h2 className="atd-servicos__title">O que oferecemos</h2>
-          </motion.div>
-
-          <div className="atd-servicos__grid">
-            {servicos.map((s, i) => (
-              <motion.div key={s.name} className="atd-servico-card" {...reveal((i + 1) * 0.1)}>
-                <div className="atd-servico-card__icon">
-                  <img src={s.icon} alt={s.name} style={{ width: 40, height: 40, objectFit: "contain" }} />
-                </div>
-                <div className="atd-servico-card__name">{s.name}</div>
-                <div className="atd-servico-card__desc">{s.desc}</div>
-                <div className="atd-servico-card__dias">{s.dias}</div>
-                <span className={`atd-servico-card__badge atd-servico-card__badge--${s.badgeColor}`}>
-                  {s.badge}
-                </span>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Seção 3 - Calendário Semanal */}
-      <WeeklyCalendar />
-
-      {/* Seção 4 - CTA final */}
-      <section className="atd-cta-final">
-        <div className="atd-cta-final__inner">
-          <motion.div {...reveal()}>
-            <h2 className="atd-cta-final__title">Dê o primeiro passo.</h2>
-            <p className="atd-cta-final__sub">
-              Venha nos visitar. Não precisamos saber sua religião, sua história ou sua crença. Basta chegar — e deixar que o acolhimento faça o resto.
-            </p>
-            <a href="/#visite" className="atd-cta-final__btn">
-              Ver como chegar →
-            </a>
-            <p className="atd-cta-final__address">
-              Rua da Mata, s/n – Colônia do Pium, Nísia Floresta/RN · (84) 99143-2639
-            </p>
-          </motion.div>
-        </div>
-      </section>
-
-      <SiteFooter />
-      <CookieBanner />
-    </div>
+      <ConviteFinal foto="/imagens/litoral-nisia-floresta.jpg" fotoAlt="Coqueiros na beira do mar em Nísia Floresta" titulo="Dê o primeiro passo" botao="Ver como chegar" para="/#visite"
+        texto="Não precisamos saber sua religião, sua história ou sua crença. Basta chegar. Rua da Mata, s/n, Colônia do Pium, Nísia Floresta/RN."
+        extra={<a href="https://wa.me/5584991432639" target="_blank" rel="noopener noreferrer" className="ini-botao ini-botao--claro">WhatsApp (84) 99143-2639</a>} />
+    </PaginaSite>
   );
 };
 

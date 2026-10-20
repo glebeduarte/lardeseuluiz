@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
-import { ArrowRight, MapPin, MessageCircle, Mail, Instagram, Youtube } from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowLeft, ArrowRight, MapPin, MessageCircle, Mail, Instagram, Youtube } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { hojeISO, MESES, usePalestras, useProjetos, type Palestra } from "@/lib/site-dados";
 import { SEMANA, diaDeHojeNoLar, useSituacaoDaCasa } from "./agenda-casa";
@@ -86,43 +86,99 @@ function Convite() {
 
 /* ───────── 3. Primeira visita ───────── */
 const PASSOS: { nome: string; texto: string; foto?: string; alt?: string }[] = [
-  { nome: "Chegue", foto: "/imagens/estrada-nisia-floresta.jpg", alt: "Estrada entre coqueiros em Nísia Floresta", texto: "Não precisa marcar nem trazer nada. Venha num dia de trabalho: o atendimento segue a ordem de chegada e alguém da recepção te recebe na porta." },
+  { nome: "Chegue", foto: jardim, alt: "O jardim do Lar de Seu Luiz, com a casa ao fundo", texto: "Não precisa marcar nem trazer nada. Venha num dia de trabalho: o atendimento segue a ordem de chegada e alguém da recepção te recebe na porta." },
   { nome: "Diálogo Fraterno", texto: "Uma conversa em sigilo com um dialogador. Você conta o que te trouxe e ele te orienta. Todo atendimento começa aqui." },
   { nome: "Palestra e passe", texto: "Uma palestra curta sobre o Evangelho e, depois, o passe: imposição de mãos feita por médiuns preparados, para equilíbrio e alívio." },
   { nome: "Macas", texto: "Quando o Diálogo Fraterno indica, você recebe tratamento espiritual individual, deitado na maca, com uma equipe preparada. A desobsessão passa antes por avaliação." },
-  { nome: "Volte quando quiser", foto: jardim, alt: "O jardim do Lar de Seu Luiz", texto: "Ao final há a água fluidificada. A porta fica aberta toda semana, e você pode voltar quantas vezes precisar." },
+  { nome: "Volte quando quiser", texto: "Ao final há a água fluidificada. A porta fica aberta toda semana, e você pode voltar quantas vezes precisar." },
 ];
+
+// No computador, a seção fica presa na tela e a rolagem vai abrindo um passo de cada vez.
+// Clicar num passo leva a rolagem até ele, então as duas formas andam juntas. No celular, só o toque.
+function useRolagemGuiada() {
+  const [ativa, setAtiva] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 901px) and (min-height: 700px) and (prefers-reduced-motion: no-preference)");
+    const ver = () => setAtiva(mq.matches);
+    ver();
+    mq.addEventListener("change", ver);
+    return () => mq.removeEventListener("change", ver);
+  }, []);
+  return ativa;
+}
 
 function PrimeiraVisita() {
   const [aberto, setAberto] = useState(0);
+  const guiada = useRolagemGuiada();
+  const trilho = useRef<HTMLDivElement>(null);
+  const palco = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!guiada) return;
+    let quadro = 0;
+    const medir = () => {
+      quadro = 0;
+      const t = trilho.current, p = palco.current;
+      if (!t || !p) return;
+      const curso = t.offsetHeight - p.offsetHeight;
+      if (curso <= 0) return;
+      const andou = Math.min(Math.max(-t.getBoundingClientRect().top + 84, 0), curso - 1);
+      setAberto(Math.floor((andou / curso) * PASSOS.length));
+    };
+    const aoRolar = () => { if (!quadro) quadro = requestAnimationFrame(medir); };
+    medir();
+    window.addEventListener("scroll", aoRolar, { passive: true });
+    window.addEventListener("resize", aoRolar);
+    return () => { window.removeEventListener("scroll", aoRolar); window.removeEventListener("resize", aoRolar); cancelAnimationFrame(quadro); };
+  }, [guiada]);
+
+  const escolher = (i: number) => {
+    const t = trilho.current, p = palco.current;
+    if (!guiada || !t || !p) { setAberto(i); return; }
+    const curso = t.offsetHeight - p.offsetHeight;
+    const topo = t.getBoundingClientRect().top + window.scrollY - 84;
+    window.scrollTo({ top: topo + ((i + 0.5) / PASSOS.length) * curso, behavior: "smooth" });
+  };
+
   return (
     <section className="ini-visita" id="primeira-visita" aria-labelledby="ini-visita-t">
-      <div className="ini-visita__intro">
-        <motion.h2 id="ini-visita-t" className="ini-titulo" {...surgir()}>Sua primeira visita</motion.h2>
-        <motion.div {...surgir(0.1)}>
-          <p className="ini-corpo">
-            Todos os atendimentos são gratuitos e abertos a qualquer pessoa, sem distinção de religião, raça ou condição
-            social. É assim que funciona, do portão até a volta para casa.
-          </p>
-          <Link to="/atendimentos" className="ini-link">Saiba como funciona cada atendimento <ArrowRight size={18} /></Link>
-        </motion.div>
-      </div>
-      <motion.ol className="ini-sanfona" {...surgir(0.15)}>
-        {PASSOS.map((p, i) => (
-          <li key={p.nome} className={`ini-sanfona__item ini-tom-${i}${aberto === i ? " ini-sanfona__item--aberto" : ""}`}>
-            <button type="button" className="ini-sanfona__botao" aria-expanded={aberto === i} onClick={() => setAberto(i)}>
-              <span className="ini-sanfona__nome">{p.nome}</span>
-            </button>
-            <div className="ini-sanfona__conteudo" hidden={aberto !== i}>
-              <div className="ini-sanfona__texto">
-                <h3 className="ini-titulo">{p.nome}</h3>
-                <p className="ini-corpo">{p.texto}</p>
-              </div>
-              {p.foto && <img src={p.foto} alt={p.alt ?? ""} className="ini-sanfona__foto" width={700} height={500} loading="lazy" />}
+      <div ref={trilho} className={guiada ? "ini-visita__trilho ini-visita__trilho--guiado" : "ini-visita__trilho"}
+        style={guiada ? { height: `calc(100vh + ${PASSOS.length * 55}vh)` } : undefined}>
+        <div ref={palco} className="ini-visita__palco">
+          <div className="ini-visita__intro">
+            <h2 id="ini-visita-t" className="ini-titulo">Sua primeira visita</h2>
+            <div>
+              <p className="ini-corpo">
+                Todos os atendimentos são gratuitos e abertos a qualquer pessoa, sem distinção de religião, raça ou condição
+                social. É assim que funciona, do portão até a volta para casa.
+              </p>
+              <Link to="/atendimentos" className="ini-link">Saiba como funciona cada atendimento <ArrowRight size={18} /></Link>
             </div>
-          </li>
-        ))}
-      </motion.ol>
+          </div>
+          <ol className="ini-sanfona">
+            {PASSOS.map((p, i) => (
+              <li key={p.nome} className={`ini-sanfona__item ini-tom-${i}${aberto === i ? " ini-sanfona__item--aberto" : ""}`}>
+                <button type="button" className="ini-sanfona__botao" aria-expanded={aberto === i} onClick={() => escolher(i)}>
+                  <span className="ini-sanfona__nome">{p.nome}</span>
+                </button>
+                <div className="ini-sanfona__conteudo" hidden={aberto !== i}>
+                  <div className="ini-sanfona__texto">
+                    <span className="ini-sanfona__passo">Passo {i + 1} de {PASSOS.length}</span>
+                    <h3 className="ini-titulo">{p.nome}</h3>
+                    <p className="ini-corpo">{p.texto}</p>
+                  </div>
+                  {p.foto && <img src={p.foto} alt={p.alt ?? ""} className="ini-sanfona__foto" width={700} height={500} loading="lazy" />}
+                </div>
+              </li>
+            ))}
+          </ol>
+          {guiada && (
+            <div className="ini-visita__pontos" aria-hidden="true">
+              {PASSOS.map((p, i) => <span key={p.nome} className={i === aberto ? "ativo" : i < aberto ? "feito" : ""} />)}
+            </div>
+          )}
+        </div>
+      </div>
     </section>
   );
 }
@@ -195,51 +251,79 @@ function Semana({ palestras }: { palestras: Palestra[] }) {
 }
 
 /* ───────── 5. Ações sociais ───────── */
+// Uma faixa de cartões que desliza para o lado (dedo, roda do mouse ou setas).
+// Cada ação é um sol com a foto dentro; os pontinhos embaixo mostram onde você está e levam direto a uma ação.
 function Acoes() {
   const { data: acoes = [] } = useProjetos();
-  const [sel, setSel] = useState(0);
-  const reduzir = useReducedMotion();
+  const faixa = useRef<HTMLUListElement>(null);
+  const [atual, setAtual] = useState(0);
+
+  useEffect(() => {
+    const el = faixa.current;
+    if (!el) return;
+    const medir = () => {
+      const passo = (el.children[1] as HTMLElement | undefined)?.offsetLeft ?? 0;
+      const base = (el.children[0] as HTMLElement | undefined)?.offsetLeft ?? 0;
+      const largura = passo - base;
+      if (largura <= 0) return;
+      const fim = el.scrollLeft >= el.scrollWidth - el.clientWidth - 4;
+      setAtual(fim ? acoes.length - 1 : Math.round(el.scrollLeft / largura));
+    };
+    medir();
+    el.addEventListener("scroll", medir, { passive: true });
+    return () => el.removeEventListener("scroll", medir);
+  }, [acoes.length]);
+
+  const irPara = (i: number) => {
+    const el = faixa.current;
+    const alvo = el?.children[Math.max(0, Math.min(i, acoes.length - 1))] as HTMLElement | undefined;
+    if (el && alvo) el.scrollTo({ left: alvo.offsetLeft - el.offsetLeft, behavior: "smooth" });
+  };
+
   if (acoes.length === 0) return null;
-  const a = acoes[Math.min(sel, acoes.length - 1)];
   return (
     <section className="ini-acoes" id="acoes" aria-labelledby="ini-acoes-t">
-      <div className="ini-acoes__disco">
-        <span className="ini-sol ini-acoes__sol" aria-hidden="true" />
-        <AnimatePresence mode="popLayout">
-          <motion.img
-            key={a.id}
-            src={a.cover_url ?? jardim}
-            alt={a.name}
-            className="ini-acoes__foto"
-            width={600}
-            height={600}
-            loading="lazy"
-            initial={reduzir ? false : { opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
-          />
-        </AnimatePresence>
+      <div className="ini-acoes__cabeca">
+        <div>
+          <motion.h2 id="ini-acoes-t" className="ini-titulo" {...surgir()}>Ações sociais</motion.h2>
+          <motion.p className="ini-corpo" {...surgir(0.1)}>
+            Toda a arrecadação volta para a comunidade. Escolha uma ação, entre no grupo e venha ajudar.
+          </motion.p>
+        </div>
+        <div className="ini-acoes__setas">
+          <button type="button" onClick={() => irPara(atual - 1)} disabled={atual === 0} aria-label="Ação anterior"><ArrowLeft size={22} /></button>
+          <button type="button" onClick={() => irPara(atual + 1)} disabled={atual >= acoes.length - 1} aria-label="Próxima ação"><ArrowRight size={22} /></button>
+        </div>
       </div>
-      <div className="ini-acoes__nomes">
-        <h2 id="ini-acoes-t" className="ini-acoes__titulo">Ações sociais</h2>
-        <ul role="list">
-          {acoes.map((x, i) => (
-            <li key={x.id}>
-              <button type="button" aria-pressed={i === sel} onClick={() => setSel(i)} className={i === sel ? "ativo" : ""}>
-                {x.name}
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
-      <div className="ini-acoes__fato">
-        <p className="ini-corpo">{a.summary ?? a.description}</p>
-        <p className="ini-pequeno">Toda a arrecadação volta para a comunidade.</p>
-        <Link to={`/projetos/${a.slug}`} className="ini-botao">Quero participar</Link>
-        {a.whatsapp_group_url && (
-          <a href={a.whatsapp_group_url} target="_blank" rel="noopener noreferrer" className="ini-link">Entrar no grupo da ação <ArrowRight size={18} /></a>
-        )}
+
+      <ul ref={faixa} className="ini-acoes__faixa" aria-label="Ações sociais do Lar">
+        {acoes.map((a, i) => (
+          <li key={a.id} className={`ini-acao${i === atual ? " ini-acao--atual" : ""}`}>
+            <div className="ini-acao__sol">
+              <img src={a.cover_url ?? jardim} alt={a.name} width={600} height={600} loading="lazy" />
+            </div>
+            <div className="ini-acao__texto">
+              <h3 className="ini-lead">{a.name}</h3>
+              <p>{a.summary ?? a.description}</p>
+              {a.schedule && <p className="ini-acao__quando">{a.schedule}</p>}
+              <div className="ini-acao__botoes">
+                <Link to={`/projetos/${a.slug}`} className="ini-botao">Quero participar</Link>
+                {a.whatsapp_group_url && (
+                  <a href={a.whatsapp_group_url} target="_blank" rel="noopener noreferrer" className="ini-botao ini-botao--claro">Grupo no WhatsApp</a>
+                )}
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      <div className="ini-acoes__pontos" role="tablist" aria-label="Escolher ação">
+        {acoes.map((a, i) => (
+          <button key={a.id} type="button" role="tab" aria-selected={i === atual} aria-label={a.name}
+            className={i === atual ? "ativo" : ""} onClick={() => irPara(i)}>
+            <span>{a.name}</span>
+          </button>
+        ))}
       </div>
     </section>
   );

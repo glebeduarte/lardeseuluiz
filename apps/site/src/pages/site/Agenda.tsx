@@ -1,84 +1,76 @@
-import { motion } from "framer-motion";
-import SitePage from "@/components/site/SitePage";
+import { Link } from "react-router-dom";
+import { PaginaSite, Secao, ListaSol, ConviteFinal } from "@/components/inicio/Pagina";
+import { SEMANA, diaDeHojeNoLar } from "@/components/inicio/agenda-casa";
 import { hojeISO, MESES, MESES_LONGOS, usePalestras, useEventosSite } from "@/lib/site-dados";
 
-const reveal = (delay = 0) => ({
-  initial: { opacity: 0, y: 24 } as const,
-  whileInView: { opacity: 1, y: 0 } as const,
-  viewport: { once: true, margin: "-40px" as const },
-  transition: { duration: 0.6, delay },
-});
+type Item = { id: string; data: string; titulo: string; meta: string; hora: string | null };
 
-const corDoDia = (dia: string) =>
-  /sex/i.test(dia)
-    ? { bg: "hsl(var(--secondary-muted))", dia: "hsl(var(--secondary))", mes: "hsl(var(--secondary-light))" }
-    : /s[áa]b/i.test(dia)
-      ? { bg: "hsl(var(--accent-muted))", dia: "hsl(var(--accent-dark))", mes: "hsl(var(--accent-dark))" }
-      : { bg: "hsl(var(--primary-muted))", dia: "hsl(var(--primary))", mes: "hsl(var(--primary-light))" };
-
-type Item = { id: string; data: string; titulo: string; meta: string; dia: string };
+const DIAS = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
+const horaBonita = (h?: string | null) => {
+  if (!h || h === "-") return null;
+  const m = h.match(/(\d{1,2})\D?(\d{2})?/);
+  return m ? `${Number(m[1])}h${m[2] && m[2] !== "00" ? m[2] : ""}` : h;
+};
 
 const Agenda = () => {
   const hoje = hojeISO();
   const { data: palestras = [], isLoading } = usePalestras({ desde: hoje });
   const { data: eventos = [] } = useEventosSite(hoje);
+  const diaHoje = diaDeHojeNoLar();
 
   const itens: Item[] = [
     ...palestras.map((p) => ({
-      id: p.id, data: p.data, dia: p.dia_semana, titulo: p.tema,
-      meta: ["Palestra", p.hora !== "-" ? p.hora : null, p.palestrante !== "-" ? p.palestrante : null].filter(Boolean).join(" • "),
+      id: p.id, data: p.data, titulo: p.tema, hora: horaBonita(p.hora),
+      meta: ["Palestra", p.palestrante !== "-" ? `com ${p.palestrante}` : null].filter(Boolean).join(" "),
     })),
     ...eventos.map((e) => ({
-      id: e.id, data: e.event_date, dia: new Date(e.event_date + "T12:00").toLocaleDateString("pt-BR", { weekday: "short" }),
-      titulo: e.title, meta: [e.start_time, e.speaker, e.location].filter(Boolean).join(" • "),
+      id: e.id, data: e.event_date, titulo: e.title, hora: horaBonita(e.start_time),
+      meta: [e.speaker ? `com ${e.speaker}` : null, e.location].filter(Boolean).join(", ") || "Evento da casa",
     })),
   ].sort((a, b) => a.data.localeCompare(b.data));
 
   const porMes = itens.reduce<Record<string, Item[]>>((acc, it) => {
-    const chave = it.data.slice(0, 7);
-    (acc[chave] ??= []).push(it);
+    (acc[it.data.slice(0, 7)] ??= []).push(it);
     return acc;
   }, {});
 
   return (
-    <SitePage documento="Agenda" tag="Programação" titulo="Agenda de palestras e eventos"
-      intro="Palestras públicas e eventos da casa. Todas as atividades são gratuitas e abertas a todos.">
-      <section className="site-programacao">
-        <div className="site-programacao__inner">
-          {isLoading && <p className="site-palestra__meta">Carregando a agenda…</p>}
-          {!isLoading && itens.length === 0 && (
-            <div className="site-prog-palestras"><p className="site-palestra__meta">As próximas datas serão publicadas em breve.</p></div>
-          )}
-          {Object.entries(porMes).map(([chave, lista], i) => {
-            const [ano, mes] = chave.split("-");
-            return (
-              <motion.div key={chave} className="pg-mes" {...reveal(i * 0.05)}>
-                <div className="site-prog-palestras">
-                  <div className="site-prog-palestras__title">🎤 {MESES_LONGOS[Number(mes) - 1]} de {ano}</div>
-                  <div className="site-palestras-grid">
-                    {lista.map((it) => {
-                      const c = corDoDia(it.dia);
-                      return (
-                        <div key={it.id} className="site-palestra-item">
-                          <div className="site-palestra-date" style={{ background: c.bg }}>
-                            <div className="site-palestra-date__day" style={{ color: c.dia }}>{it.data.slice(8, 10)}</div>
-                            <div className="site-palestra-date__mon" style={{ color: c.mes }}>{MESES[Number(mes) - 1]}</div>
-                          </div>
-                          <div>
-                            <div className="site-palestra__title">{it.titulo}</div>
-                            <div className="site-palestra__meta">{it.meta}</div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-      </section>
-    </SitePage>
+    <PaginaSite documento="Agenda" titulo="Agenda da casa"
+      intro="Palestras públicas, eventos e os trabalhos de cada semana. Tudo é gratuito e aberto a todos."
+      acoes={<Link to="/atendimentos" className="ini-botao">Como funciona o atendimento</Link>}>
+
+      {isLoading && <Secao titulo="Carregando a agenda" />}
+      {!isLoading && itens.length === 0 && (
+        <Secao titulo="Próximas datas" intro="As próximas palestras e eventos serão publicados em breve." />
+      )}
+      {Object.entries(porMes).map(([chave, lista], i) => {
+        const [ano, mes] = chave.split("-");
+        return (
+          <Secao key={chave} titulo={`${MESES_LONGOS[Number(mes) - 1]} de ${ano}`} fundo={i % 2 ? "chao" : "papel"}
+            intro={`${lista.length} ${lista.length === 1 ? "encontro marcado" : "encontros marcados"}.`}>
+            <ListaSol itens={lista.map((it) => {
+              const d = new Date(`${it.data}T12:00:00`);
+              return {
+                id: it.id, destaque: it.data === hoje,
+                marca: <><b>{it.data.slice(8, 10)}</b>{MESES[Number(mes) - 1]}</>,
+                titulo: it.titulo, lado: it.hora ?? undefined,
+                texto: `${it.data === hoje ? "Hoje" : DIAS[d.getDay()].replace(/^./, (c) => c.toUpperCase())}, ${d.getDate()} de ${MESES_LONGOS[d.getMonth()].toLowerCase()}. ${it.meta}.`,
+              };
+            })} />
+          </Secao>
+        );
+      })}
+
+      <Secao titulo="Toda semana" fundo="teal-claro" intro="Os trabalhos que acontecem sempre, mesmo sem palestra marcada.">
+        <ListaSol itens={SEMANA.map((t) => ({
+          id: t.id, destaque: t.dia === diaHoje, marca: t.rotuloDia.slice(0, 3),
+          titulo: t.nome, lado: t.horario, texto: `${t.rotuloDia}. ${t.descricao}`,
+        }))} />
+      </Secao>
+
+      <ConviteFinal foto="/imagens/saude-lar-event.jpg" fotoAlt="Voluntárias atendendo na ação Saúde no Lar" titulo="Venha num dia de trabalho" texto="Não precisa marcar. O atendimento começa pelo Diálogo Fraterno, por ordem de chegada."
+        botao="Ver como chegar" para="/#visite" />
+    </PaginaSite>
   );
 };
 

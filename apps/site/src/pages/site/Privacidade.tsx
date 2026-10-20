@@ -1,4 +1,4 @@
-import SitePage from "@/components/site/SitePage";
+import { PaginaSite, Secao } from "@/components/inicio/Pagina";
 
 const itens: [string, string][] = [
   ["Quais dados guardamos", "Nome e contatos de quem cria conta, envia mensagem ou se inscreve em cursos e ações. Nos atendimentos, as informações registradas no Diálogo Fraterno, que podem incluir dados de saúde."],
@@ -11,21 +11,17 @@ const itens: [string, string][] = [
 ];
 
 const Privacidade = () => (
-  <SitePage documento="Privacidade" tag="LGPD" titulo="Privacidade e proteção de dados"
+  <PaginaSite documento="Privacidade" titulo="Privacidade e proteção de dados"
     intro="Cuidamos das informações de quem frequenta a casa com o mesmo zelo com que cuidamos das pessoas.">
-    <section className="pg-secao pg-secao--clara" id="lgpd">
-      <div className="pg-secao__inner pg-secao__inner--estreito">
-        <dl className="pg-lista">
-          {itens.map(([t, d]) => (
-            <div key={t}><dt>{t}</dt><dd>{d}</dd></div>
-          ))}
-        </dl>
-        <p className="pg-texto" style={{ marginTop: 32 }}>
-          <span>Encarregado de dados: Direção do Lar de Seu Luiz, pelo e-mail contato@lardeseuluiz.com.br.</span>
-        </p>
-      </div>
-    </section>
-  </SitePage>
+    <Secao id="lgpd" titulo="Como cuidamos dos seus dados" fundo="papel"
+      intro="Encarregado de dados: Direção do Lar de Seu Luiz, pelo e-mail contato@lardeseuluiz.com.br.">
+      <ul className="ini-cartoes">
+        {itens.map(([t, d]) => (
+          <li key={t}><div className="ini-cartao"><strong>{t}</strong><p>{d}</p></div></li>
+        ))}
+      </ul>
+    </Secao>
+  </PaginaSite>
 );
 
 export default Privacidade;
