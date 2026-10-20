@@ -186,7 +186,8 @@
 .ini-acoes__setas button:disabled { opacity: .35; cursor: default; }
 .ini-acoes__faixa {
   list-style: none; margin: 0; padding: 0 var(--ini-gut); display: flex; gap: 20px;
-  overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding: 0 var(--ini-gut); scrollbar-width: none; overscroll-behavior-x: contain;
+  overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scroll-padding: 0 var(--ini-gut); scrollbar-width: none;
+  -webkit-overflow-scrolling: touch; touch-action: pan-x pan-y;
 }
 .ini-acoes__faixa::-webkit-scrollbar { display: none; }
 .ini-acao {
@@ -379,3 +380,10 @@
 
 .ini section[id] { scroll-margin-top: 80px; }
 .ini-acoes__faixa::after { content: ""; flex: 0 0 1px; }
+
+.ini-acoes__setas--baixo { display: none; }
+@media (max-width: 900px) {
+  .ini-acoes__setas--baixo { display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 22px; font-weight: 600; color: var(--ini-suave); }
+  .ini-acoes__pontos { margin-top: 12px; }
+  .ini-acao { scroll-snap-stop: always; }
+}

@@ -254,7 +254,12 @@ function Semana({ palestras }: { palestras: Palestra[] }) {
 // Uma faixa de cartões que desliza para o lado (dedo, roda do mouse ou setas).
 // Cada ação é um sol com a foto dentro; os pontinhos embaixo mostram onde você está e levam direto a uma ação.
 function Acoes() {
-  const { data: acoes = [] } = useProjetos();
+  const { data: lista = [] } = useProjetos();
+  // A Sopa Solidária abre sempre a faixa; as outras seguem a ordem definida na Governança.
+  const acoes = useMemo(() => {
+    const sopa = lista.filter((a) => a.slug === "sopa-solidaria" || /sopa solid/i.test(a.name));
+    return [...sopa, ...lista.filter((a) => !sopa.includes(a))];
+  }, [lista]);
   const faixa = useRef<HTMLUListElement>(null);
   const [atual, setAtual] = useState(0);
 
@@ -273,6 +278,16 @@ function Acoes() {
     el.addEventListener("scroll", medir, { passive: true });
     return () => el.removeEventListener("scroll", medir);
   }, [acoes.length]);
+
+  // No celular, a lista de nomes acompanha a ação que está na tela.
+  const pontos = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const row = pontos.current;
+    const chip = row?.children[atual] as HTMLElement | undefined;
+    if (row && chip && row.scrollWidth > row.clientWidth) {
+      row.scrollTo({ left: chip.offsetLeft - row.offsetLeft - (row.clientWidth - chip.offsetWidth) / 2, behavior: "smooth" });
+    }
+  }, [atual]);
 
   const irPara = (i: number) => {
     const el = faixa.current;
@@ -317,7 +332,13 @@ function Acoes() {
         ))}
       </ul>
 
-      <div className="ini-acoes__pontos" role="tablist" aria-label="Escolher ação">
+      <div className="ini-acoes__setas ini-acoes__setas--baixo">
+        <button type="button" onClick={() => irPara(atual - 1)} disabled={atual === 0} aria-label="Ação anterior"><ArrowLeft size={22} /></button>
+        <span>{atual + 1} de {acoes.length}</span>
+        <button type="button" onClick={() => irPara(atual + 1)} disabled={atual >= acoes.length - 1} aria-label="Próxima ação"><ArrowRight size={22} /></button>
+      </div>
+
+      <div ref={pontos} className="ini-acoes__pontos" role="tablist" aria-label="Escolher ação">
         {acoes.map((a, i) => (
           <button key={a.id} type="button" role="tab" aria-selected={i === atual} aria-label={a.name}
             className={i === atual ? "ativo" : ""} onClick={() => irPara(i)}>
