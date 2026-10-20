@@ -37,3 +37,7 @@ backups/
 *.dump
 *.sql.gz
 .claude/
+
+# Arquivos de trabalho do design
+.taste-skill/
+/assets/

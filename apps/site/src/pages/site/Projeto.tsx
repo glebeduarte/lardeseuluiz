@@ -16,7 +16,7 @@ const Projeto = () => {
   if (!p) {
     return (
       <SitePage documento="Ações sociais" tag="Ações Sociais" titulo="Ação não encontrada">
-        <section className="pg-secao pg-secao--clara"><div className="pg-secao__inner"><a href="/#eventos" className="ds-btn ds-btn-outline">Ver todas as ações sociais</a></div></section>
+        <section className="pg-secao pg-secao--clara"><div className="pg-secao__inner"><a href="/#acoes" className="ds-btn ds-btn-outline">Ver todas as ações sociais</a></div></section>
       </SitePage>
     );
   }

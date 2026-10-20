@@ -47,7 +47,7 @@ export default function MinhasAcoes({ simulandoOutraPessoa }: { simulandoOutraPe
           <p className="text-sm text-muted-foreground text-center py-6">As escalas de outra pessoa não aparecem na simulação.</p>
         ) : escalas.length === 0 && pedidos.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-6">
-            Você ainda não está em nenhuma escala. Veja as <Link to="/#eventos" className="underline">ações sociais da Casa</Link> e peça para participar.
+            Você ainda não está em nenhuma escala. Veja as <Link to="/#acoes" className="underline">ações sociais da Casa</Link> e peça para participar.
           </p>
         ) : (
           <ul className="divide-y divide-border">

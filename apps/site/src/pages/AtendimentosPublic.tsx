@@ -159,7 +159,7 @@ const AtendimentosPublic = () => {
             <p className="atd-cta-final__sub">
               Venha nos visitar. Não precisamos saber sua religião, sua história ou sua crença. Basta chegar — e deixar que o acolhimento faça o resto.
             </p>
-            <a href="/#contato" className="atd-cta-final__btn">
+            <a href="/#visite" className="atd-cta-final__btn">
               Ver como chegar →
             </a>
             <p className="atd-cta-final__address">

@@ -2426,3 +2426,11 @@
   .cal-grid--desktop { display: none; }
   .cal-grid--mobile { display: block; }
 }
+
+/* Celular: barra do site e aviso de cookies mais enxutos. */
+@media (max-width: 520px) {
+  .site-nav__subtitle { display: none; }
+  .site-cookie-banner { left: 12px; right: 12px; bottom: 12px; padding: 14px 16px; gap: 10px 12px; border-radius: 16px; }
+  .site-cookie-banner__text { flex-basis: 100%; font-size: 14px; }
+  .site-btn-cookie { padding: 10px 18px; font-size: 14px; }
+}

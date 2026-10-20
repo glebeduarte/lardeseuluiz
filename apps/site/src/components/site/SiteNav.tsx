@@ -7,16 +7,16 @@ import { useAuth } from "@/hooks/useAuth";
 
 // Navegação da plataforma: páginas próprias para agenda, atendimentos, cursos, ações sociais e a casa.
 const links: { href: string; label: string; isRoute?: boolean; external?: boolean }[] = [
-  { href: "#horarios", label: "Horários" },
+  { href: "#semana", label: "Horários" },
   { href: "/agenda", label: "Agenda", isRoute: true },
   { href: "/atendimentos", label: "Atendimento", isRoute: true },
   { href: "/formacao/", label: "Cursos", external: true },
-  { href: "#eventos", label: "Ações Sociais" },
+  { href: "#acoes", label: "Ações sociais" },
   { href: "/a-casa", label: "A Casa", isRoute: true },
-  { href: "#contato", label: "Contato" },
+  { href: "#visite", label: "Como chegar" },
 ];
 
-const SiteNav = () => {
+const SiteNav = ({ solida = false }: { solida?: boolean }) => {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
@@ -42,7 +42,7 @@ const SiteNav = () => {
 
   return (
     <nav
-      className={`site-nav ${scrolled ? "site-nav--scrolled" : ""}`}
+      className={`site-nav ${scrolled || solida ? "site-nav--scrolled" : ""}`}
       aria-label="Navegação principal"
     >
       <Link className="site-nav__brand" to="/">

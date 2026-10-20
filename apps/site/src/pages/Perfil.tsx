@@ -526,7 +526,7 @@ export default function Perfil() {
               {aba === "acoes" && (
                 <div className="space-y-4">
                   <div className="grid gap-6"><MinhasAcoes simulandoOutraPessoa={!!simulacao?.personId} /></div>
-                  <Button variant="outline" className="h-12 w-full rounded-2xl" asChild><Link to="/#eventos"><HeartHandshake className="w-4 h-4 mr-2" /> Conhecer as ações sociais</Link></Button>
+                  <Button variant="outline" className="h-12 w-full rounded-2xl" asChild><Link to="/#acoes"><HeartHandshake className="w-4 h-4 mr-2" /> Conhecer as ações sociais</Link></Button>
                 </div>
               )}
 

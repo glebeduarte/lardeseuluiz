@@ -77,11 +77,11 @@ export default function MeusVinculos({ vinculos, operaAcoes }: { vinculos: Vincu
         <section className="space-y-3">
           <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5"><HeartHandshake className="w-3.5 h-3.5" /> Projetos sociais</div>
           {projetos.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Você ainda não está em nenhum projeto social. <Link to="/#eventos" className="text-primary hover:underline">Conheça as ações</Link>.</p>
+            <p className="text-sm text-muted-foreground">Você ainda não está em nenhum projeto social. <Link to="/#acoes" className="text-primary hover:underline">Conheça as ações</Link>.</p>
           ) : (
             <div className="grid gap-3 sm:grid-cols-2">
               {projetos.map((p) => {
-                const destino = p.coordena || operaAcoes ? `/app/acoes/${p.id}` : p.slug ? `/projetos/${p.slug}` : "/#eventos";
+                const destino = p.coordena || operaAcoes ? `/app/acoes/${p.id}` : p.slug ? `/projetos/${p.slug}` : "/#acoes";
                 return (
                   <div key={p.id} className={`rounded-xl border p-4 flex items-start gap-3 ${p.coordena ? "border-2" : ""}`}
                     style={p.coordena ? { borderColor: "hsl(var(--accent))", background: "hsl(var(--accent) / 0.06)" } : undefined}>
