@@ -18,14 +18,14 @@ delete from atendimento.maca_mediuns where id in (
 delete from atendimento.presencas where sessao_id = '95c2346d-499f-4474-92c6-f76427ed4a43';
 delete from atendimento.sessoes where id = '95c2346d-499f-4474-92c6-f76427ed4a43';
 
--- Formação: aluna Naizia Dantas de Brito, removida na Lovable, e suas 4 matrículas
+-- Formação: uma aluna removida na Lovable e suas 4 matrículas
 delete from formacao.enrollments where user_id = '6f4a8e7f-142f-48d1-ba95-edb67dfa65af';
 delete from formacao.profiles where id = '6f4a8e7f-142f-48d1-ba95-edb67dfa65af';
 
 -- Formação: "Encontro Extra 2" (22/10/2026), removido do calendário do ESDE na Lovable
 delete from formacao.esde_calendar_entries where id = 'b3da7ba6-56a9-4dd2-9989-f56f8d5821f7';
 
--- Formação: cópia antiga do perfil de Carolina Castro. O acesso dela no sistema novo (criado em 22/10)
+-- Formação: cópia antiga de um perfil. O acesso dessa pessoa no sistema novo (criado em 22/10)
 -- já levou matrículas, aulas e presenças para o perfil novo 02cef05f-454a-470e-bc00-54725e409059.
 delete from formacao.profiles where id = '73554771-60f8-4495-a91b-b720bd9ef532'
   and not exists (select 1 from formacao.enrollments where user_id = '73554771-60f8-4495-a91b-b720bd9ef532')
