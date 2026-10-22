@@ -74,8 +74,8 @@
 .ini-pagina .site-nav .site-nav__hamburger::before,
 .ini-pagina .site-nav .site-nav__hamburger::after { background: var(--ini-tinta); }
 .ini-pagina .site-nav .site-nav__hamburger.open { background: transparent; }
-@media (max-width: 1480px) and (min-width: 861px) { .ini-pagina .site-nav .site-nav__subtitle { display: none; } }
-@media (max-width: 1180px) and (min-width: 861px) { .ini-pagina .site-nav .site-nav__links { gap: 16px; } .ini-pagina .site-nav .site-nav__subtitle { display: none; } }
+@media (max-width: 1480px) and (min-width: 1241px) { .ini-pagina .site-nav .site-nav__subtitle { display: none; } }
+/* (1180px: agora o menu já é botão nessa largura) */
 
 /* ───────── 1. Abertura ───────── */
 .ini-abertura {
