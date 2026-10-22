@@ -6,7 +6,7 @@ import { MolduraSistema, useAreasLsl, type GrupoMenuLsl, type LinkLslProps } fro
 import {
   LayoutDashboard, DollarSign, FileText, Vote, Heart, Shield, Users, Building2,
   CalendarDays, Landmark, UserCheck,
-  Briefcase, Sparkles, Settings, ExternalLink, HeartHandshake, Home, UserPlus, Ticket
+  Briefcase, Sparkles, Settings, HeartPulse, GraduationCap, HeartHandshake, Home, UserPlus, Ticket
 } from "lucide-react";
 
 import { usePermissions, type ModulePermission } from "@/hooks/usePermissions";
@@ -29,8 +29,8 @@ const navGroups: NavGroup[] = [
       { to: "/app/familias", icon: Home, label: "Famílias atendidas", perm: "modulo_projetos" },
       { to: "/app/rifas", icon: Ticket, label: "Rifas", perm: "modulo_projetos" },
       { to: "/app/eventos", icon: CalendarDays, label: "Eventos e palestras", perm: "always" },
-      { href: "/atendimento/", icon: ExternalLink, label: "Sistema de Macas", perm: "modulo_macas" },
-      { href: "/formacao/admin", icon: ExternalLink, label: "Formação", perm: "modulo_formacao" },
+      { href: "/atendimento/", icon: HeartPulse, label: "Sistema de Macas", perm: "modulo_macas" },
+      { href: "/formacao/admin", icon: GraduationCap, label: "Formação", perm: "modulo_formacao" },
     ],
   },
   {
