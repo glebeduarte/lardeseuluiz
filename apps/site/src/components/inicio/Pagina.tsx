@@ -19,8 +19,8 @@ export const surgir = (atraso = 0) => ({
   transition: { duration: 0.6, delay: atraso, ease: [0.22, 1, 0.36, 1] as const },
 });
 
-export function PaginaSite({ documento, titulo, intro, foto, fotoAlt, acoes, children }: {
-  documento: string; titulo: string; intro?: ReactNode; foto?: string | null; fotoAlt?: string; acoes?: ReactNode; children: ReactNode;
+export function PaginaSite({ documento, titulo, intro, foto, fotoAlt, acoes, extra, children }: {
+  documento: string; titulo: string; intro?: ReactNode; foto?: string | null; fotoAlt?: string; acoes?: ReactNode; extra?: ReactNode; children: ReactNode;
 }) {
   useEffect(() => {
     document.title = `${documento} | Lar de Seu Luiz`;
@@ -36,6 +36,7 @@ export function PaginaSite({ documento, titulo, intro, foto, fotoAlt, acoes, chi
             <span className="ini-sol ini-cabeca__sol" aria-hidden="true" />
             <h1 id="ini-pagina-titulo" className="ini-display ini-display--pagina">{titulo}</h1>
             {intro && <p className="ini-cabeca__intro">{intro}</p>}
+            {extra}
             {acoes && <div className="ini-cabeca__acoes">{acoes}</div>}
           </motion.div>
           <div className="ini-cabeca__foto">

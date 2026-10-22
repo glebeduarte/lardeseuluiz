@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Shuffle, Search, Ticket } from "lucide-react";
-import { PaginaSite, Secao } from "@/components/inicio/Pagina";
+import { ArrowLeft, Shuffle, Search, Ticket, Gift, Check, MousePointerClick, UserRound, QrCode, BadgeCheck, Trophy } from "lucide-react";
+import { PaginaSite, Secao, ListaSol } from "@/components/inicio/Pagina";
 import GradeNumeros, { escolherAoAcaso, type Situacao } from "@/components/rifa/GradeNumeros";
 import PixPagamento from "@/components/rifa/PixPagamento";
 import { db } from "@/lib/acoes";
@@ -60,7 +60,9 @@ function RifaAberta({ rifa }: { rifa: RifaPublica }) {
     });
   }, [ocupados]);
 
-  const vendendo = rifa.status === "vendendo";
+  // Em preparação, só a coordenação vê a página: dá para testar a escolha, mas a reserva só funciona com as vendas abertas.
+  const previa = rifa.status === "rascunho";
+  const vendendo = rifa.status === "vendendo" || previa;
   const vendidos = rifa.numeros.length;
   const pct = Math.round((vendidos / rifa.total) * 100);
   const lista = [...escolhidos].sort((a, b) => a - b);
@@ -103,10 +105,20 @@ function RifaAberta({ rifa }: { rifa: RifaPublica }) {
 
   return (
     <PaginaSite documento={rifa.titulo} titulo={rifa.titulo} foto={rifa.capa} fotoAlt={rifa.premio}
-      intro={<>Prêmio: <strong>{rifa.premio}</strong>. Cada número custa {reais(rifa.preco)}.{rifa.data_sorteio ? ` Sorteio em ${dataBR(rifa.data_sorteio)}${rifa.local_sorteio ? `, ${rifa.local_sorteio}` : ""}.` : ""}</>}
-      acoes={vendendo ? <a href="#numeros" className="ini-botao">Escolher meus números</a> : undefined}>
+      intro={<>Cada número custa <strong>{reais(rifa.preco)}</strong>.{rifa.data_sorteio ? ` Sorteio em ${dataBR(rifa.data_sorteio)}${rifa.local_sorteio ? `, ${rifa.local_sorteio}` : ""}.` : " A data do sorteio será divulgada aqui."}</>}
+      extra={<CaixaPremio rifa={rifa} />}
+      acoes={<>
+        {vendendo && <a href="#numeros" className="ini-botao">Escolher meus números</a>}
+        <a href="#como-funciona" className="ini-botao ini-botao--claro">Como funciona</a>
+      </>}>
 
       <div ref={topo} />
+      {previa && (
+        <div className="rifa-previa" role="status">
+          <strong>Prévia para a coordenação.</strong> Esta rifa ainda está em preparação e não aparece no site.
+          Você pode testar a escolha dos números, mas a reserva só funciona depois de abrir as vendas em Governança › Rifas › Configurar.
+        </div>
+      )}
       {rifa.status === "sorteada" && rifa.ganhador && (
         <Secao titulo="Resultado do sorteio" fundo="papel">
           <div className="rifa-ganhou">
@@ -179,11 +191,7 @@ function RifaAberta({ rifa }: { rifa: RifaPublica }) {
         </Secao>
       )}
 
-      {(rifa.descricao || rifa.regras) && (
-        <Secao titulo="Sobre a rifa" intro={rifa.descricao ?? undefined}>
-          {rifa.regras && <div className="ini-texto">{rifa.regras.split(/\n{2,}/).map((p, i) => <p key={i}>{p}</p>)}</div>}
-        </Secao>
-      )}
+      <ComoFunciona rifa={rifa} />
 
       <ConsultaReserva rifa={rifa} guardadas={guardadas} mensagem={mensagem} />
 
@@ -245,6 +253,56 @@ function ConsultaReserva({ rifa, guardadas, mensagem }: { rifa: RifaPublica; gua
             <PixPagamento chave={rifa.pix_chave} nome={rifa.pix_nome} cidade={rifa.pix_cidade} valor={Number(achada.valor)} codigo={achada.codigo}
               whatsapp={rifa.whatsapp} mensagem={mensagem({ ...achada, telefone: tel, quando: "" })} />
           )}
+        </div>
+      )}
+    </Secao>
+  );
+}
+
+/* ───── Caixa do prêmio, no cabeçalho ───── */
+function CaixaPremio({ rifa }: { rifa: RifaPublica }) {
+  const itens = (rifa.itens_premio ?? []).filter(Boolean);
+  return (
+    <div className="rifa-premio" aria-label="O prêmio">
+      <div className="rifa-premio__topo">
+        <span className="rifa-premio__icone" aria-hidden="true"><Gift size={20} /></span>
+        <span>O prêmio</span>
+        {rifa.valor_premio && <span className="rifa-premio__valor">{rifa.valor_premio}</span>}
+      </div>
+      <strong className="rifa-premio__nome">{rifa.premio}</strong>
+      {itens.length > 0 && (
+        <ul className="rifa-premio__itens">
+          {itens.map((i) => <li key={i}><Check size={18} aria-hidden="true" />{i}</li>)}
+        </ul>
+      )}
+      {rifa.descricao && <p className="rifa-premio__texto">{rifa.descricao}</p>}
+    </div>
+  );
+}
+
+/* ───── Como funciona e regras ───── */
+function ComoFunciona({ rifa }: { rifa: RifaPublica }) {
+  const quando = rifa.data_sorteio ? `em ${dataBR(rifa.data_sorteio)}${rifa.local_sorteio ? `, ${rifa.local_sorteio}` : ""}` : "em data que será divulgada nesta página";
+  const passos = [
+    { icone: MousePointerClick, titulo: "Escolha seus números", texto: `Cada número custa ${reais(rifa.preco)}. Você pode escolher até ${rifa.max_por_pedido} por pedido, tocando nos números livres ou deixando o sistema escolher para você.` },
+    { icone: UserRound, titulo: "Reserve com seu nome e WhatsApp", texto: "Os números ficam guardados no seu nome e você recebe um código de reserva. Guarde esse código." },
+    { icone: QrCode, titulo: "Pague pelo PIX", texto: "Use o QR Code ou o PIX copia e cola, que já vem com o valor exato. Depois mande o comprovante pelo WhatsApp, junto com o código da reserva." },
+    { icone: BadgeCheck, titulo: "A coordenação confirma", texto: "Quando o PIX é conferido, sua reserva passa para pago. Você acompanha em \"Consultar minha reserva\", aqui embaixo. Reservas que não forem pagas podem ser liberadas para outras pessoas." },
+    { icone: Trophy, titulo: "Sorteio presencial", texto: `O sorteio é feito no Lar de Seu Luiz, ${quando}, só entre os números pagos. O resultado sai nesta página e a pessoa sorteada recebe contato pelo WhatsApp.` },
+  ];
+  const regras = (rifa.regras ?? "").split(/\n+/).map((r) => r.trim()).filter(Boolean);
+  return (
+    <Secao id="como-funciona" titulo="Como funciona" fundo="chao"
+      intro="Do número escolhido ao sorteio, em cinco passos.">
+      <ListaSol colunas={1} itens={passos.map((p, i) => ({ id: p.titulo, marca: <p.icone size={24} />, destaque: i === 0, titulo: p.titulo, texto: p.texto }))} />
+      {(regras.length > 0 || rifa.autorizacao) && (
+        <div className="rifa-regras">
+          <h3 className="ini-lead">Regras desta rifa</h3>
+          <ul>
+            {regras.map((r) => <li key={r}>{r}</li>)}
+            <li>Toda a arrecadação vai para o Lar de Seu Luiz, organização religiosa sem fins lucrativos.</li>
+            {rifa.autorizacao && <li>{rifa.autorizacao}</li>}
+          </ul>
         </div>
       )}
     </Secao>

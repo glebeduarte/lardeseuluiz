@@ -24,7 +24,7 @@ export const PEDIDO_COR: Record<PedidoStatus, string> = {
 };
 
 export interface Rifa {
-  id: string; slug: string; title: string; prize: string; description: string | null; cover_url: string | null;
+  id: string; slug: string; title: string; prize: string; prize_items: string[]; prize_value: string | null; description: string | null; cover_url: string | null;
   ticket_price: number; total_numbers: number; max_per_order: number;
   pix_key: string | null; pix_name: string | null; pix_city: string | null; whatsapp: string | null;
   draw_date: string | null; draw_place: string | null; rules: string | null; authorization_note: string | null;
@@ -38,7 +38,7 @@ export interface Pedido {
   raffle_tickets?: { number: number; ativo: boolean }[];
 }
 export interface RifaPublica {
-  id: string; slug: string; titulo: string; premio: string; descricao: string | null; capa: string | null;
+  id: string; slug: string; titulo: string; premio: string; itens_premio: string[] | null; valor_premio: string | null; descricao: string | null; capa: string | null;
   preco: number; total: number; max_por_pedido: number; status: RifaStatus;
   data_sorteio: string | null; local_sorteio: string | null; regras: string | null; autorizacao: string | null;
   whatsapp: string | null; pix_chave: string | null; pix_nome: string | null; pix_cidade: string | null;

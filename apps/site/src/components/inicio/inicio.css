@@ -387,3 +387,9 @@
   .ini-acoes__pontos { margin-top: 12px; }
   .ini-acao { scroll-snap-stop: always; }
 }
+.ini-pagina .site-nav__brand { flex-shrink: 0; }
+@media (max-width: 1360px) and (min-width: 861px) {
+  .ini-pagina .site-nav .site-nav__links { gap: 18px; }
+  .ini-pagina .site-nav .site-nav__links a { font-size: 15px; }
+  .ini-pagina .site-nav .site-nav__cta { padding: 9px 16px !important; }
+}

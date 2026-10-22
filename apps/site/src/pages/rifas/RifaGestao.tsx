@@ -400,7 +400,7 @@ function AbaConfigurar({ rifa, projetos, atualizar }: { rifa: Rifa; projetos: { 
     if ((status ?? f.status) === "vendendo" && !f.pix_key?.trim()) return toast.error("Cadastre a chave PIX antes de abrir as vendas.");
     setSalvando(true);
     const { error } = await db.from("raffles").update({
-      title: f.title, prize: f.prize, description: f.description || null, cover_url: f.cover_url || null,
+      title: f.title, prize: f.prize, prize_items: (f.prize_items ?? []).map((x) => x.trim()).filter(Boolean), prize_value: f.prize_value || null, description: f.description || null, cover_url: f.cover_url || null,
       ticket_price: Number(String(f.ticket_price).replace(",", ".")), total_numbers: Number(f.total_numbers), max_per_order: Number(f.max_per_order),
       pix_key: f.pix_key || null, pix_name: f.pix_name || null, pix_city: f.pix_city || null, whatsapp: f.whatsapp || null,
       draw_date: f.draw_date || null, draw_place: f.draw_place || null, rules: f.rules || null, authorization_note: f.authorization_note || null,
@@ -417,7 +417,12 @@ function AbaConfigurar({ rifa, projetos, atualizar }: { rifa: Rifa; projetos: { 
       <Card><CardContent className="p-6 grid gap-4">
         <div className="grid sm:grid-cols-2 gap-3">
           <div className="grid gap-2"><Label>Nome da rifa</Label><Input value={f.title} onChange={(e) => set("title", e.target.value)} /></div>
-          <div className="grid gap-2"><Label>Prêmio</Label><Input value={f.prize} onChange={(e) => set("prize", e.target.value)} /></div>
+          <div className="grid gap-2"><Label>Prêmio (nome curto)</Label><Input value={f.prize} onChange={(e) => set("prize", e.target.value)} /></div>
+        </div>
+        <div className="grid sm:grid-cols-[1fr_220px] gap-3">
+          <div className="grid gap-2"><Label>O que o prêmio inclui (um item por linha)</Label>
+            <Textarea rows={5} value={(f.prize_items ?? []).join("\n")} onChange={(e) => set("prize_items", e.target.value.split("\n"))} placeholder={"Corte\nTratamento\nMaquiagem"} /></div>
+          <div className="grid gap-2 content-start"><Label>Valor do prêmio (opcional)</Label><Input value={f.prize_value ?? ""} onChange={(e) => set("prize_value", e.target.value)} placeholder="Ex.: Mais de R$ 1.000" /></div>
         </div>
         <div className="grid gap-2"><Label>Explicação para quem compra</Label><Textarea value={f.description ?? ""} onChange={(e) => set("description", e.target.value)} placeholder="Para que vai o dinheiro, como é o prêmio..." /></div>
         <div className="grid sm:grid-cols-3 gap-3">
@@ -449,7 +454,7 @@ function AbaConfigurar({ rifa, projetos, atualizar }: { rifa: Rifa; projetos: { 
           </div>
           <div className="grid gap-2"><Label>Foto (endereço da imagem)</Label><Input value={f.cover_url ?? ""} onChange={(e) => set("cover_url", e.target.value)} placeholder="Usa a foto da ação, se ligada" /></div>
         </div>
-        <div className="grid gap-2"><Label>Regras</Label><Textarea rows={4} value={f.rules ?? ""} onChange={(e) => set("rules", e.target.value)} placeholder="Como é o sorteio, prazo para retirar o prêmio, o que acontece se o número sorteado não foi vendido..." /></div>
+        <div className="grid gap-2"><Label>Regras</Label><Textarea rows={4} value={f.rules ?? ""} onChange={(e) => set("rules", e.target.value)} placeholder="Regras próprias desta rifa, um parágrafo por regra. O passo a passo (reserva, PIX, sorteio) já aparece sozinho na página." /></div>
         <div className="grid gap-2"><Label>Autorização (aparece na página)</Label><Input value={f.authorization_note ?? ""} onChange={(e) => set("authorization_note", e.target.value)} placeholder="Ex.: Certificado de Autorização SPA/MF nº ..." /></div>
         <div><Button onClick={() => salvar()} disabled={salvando}>{salvando ? "Salvando..." : "Salvar"}</Button></div>
       </CardContent></Card>
