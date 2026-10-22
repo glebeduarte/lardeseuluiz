@@ -6,7 +6,7 @@ import { MolduraSistema, useAreasLsl, type GrupoMenuLsl, type LinkLslProps } fro
 import {
   LayoutDashboard, DollarSign, FileText, Vote, Heart, Shield, Users, Building2,
   CalendarDays, Landmark, UserCheck,
-  Briefcase, Sparkles, Settings, ExternalLink, HeartHandshake, Home, UserPlus
+  Briefcase, Sparkles, Settings, ExternalLink, HeartHandshake, Home, UserPlus, Ticket
 } from "lucide-react";
 
 import { usePermissions, type ModulePermission } from "@/hooks/usePermissions";
@@ -27,6 +27,7 @@ const navGroups: NavGroup[] = [
       { to: "/app/secretarias", icon: Building2, label: "Secretarias", perm: "always" },
       { to: "/app/acoes", icon: HeartHandshake, label: "Ações sociais", perm: "modulo_projetos" },
       { to: "/app/familias", icon: Home, label: "Famílias atendidas", perm: "modulo_projetos" },
+      { to: "/app/rifas", icon: Ticket, label: "Rifas", perm: "modulo_projetos" },
       { to: "/app/eventos", icon: CalendarDays, label: "Eventos e palestras", perm: "always" },
       { href: "/atendimento/", icon: ExternalLink, label: "Sistema de Macas", perm: "modulo_macas" },
       { href: "/formacao/admin", icon: ExternalLink, label: "Formação", perm: "modulo_formacao" },
@@ -98,7 +99,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       aoAbrirPerfil={() => navigate("/app/perfil")} aoSair={handleSignOut} versao="v1.0"
       rodape={(recolhida) => (
         <VisualizarComo compacto={recolhida}
-          className={`w-full gap-2 ${recolhida ? "justify-center px-2" : "justify-start"} text-white/85 hover:bg-white/10 hover:text-white`} />
+          className={`w-full gap-2 ${recolhida ? "justify-center px-2" : "justify-start"} rounded-full text-[15px] font-medium text-slate-700 hover:bg-[#eef4fb] hover:text-[#003c7f]`} />
       )}
     >
       {children}

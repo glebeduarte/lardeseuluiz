@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ComponentType } from "react"
 import {
   Search, X, GraduationCap, ListChecks, HandHeart, CalendarDays, HeartPulse, UserRound, Sprout,
   Building2, HeartHandshake, Home, Megaphone, UserPlus, Users, FileText, Wallet, Vote, BookOpen,
-  ClipboardList, MessageCircle, Stethoscope, BarChart3, Globe, Library, CalendarCheck, Settings,
+  ClipboardList, MessageCircle, Stethoscope, BarChart3, Globe, Library, CalendarCheck, Settings, Ticket,
 } from "lucide-react";
 import type { AreasLsl } from "./BarraSistemas";
 
@@ -28,6 +28,7 @@ type AreasCompletas = AreasLsl & {
   direcao?: boolean;
   permissoes?: string[];
   atendimento_papeis?: string[];
+  rifas?: { opera?: boolean; vende?: boolean };
 };
 
 const pode = (a: AreasCompletas, perm: string) => !!a.admin || !!a.permissoes?.includes(perm);
@@ -57,6 +58,9 @@ export const ATIVIDADES: AtividadeLsl[] = [
   { id: "familias", rotulo: "Ver as famílias atendidas", ajuda: "Cadastro das famílias das ações", href: "/app/familias", grupo: "Na casa", cor: "laranja", icone: Home, palavras: "família cesta cadastro", mostrar: (a) => pode(a, "modulo_projetos") },
   { id: "chamamento", rotulo: "Acompanhar novos voluntários", ajuda: "Chamamento: entrevistas, curso e estágio", href: "/app/chamamento", grupo: "Na casa", cor: "rosa", icone: UserPlus, palavras: "chamamento candidato novo voluntário entrevista", mostrar: (a) => pode(a, "modulo_recepcao") },
   { id: "frequentadores", rotulo: "Ver os frequentadores", ajuda: "Quem frequenta a casa", href: "/app/frequentadores", grupo: "Na casa", cor: "rosa", icone: Users, palavras: "frequentador cadastro", mostrar: (a) => pode(a, "modulo_recepcao") },
+
+  { id: "vender-rifa", rotulo: "Vender números da rifa", ajuda: "Registre a venda pelo celular", href: "/app/rifas/vender", grupo: "Na casa", cor: "dourado", icone: Ticket, palavras: "rifa vender número bilhete", mostrar: (a) => !!a.rifas?.vende || !!a.rifas?.opera },
+  { id: "rifas", rotulo: "Cuidar das rifas", ajuda: "Confirmar PIX, liberar números e sortear", href: "/app/rifas", grupo: "Na casa", cor: "dourado", icone: Ticket, palavras: "rifa pix pagamento sorteio", mostrar: (a) => !!a.rifas?.opera },
 
   // Atendimento
   { id: "recepcao", rotulo: "Receber quem chegou", ajuda: "Recepção do dia e fila das macas", href: "/atendimento/recepcao", grupo: "No atendimento", cor: "roxo", icone: ClipboardList, palavras: "recepção chegada fila senha", mostrar: (a) => papel(a, "recepcao") },

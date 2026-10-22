@@ -2434,3 +2434,6 @@
   .site-cookie-banner__text { flex-basis: 100%; font-size: 14px; }
   .site-btn-cookie { padding: 10px 18px; font-size: 14px; }
 }
+
+/* O aviso de cookies escondido não pode bloquear toques no fim da tela. */
+.site-cookie-banner:not(.site-cookie-banner--show) { pointer-events: none; visibility: hidden; }

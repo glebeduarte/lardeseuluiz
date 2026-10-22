@@ -23,6 +23,7 @@ import {
   GraduationCap, HeartPulse, Landmark, HeartHandshake, ChevronRight, BookOpen, CheckCircle2, Award, Users,
   Bed, MessagesSquare, Crown, Save, Eye, Footprints, Check, ArrowLeft, ListChecks, Sparkles, UserRound, Sun, Moon, Sunrise,
   ChevronDown,
+  Ticket,
 } from "lucide-react";
 
 // Perfil único da plataforma: dados pessoais editáveis e o resumo de tudo o que a pessoa faz na Casa
@@ -267,6 +268,8 @@ export default function Perfil() {
     avisos.push({ chave: "jornada", icone: Footprints, cor: "rosa", texto: proximoPasso(jornada), acao: () => irPara("jornada") });
   cursosAtivos.filter((c) => c.aulas > 0 && c.concluidas < c.aulas).slice(0, 1).forEach((c) =>
     avisos.push({ chave: `c${c.id}`, icone: BookOpen, cor: "verde", texto: `Continue o curso ${c.titulo}: ${c.concluidas} de ${c.aulas} aulas`, acao: () => window.location.assign(`/formacao/course/${c.id}`) }));
+  if ((areas as { rifas?: { vende?: boolean } } | null)?.rifas?.vende)
+    avisos.push({ chave: "rifa", icone: Ticket, cor: "dourado", texto: "Você é vendedor de uma rifa aberta. Toque para registrar vendas.", acao: () => navigate("/app/rifas/vender") });
 
   const tituloSecao: Record<string, string> = {
     formacao: "Meus cursos", tarefas: "Minhas tarefas", casa: "Onde eu ajudo", acoes: "Minhas escalas",

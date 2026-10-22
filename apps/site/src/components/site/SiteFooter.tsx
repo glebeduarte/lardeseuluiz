@@ -28,6 +28,7 @@ const SiteFooter = () => (
           <li><Link to="/atendimentos">Atendimentos</Link></li>
           <li><a href="/#acoes">Ações sociais</a></li>
           <li><Link to="/voluntariado">Seja voluntário</Link></li>
+          <li><Link to="/rifas">Rifas solidárias</Link></li>
           <li><a href="/formacao/">Cursos</a></li>
         </ul>
       </nav>

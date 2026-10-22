@@ -36,6 +36,11 @@ import AcoesSociais from "./pages/acoes/AcoesSociais";
 import AcaoDetalhe from "./pages/acoes/AcaoDetalhe";
 import EdicaoDetalhe from "./pages/acoes/EdicaoDetalhe";
 import Familias from "./pages/acoes/Familias";
+import Rifa from "./pages/site/Rifa";
+import Rifas from "./pages/site/Rifas";
+import RifasGestao from "./pages/rifas/RifasGestao";
+import RifaGestao from "./pages/rifas/RifaGestao";
+import RifaVender from "./pages/rifas/RifaVender";
 import Chamamento from "./pages/chamamento/Chamamento";
 import CandidatoChamamento from "./pages/chamamento/Candidato";
 import NotFound from "./pages/NotFound";
@@ -65,6 +70,8 @@ const App = () => (
             <Route path="/agenda" element={<Agenda />} />
             <Route path="/a-casa" element={<ACasa />} />
             <Route path="/projetos/:slug" element={<Projeto />} />
+            <Route path="/rifas" element={<Rifas />} />
+            <Route path="/rifas/:slug" element={<Rifa />} />
             <Route path="/voluntariado" element={<Voluntariado />} />
             <Route path="/privacidade" element={<Privacidade />} />
             <Route path="/app" element={<AppDashboard />} />
@@ -86,6 +93,9 @@ const App = () => (
             <Route path="/app/configuracoes/funcoes" element={<Funcoes />} />
             <Route path="/app/projetos" element={<Projetos />} />
             <Route path="/app/acoes" element={<AcoesSociais />} />
+            <Route path="/app/rifas" element={<RifasGestao />} />
+            <Route path="/app/rifas/vender" element={<RifaVender />} />
+            <Route path="/app/rifas/:id" element={<RifaGestao />} />
             <Route path="/app/acoes/:id" element={<AcaoDetalhe />} />
             <Route path="/app/acoes/edicao/:id" element={<EdicaoDetalhe />} />
             <Route path="/app/familias" element={<Familias />} />
