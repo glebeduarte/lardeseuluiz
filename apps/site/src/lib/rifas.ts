@@ -130,3 +130,32 @@ export function pixCopiaECola({ chave, nome, cidade, valor, identificador }: { c
     "6304";
   return corpo + crc16(corpo);
 }
+
+/** Mensagem de WhatsApp para quem reservou e ainda não pagou: números, valor e o PIX copia e cola pronto. */
+export function mensagemCobranca({ nome, codigo, titulo, numeros, total, valor, chave, recebedor, cidade, slug }: {
+  nome: string; codigo: string; titulo: string; numeros: number[]; total: number; valor: number;
+  chave: string | null; recebedor: string | null; cidade: string | null; slug?: string | null;
+}) {
+  const primeiro = nome.trim().split(/\s+/)[0] || nome;
+  const lista = numeros.map((n) => pad(n, total)).join(", ");
+  const partes = [
+    `Olá, ${primeiro}! Sua reserva *${codigo}* na ${titulo} está guardada.`,
+    `Números: ${lista}`,
+    `Valor: *${reais(valor)}*`,
+  ];
+  if (chave) {
+    const codigoPix = pixCopiaECola({ chave, nome: recebedor || "LAR DE SEU LUIZ", cidade: cidade || "NISIA FLORESTA", valor, identificador: codigo });
+    partes.push(
+      "",
+      "Para pagar, copie o código abaixo e cole no app do seu banco, em *Pix copia e cola*. O valor já vem preenchido:",
+      "",
+      codigoPix,
+      "",
+      `Se preferir, use a chave PIX ${normalizarChave(chave)}${recebedor ? ` (${recebedor})` : ""}.`,
+    );
+  } else if (slug) {
+    partes.push("", `Para pagar pelo PIX: ${window.location.origin}/rifas/${slug}`);
+  }
+  partes.push("", "Depois é só responder esta mensagem com o comprovante. Obrigado por ajudar o Lar de Seu Luiz!");
+  return partes.join("\n");
+}

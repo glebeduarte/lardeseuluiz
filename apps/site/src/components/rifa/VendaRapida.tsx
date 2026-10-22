@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import GradeNumeros, { escolherAoAcaso, type Situacao } from "@/components/rifa/GradeNumeros";
 import { db } from "@/lib/acoes";
-import { erroAmigavel, linkWhats, pad, reais, useRifaPublica, type Reserva } from "@/lib/rifas";
+import { erroAmigavel, linkWhats, mensagemCobranca, pad, reais, useRifaPublica, type Reserva } from "@/lib/rifas";
 import "./rifa.css";
 
 // Venda feita por voluntário ou pela coordenação: escolhe os números, anota o comprador e diz se já recebeu.
@@ -50,7 +50,8 @@ export default function VendaRapida({ rifaId, slug, total, preco, maximo, coorde
     const nums = feito.numeros.map((n) => pad(n, total)).join(", ");
     const msg = feito.status === "pago" || recebido
       ? `Olá, ${feito.nome.split(" ")[0]}! Seus números na rifa do Lar de Seu Luiz estão garantidos: ${nums}. Código ${feito.codigo}. Boa sorte!`
-      : `Olá, ${feito.nome.split(" ")[0]}! Reservei seus números na rifa do Lar de Seu Luiz: ${nums} (código ${feito.codigo}). O valor é ${reais(feito.valor)}.${slugAtual ? ` Para pagar pelo PIX: ${window.location.origin}/rifas/${slugAtual}` : ""}`;
+      : mensagemCobranca({ nome: feito.nome, codigo: feito.codigo, titulo: pub?.titulo ?? "rifa do Lar de Seu Luiz", numeros: feito.numeros, total, valor: Number(feito.valor),
+          chave: pub?.pix_chave ?? null, recebedor: pub?.pix_nome ?? null, cidade: pub?.pix_cidade ?? null, slug: slugAtual });
     return (
       <div className="grid gap-4">
         <div className="rounded-2xl bg-emerald-50 text-emerald-900 p-4">

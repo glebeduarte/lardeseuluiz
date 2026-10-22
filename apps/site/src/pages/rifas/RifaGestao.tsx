@@ -17,7 +17,7 @@ import BuscaPessoa from "@/components/acoes/BuscaPessoa";
 import GradeNumeros, { type Situacao } from "@/components/rifa/GradeNumeros";
 import VendaRapida from "@/components/rifa/VendaRapida";
 import { db, useNomesPessoas, type PessoaBasica } from "@/lib/acoes";
-import { dataBR, erroAmigavel, linkWhats, pad, PEDIDO_COR, PEDIDO_STATUS, reais, RIFA_COR, RIFA_STATUS, type Pedido, type Rifa, type RifaStatus } from "@/lib/rifas";
+import { dataBR, erroAmigavel, linkWhats, mensagemCobranca, pad, PEDIDO_COR, PEDIDO_STATUS, reais, RIFA_COR, RIFA_STATUS, type Pedido, type Rifa, type RifaStatus } from "@/lib/rifas";
 import "@/components/rifa/rifa.css";
 
 const LinkRR = ({ href, className, children }: { href: string; className: string; children: React.ReactNode }) => <Link to={href} className={className}>{children}</Link>;
@@ -182,7 +182,8 @@ function AbaPedidos({ rifa, pedidos, nomes, atualizar }: { rifa: Rifa; pedidos: 
             const vendedor = p.seller_person_id ? nomes[p.seller_person_id]?.full_name : null;
             const msg = p.status === "pago"
               ? `Olá, ${p.buyer_name.split(" ")[0]}! Confirmamos o pagamento da reserva ${p.code} na ${rifa.title}. Seus números: ${nums.map((n) => pad(n, rifa.total_numbers)).join(", ")}. Boa sorte!`
-              : `Olá, ${p.buyer_name.split(" ")[0]}! Sua reserva ${p.code} na ${rifa.title} (números ${nums.map((n) => pad(n, rifa.total_numbers)).join(", ")}) está esperando o PIX de ${reais(p.amount)}.`;
+              : mensagemCobranca({ nome: p.buyer_name, codigo: p.code, titulo: rifa.title, numeros: nums, total: rifa.total_numbers, valor: Number(p.amount),
+                  chave: rifa.pix_key, recebedor: rifa.pix_name, cidade: rifa.pix_city, slug: rifa.slug });
             return (
               <Card key={p.id}>
                 <CardContent className="p-5 flex flex-col lg:flex-row lg:items-center gap-4">
@@ -209,9 +210,13 @@ function AbaPedidos({ rifa, pedidos, nomes, atualizar }: { rifa: Rifa; pedidos: 
                       <Button onClick={() => marcarPago(p)} disabled={ocupado === p.id} className="bg-emerald-700 hover:bg-emerald-800"><Check className="w-4 h-4 mr-2" /> PIX recebido</Button>
                     )}
                     {p.status === "pago" && <Button variant="outline" onClick={() => marcarPago(p, false)} disabled={ocupado === p.id}><Undo2 className="w-4 h-4 mr-2" /> Desfazer</Button>}
-                    <Button variant="outline" size="icon" asChild title="Mandar mensagem no WhatsApp">
-                      <a href={linkWhats(p.buyer_phone, msg)} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><MessageCircle className="w-4 h-4" /></a>
-                    </Button>
+                    {p.status === "cancelado" ? null : (
+                      <Button variant="outline" asChild title={p.status === "reservado" ? "Manda os números, o valor e o PIX copia e cola" : "Manda a confirmação com os números"}>
+                        <a href={linkWhats(p.buyer_phone, msg)} target="_blank" rel="noopener noreferrer">
+                          <MessageCircle className="w-4 h-4 mr-2" /> {p.status === "reservado" ? "Cobrar com PIX" : "Confirmar no WhatsApp"}
+                        </a>
+                      </Button>
+                    )}
                     {p.status !== "cancelado" && <Button variant="ghost" onClick={() => setLiberar(p)}><Unlock className="w-4 h-4 mr-2" /> Liberar</Button>}
                   </div>
                 </CardContent>
