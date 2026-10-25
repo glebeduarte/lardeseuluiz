@@ -19,7 +19,7 @@ export type Curso = {
 
 export type Acessos = {
   direitos: Direitos;
-  pessoa: { id: string; nome: string; email: string | null; telefone: string | null; foto: string | null; user_id: string | null; tipos: string[] };
+  pessoa: { id: string; nome: string; email: string | null; telefone: string | null; foto: string | null; user_id: string | null; tem_cpf: boolean; tipos: string[] };
   atendimento: { papeis: string[]; via_funcao: string[]; ativo: boolean; macas: { numero: number; nome: string; dia: string | null; cor: string | null }[] };
   formacao: { papeis: string[]; via_funcao: string[]; cursos: Curso[] };
   governanca: {

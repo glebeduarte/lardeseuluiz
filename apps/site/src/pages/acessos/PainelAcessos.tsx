@@ -148,6 +148,8 @@ function Ficha({ personId }: { personId: string }) {
         <ResumoPapeis dados={data} />
       </section>
 
+      <NaCasa dados={data} ocupado={ocupado} executar={executar} />
+
       {semLogin && <CriarAcesso dados={data} />}
 
       {/* Celular: escolhe a área; telas largas: as três lado a lado */}
@@ -187,6 +189,44 @@ function ResumoPapeis({ dados }: { dados: Acessos }) {
     <div className="flex flex-wrap gap-1.5 sm:max-w-[280px] sm:justify-end">
       {selos.map((x) => <span key={x.s + x.t} className={`px-3 py-1 rounded-full text-xs font-semibold ${COR[x.s].icone}`}>{x.t}</span>)}
     </div>
+  );
+}
+
+/* ------------------------------------------------------------------------------------------------ Voluntário ou frequentador */
+
+function NaCasa({ dados, ocupado, executar }: { dados: Acessos; ocupado: string | null; executar: PropsColuna["executar"] }) {
+  const p = dados.pessoa;
+  const voluntario = p.tipos.includes("trabalhador");
+  const pode = dados.direitos.governanca;
+  const [pedirCpf, setPedirCpf] = useState(false);
+  const [cpf, setCpf] = useState("");
+  const mudar = async (v: boolean) => {
+    if (v && !p.tem_cpf && !pedirCpf) { setPedirCpf(true); return; }
+    await executar("vol", "painel_voluntario", { p_ativo: v, p_cpf: v && !p.tem_cpf ? cpf : null }, v ? "Agora consta como voluntário" : "Agora consta como frequentador");
+    setPedirCpf(false); setCpf("");
+  };
+  return (
+    <section className="rounded-3xl bg-card border border-border/70 p-4 sm:p-5">
+      <div className="flex items-center gap-3">
+        <span className="w-11 h-11 rounded-2xl bg-[#fff3cc] text-[#7a5200] flex items-center justify-center shrink-0"><UserRound className="w-5 h-5" /></span>
+        <div className="flex-1 min-w-0">
+          <h2 className="font-semibold text-[16px] leading-tight">Na Casa: {voluntario ? "voluntário" : "frequentador"}</h2>
+          <p className="text-[13px] text-muted-foreground leading-snug">Voluntário é quem trabalha na Casa. Isso vale para o cadastro e para a Formação.</p>
+        </div>
+        {ocupado === "vol" ? <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /> : (
+          <Switch checked={voluntario || pedirCpf} disabled={!pode} onCheckedChange={(v) => (v ? mudar(true) : pedirCpf ? setPedirCpf(false) : mudar(false))} aria-label="Voluntário" />
+        )}
+      </div>
+      {!pode && <p className="text-[13px] text-muted-foreground mt-2">Só o administrador geral muda isso.</p>}
+      {pedirCpf && (
+        <div className="mt-3 grid sm:grid-cols-[1fr_auto_auto] gap-2 rounded-2xl bg-[#fff8e0] p-3">
+          <Input value={cpf} onChange={(e) => setCpf(e.target.value)} inputMode="numeric" placeholder="CPF da pessoa (só números)" className="h-11 bg-white" aria-label="CPF" autoFocus />
+          <Button className="h-11" onClick={() => mudar(true)} disabled={cpf.replace(/\D/g, "").length !== 11}>Confirmar voluntário</Button>
+          <Button variant="ghost" className="h-11" onClick={() => { setPedirCpf(false); setCpf(""); }}>Cancelar</Button>
+          <p className="sm:col-span-3 text-[13px] text-[#5c4100]">O cadastro de voluntário pede o CPF. Ele fica guardado só no cadastro da Casa.</p>
+        </div>
+      )}
+    </section>
   );
 }
 
