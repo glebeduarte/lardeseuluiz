@@ -50,7 +50,7 @@ export function AlunoLayout({ children, areas, usuario, navegar, facilitador, ad
   );
 
   return (
-    <MolduraSimples sistema="formacao" areas={areas} usuario={usuario} navegar={navegar} avisos={menu}>
+    <MolduraSimples sistema="formacao" areas={areas} usuario={usuario} navegar={navegar} avisos={menu} semOQueFazer>
       <div className="lsl-noite min-h-[calc(100vh-108px)]">{children}</div>
     </MolduraSimples>
   );

@@ -44,6 +44,8 @@ export interface MolduraSistemaProps {
   navegar?: (href: string) => boolean;
   larguraTotal?: boolean;
   versao?: string;
+  /** Esconde o botão flutuante "O que você quer fazer?". */
+  semOQueFazer?: boolean;
   children: ReactNode;
 }
 
@@ -133,15 +135,15 @@ export function MolduraSistema(p: MolduraSistemaProps) {
         {p.avisos}
         <main className={`lsl-conteudo${p.larguraTotal ? " lsl-conteudo--total" : ""}`}>{p.children}</main>
       </div>
-      <OQueFazer areas={p.areas} navegar={p.navegar} />
+      {!p.semOQueFazer && <OQueFazer areas={p.areas} navegar={p.navegar} />}
     </>
   );
 }
 
 /** Página só com a barra de sistemas, sem barra lateral (ex.: perfil para quem não é da gestão). */
-export function MolduraSimples({ sistema, areas, usuario, navegar, children, avisos }: {
+export function MolduraSimples({ sistema, areas, usuario, navegar, children, avisos, semOQueFazer }: {
   sistema: SistemaLsl; areas: AreasLsl | null; usuario?: { nome?: string | null; foto?: string | null };
-  navegar?: (href: string) => boolean; children: ReactNode; avisos?: ReactNode;
+  navegar?: (href: string) => boolean; children: ReactNode; avisos?: ReactNode; semOQueFazer?: boolean;
 }) {
   return (
     <>
@@ -150,7 +152,7 @@ export function MolduraSimples({ sistema, areas, usuario, navegar, children, avi
         {avisos}
         <main className="lsl-conteudo">{children}</main>
       </div>
-      <OQueFazer areas={areas} navegar={navegar} />
+      {!semOQueFazer && <OQueFazer areas={areas} navegar={navegar} />}
     </>
   );
 }

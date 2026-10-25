@@ -142,6 +142,7 @@ export function DashboardLayout({ children, larguraTotal }: DashboardLayoutProps
       aoAbrirPerfil={() => window.location.assign('/app/perfil')} aoSair={handleSignOut}
       extraBarra={<div className="lsl-sino">{<NotificationBell />}</div>}
       larguraTotal={larguraTotal}
+      semOQueFazer
     >
       <div className="animate-fade-in">{children}</div>
     </MolduraSistema>
