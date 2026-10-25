@@ -258,18 +258,20 @@ export default function Perfil() {
   const saudacao = hora < 12 ? "Bom dia" : hora < 18 ? "Boa tarde" : "Boa noite";
   const IconeSaudacao = hora < 12 ? Sunrise : hora < 18 ? Sun : Moon;
 
+  // Áreas de voluntário (tarefas, onde ajudo, escalas, atendimento) só para voluntário ou administrador geral
+  const veSistemas = !!(areas?.voluntario || areas?.admin);
   // Atalhos coloridos da tela inicial do perfil (só aparecem os que fazem sentido para a pessoa)
   const atalhos: Atalho[] = [
     { id: "formacao", titulo: "Meus cursos", icone: GraduationCap, cor: "verde",
       info: cursosAtivos.length ? `${cursosAtivos.length} em andamento` : "Conheça os cursos", mostrar: true },
     { id: "tarefas", titulo: "Minhas tarefas", icone: ListChecks, cor: "azul",
-      info: minhasTarefas.length ? `${minhasTarefas.length} para fazer` : "Nada pendente", contador: minhasTarefas.length, mostrar: secretariasV.length > 0 || minhasTarefas.length > 0 },
+      info: minhasTarefas.length ? `${minhasTarefas.length} para fazer` : "Nada pendente", contador: minhasTarefas.length, mostrar: veSistemas && (secretariasV.length > 0 || minhasTarefas.length > 0) },
     { id: "casa", titulo: "Onde eu ajudo", icone: HeartHandshake, cor: "dourado",
-      info: temVinculos ? [...secretariasV.map((s) => s.nome), ...projetosV.map((x) => x.nome)].slice(0, 2).join(", ") : funcoes.length ? nomesFuncoes : "Secretarias e projetos", mostrar: temGovernanca },
+      info: temVinculos ? [...secretariasV.map((s) => s.nome), ...projetosV.map((x) => x.nome)].slice(0, 2).join(", ") : funcoes.length ? nomesFuncoes : "Secretarias e projetos", mostrar: veSistemas && temGovernanca },
     { id: "acoes", titulo: "Minhas escalas", icone: CalendarDays, cor: "laranja",
-      info: proximasEscalas.length ? `Próxima: ${dataAmigavel(proximasEscalas[0].data)}` : "Ações sociais", contador: proximasEscalas.filter((e) => !e.confirmed).length, mostrar: true },
+      info: proximasEscalas.length ? `Próxima: ${dataAmigavel(proximasEscalas[0].data)}` : "Ações sociais", contador: proximasEscalas.filter((e) => !e.confirmed).length, mostrar: veSistemas },
     { id: "atendimento", titulo: "Atendimento", icone: HeartPulse, cor: "roxo",
-      info: atendimento ? atendimento.papeis.map((x) => PAPEIS_ATENDIMENTO[x] ?? x).join(" e ") : "", mostrar: !!atendimento },
+      info: atendimento ? atendimento.papeis.map((x) => PAPEIS_ATENDIMENTO[x] ?? x).join(" e ") : "", mostrar: veSistemas && !!atendimento },
     { id: "jornada", titulo: "Ser voluntário", icone: Footprints, cor: "rosa",
       info: jornada ? ETAPA_LABEL[jornada.etapa] : estagiarios.length ? `${estagiarios.length} estagiário(s)` : "", mostrar: temJornada },
     { id: "dados", titulo: "Meus dados", icone: UserRound, cor: "cinza", info: "Nome, telefone e endereço", mostrar: true },

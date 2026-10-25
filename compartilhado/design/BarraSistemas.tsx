@@ -14,6 +14,10 @@ export interface AreasLsl {
   formacao?: boolean;
   formacao_admin?: boolean;
   atendimento?: boolean;
+  /** Pessoa marcada como voluntário da Casa. */
+  voluntario?: boolean;
+  /** Administrador geral da Governança. */
+  admin?: boolean;
   nome?: string | null;
   foto?: string | null;
 }
