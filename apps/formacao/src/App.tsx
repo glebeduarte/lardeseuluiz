@@ -43,7 +43,8 @@ import EsdeCalendarEditorPage from "./pages/admin/EsdeCalendarEditorPage";
 import AttendancePage from "./pages/AttendancePage";
 import MyAttendancePage from "./pages/MyAttendancePage";
 import AnnouncementsListPage from "./pages/AnnouncementsListPage";
-import { IncompleteProfileModal } from "./components/IncompleteProfileModal";
+import { CadastroObrigatorio } from "@/compartilhado";
+import { supabase as clienteLsl } from "@/integrations/supabase/client";
 import { ForcePasswordChangeGuard } from "./components/ForcePasswordChangeGuard";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 const queryClient = new QueryClient({
@@ -56,7 +57,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <IncompleteProfileModal />
+        <CadastroObrigatorio cliente={clienteLsl} />
         <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}>
           <ForcePasswordChangeGuard />
           <Routes>

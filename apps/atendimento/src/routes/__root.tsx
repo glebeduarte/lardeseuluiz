@@ -9,6 +9,8 @@ import { useEffect } from "react";
 
 import { AuthProvider } from "@/lib/auth";
 import { Toaster } from "@/components/ui/sonner";
+import { CadastroObrigatorio } from "@/compartilhado";
+import { supabase as clienteLsl } from "@/integrations/supabase/client";
 import { ConfirmProvider } from "@/components/ConfirmDialog";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -83,6 +85,7 @@ function RootComponent() {
         <ConfirmProvider>
           <Outlet />
           <Toaster richColors position="top-right" />
+          <CadastroObrigatorio cliente={clienteLsl} />
         </ConfirmProvider>
       </AuthProvider>
     </QueryClientProvider>
