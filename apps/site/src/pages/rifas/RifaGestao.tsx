@@ -124,6 +124,11 @@ function AbaPedidos({ rifa, pedidos, nomes, atualizar }: { rifa: Rifa; pedidos: 
   const [motivo, setMotivo] = useState("");
   const [lancar, setLancar] = useState(false);
   const [ocupado, setOcupado] = useState<string | null>(null);
+  const [remover, setRemover] = useState<Pedido | null>(null);
+  const [motivoRemocao, setMotivoRemocao] = useState("");
+  // Remover venda (apagar de vez) é só para quem criou a rifa
+  const { data: meuId } = useQuery({ queryKey: ["meu-uid"], queryFn: async () => (await db.auth.getUser()).data.user?.id ?? null });
+  const souCriador = !!rifa.created_by && rifa.created_by === meuId;
 
   const repassar = pedidos.filter((p) => p.status === "reservado" && p.received_by_seller);
   const contagem: Record<Filtro, number> = {
@@ -150,6 +155,14 @@ function AbaPedidos({ rifa, pedidos, nomes, atualizar }: { rifa: Rifa; pedidos: 
     if (error) return toast.error(erroAmigavel(error));
     toast.success("Números liberados. Eles voltaram a ficar disponíveis.");
     setLiberar(null); setMotivo(""); atualizar();
+  };
+
+  const confirmarRemover = async () => {
+    if (!remover) return;
+    const { error } = await db.rpc("rifa_remover_pedido", { p_pedido: remover.id, p_motivo: motivoRemocao });
+    if (error) return toast.error(erroAmigavel(error));
+    toast.success(`Venda ${remover.code} removida. Os números voltaram a ficar livres.`);
+    setRemover(null); setMotivoRemocao(""); atualizar();
   };
 
   const FILTROS: [Filtro, string][] = [["reservado", "Esperando PIX"], ["repassar", "Com vendedor, a repassar"], ["pago", "Pagos"], ["cancelado", "Liberados"], ["todos", "Todos"]];
@@ -207,7 +220,7 @@ function AbaPedidos({ rifa, pedidos, nomes, atualizar }: { rifa: Rifa; pedidos: 
                   <div className="flex flex-wrap items-center gap-2 lg:justify-end">
                     <span className="text-lg font-bold mr-2">{reais(p.amount)}</span>
                     {p.status === "reservado" && (
-                      <Button onClick={() => marcarPago(p)} disabled={ocupado === p.id} className="bg-emerald-700 hover:bg-emerald-800"><Check className="w-4 h-4 mr-2" /> PIX recebido</Button>
+                      <Button onClick={() => marcarPago(p)} disabled={ocupado === p.id} className="bg-emerald-700 hover:bg-emerald-800"><Check className="w-4 h-4 mr-2" /> Confirmar pagamento</Button>
                     )}
                     {p.status === "pago" && <Button variant="outline" onClick={() => marcarPago(p, false)} disabled={ocupado === p.id}><Undo2 className="w-4 h-4 mr-2" /> Desfazer</Button>}
                     {p.status === "cancelado" ? null : (
@@ -218,6 +231,9 @@ function AbaPedidos({ rifa, pedidos, nomes, atualizar }: { rifa: Rifa; pedidos: 
                       </Button>
                     )}
                     {p.status !== "cancelado" && <Button variant="ghost" onClick={() => setLiberar(p)}><Unlock className="w-4 h-4 mr-2" /> Liberar</Button>}
+                    {souCriador && rifa.winner_order_id !== p.id && (
+                      <Button variant="ghost" className="text-red-700 hover:text-red-800 hover:bg-red-50" onClick={() => setRemover(p)}><Trash2 className="w-4 h-4 mr-2" /> Remover venda</Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -239,6 +255,24 @@ function AbaPedidos({ rifa, pedidos, nomes, atualizar }: { rifa: Rifa; pedidos: 
           <DialogFooter>
             <Button variant="outline" onClick={() => setLiberar(null)}>Voltar</Button>
             <Button variant="destructive" onClick={confirmarLiberar}>Liberar números</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!remover} onOpenChange={(v) => !v && setRemover(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-['Playfair_Display']">Remover a venda {remover?.code}?</DialogTitle>
+            <DialogDescription>
+              A venda de {remover?.buyer_name} sai da rifa e os números {remover ? numerosDo(remover).map((n) => pad(n, rifa.total_numbers)).join(", ") : ""} voltam a ficar livres.
+              Ela deixa de aparecer nos pedidos e nos totais. Use para vendas de teste ou lançadas por engano; para quem desistiu, prefira Liberar.
+              {remover?.status === "pago" ? " Atenção: esta venda está marcada como paga." : ""}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-2"><Label>Motivo (opcional)</Label><Input value={motivoRemocao} onChange={(e) => setMotivoRemocao(e.target.value)} placeholder="Ex.: venda de teste" /></div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRemover(null)}>Voltar</Button>
+            <Button variant="destructive" onClick={confirmarRemover}>Remover venda</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

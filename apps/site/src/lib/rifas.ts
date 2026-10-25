@@ -29,7 +29,7 @@ export interface Rifa {
   pix_key: string | null; pix_name: string | null; pix_city: string | null; whatsapp: string | null;
   draw_date: string | null; draw_place: string | null; rules: string | null; authorization_note: string | null;
   project_id: string | null; status: RifaStatus; winner_number: number | null; winner_order_id: string | null;
-  drawn_at: string | null; draw_notes: string | null; created_at: string;
+  drawn_at: string | null; draw_notes: string | null; created_at: string; created_by?: string | null;
 }
 export interface Pedido {
   id: string; raffle_id: string; code: string; buyer_name: string; buyer_phone: string; buyer_email: string | null;
