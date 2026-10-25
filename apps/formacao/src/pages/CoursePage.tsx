@@ -1,208 +1,110 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import DOMPurify from 'dompurify';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { CabecalhoPagina } from '@/compartilhado';
-import { Card, CardContent } from '@/components/ui/card';
 import { AssessmentBlock } from '@/components/assessment/AssessmentBlock';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import {
-  ArrowLeft, PlayCircle, CheckCircle, Lock, BookOpen, Users,
-  ChevronDown, ChevronRight, Video, FileText, Calendar, Clock, User
-} from 'lucide-react';
-import { StudyLineIcons, getCategoryLabel, getStudyLineLabel } from '@/components/StudyLineIcons';
+import { useToast } from '@/hooks/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
+import { enrollUserInCourse } from '@/lib/enrollments';
+import { CARTAZ, NOME_CATEGORIA, imagem, imagemSrcSet, videoEmbed } from '@/lib/vitrine';
+import { getStudyLineLabel } from '@/components/StudyLineIcons';
+import { ArrowLeft, Check, ChevronDown, Lock, Play } from 'lucide-react';
+
+const SCRIM_0 = 'linear-gradient(90deg, #000 0%, rgba(0,0,0,.9) 36%, rgba(0,0,0,.35) 64%, rgba(0,0,0,0) 82%), linear-gradient(0deg, #000 0%, rgba(0,0,0,0) 32%)'; // taste-skill-ignore: scrim preto neutro sob o texto, sobre a foto
+const SCRIM_1 = 'linear-gradient(0deg, #000, rgba(0,0,0,0))'; // taste-skill-ignore: scrim preto neutro sob o texto, sobre a foto
+
+// Página do curso no estilo da vitrine: destaque com a capa, aulas por módulo como episódios
+// e as informações do curso ao lado. Quem ainda não está matriculado vê a ementa e se inscreve aqui.
 
 interface Course {
-  id: string;
-  title: string;
-  description: string | null;
-  long_description: string | null;
-  cover_url: string | null;
-  thumbnail_url: string | null;
-  category: string | null;
-  audience: string | null;
-  study_lines: string[] | null;
-  learning_topics: string[] | null;
-  start_date: string | null;
-  end_date: string | null;
-  schedule: string | null;
-  facilitator: string | null;
+  id: string; title: string; description: string | null; long_description: string | null;
+  cover_url: string | null; thumbnail_url: string | null; category: string | null; audience: string | null;
+  study_lines: string[] | null; learning_topics: string[] | null; start_date: string | null; end_date: string | null;
+  schedule: string | null; facilitator: string | null; enrollment_open: boolean | null;
+  tagline: string | null; trailer_url: string | null; estimated_duration_minutes: number | null;
 }
+interface Lesson { id: string; title: string; order_index: number; video_url?: string | null }
+interface Module { id: string; title: string; description: string | null; order_index: number; lessons: Lesson[] }
 
-interface Module {
-  id: string;
-  title: string;
-  description: string | null;
-  order_index: number;
-  lessons: Lesson[];
-}
-
-interface Lesson {
-  id: string;
-  title: string;
-  description: string | null;
-  order_index: number;
-  video_url: string | null;
-}
-
-interface LessonProgress {
-  lesson_id: string;
-  completed: boolean;
-}
+const dataBR = (d: string) => { const [y, m, dd] = d.split('-'); return `${dd}/${m}/${y}`; };
+const PUBLICO: Record<string, string> = { ambos: 'Voluntários e frequentadores', trabalhadores: 'Voluntários da Casa', frequentadores: 'Frequentadores' };
 
 export default function CoursePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { toast } = useToast();
+  const qc = useQueryClient();
   const [course, setCourse] = useState<Course | null>(null);
   const [modules, setModules] = useState<Module[]>([]);
-  const [progress, setProgress] = useState<LessonProgress[]>([]);
+  const [feitas, setFeitas] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
-  const [hasAccess, setHasAccess] = useState(false);
-  const [enrolledCount, setEnrolledCount] = useState(0);
-  const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
+  const [matriculado, setMatriculado] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [assessments, setAssessments] = useState<any[]>([]);
+  const [video, setVideo] = useState(false);
+  const [inscrevendo, setInscrevendo] = useState(false);
 
-  useEffect(() => {
-    if (id && user) fetchCourseData();
-  }, [id, user]);
+  useEffect(() => { if (id && user) carregar(); }, [id, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const fetchCourseData = async () => {
+  const carregar = async () => {
     if (!id || !user) return;
-
-    const { data: enrollment } = await supabase
-      .from('enrollments')
-      .select('status')
-      .eq('course_id', id)
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    if (!enrollment || enrollment.status !== 'approved') {
-      setHasAccess(false);
-      setLoading(false);
-      return;
-    }
-
-    setHasAccess(true);
-
-    const [courseRes, modulesRes, progressRes, enrolledRes] = await Promise.all([
-      supabase
-        .from('courses')
-        .select('id, title, description, cover_url, thumbnail_url, category, audience, study_lines, long_description, learning_topics, start_date, end_date, schedule, facilitator')
-        .eq('id', id)
-        .single(),
-      supabase
-        .from('modules')
-        .select(`id, title, description, order_index, lessons (id, title, description, order_index, video_url)`)
-        .eq('course_id', id)
-        .order('order_index'),
-      supabase
-        .from('lesson_progress')
-        .select('lesson_id, completed')
-        .eq('user_id', user.id),
-      supabase
-        .from('enrollments')
-        .select('id', { count: 'exact', head: true })
-        .eq('course_id', id)
-        .eq('status', 'approved')
+    const [{ data: matr }, { data: c }] = await Promise.all([
+      supabase.from('enrollments').select('status').eq('course_id', id).eq('user_id', user.id).maybeSingle(),
+      supabase.from('courses')
+        .select('id, title, description, long_description, cover_url, thumbnail_url, category, audience, study_lines, learning_topics, start_date, end_date, schedule, facilitator, enrollment_open, tagline, trailer_url, estimated_duration_minutes')
+        .eq('id', id).maybeSingle(),
     ]);
+    setCourse((c as Course) ?? null);
+    const ok = matr?.status === 'approved';
+    setMatriculado(ok);
 
-    if (courseRes.data) setCourse(courseRes.data as any);
-    if (modulesRes.data) {
-      const sorted = modulesRes.data.map(m => ({
-        ...m,
-        lessons: (m.lessons || []).sort((a, b) => a.order_index - b.order_index)
-      }));
-      setModules(sorted);
-
-      // Auto-expand in-progress module
-      const completedIds = new Set(progressRes.data?.filter(p => p.completed).map(p => p.lesson_id) || []);
-      const expanded = new Set<string>();
-      for (const mod of sorted) {
-        const modCompleted = mod.lessons.filter(l => completedIds.has(l.id)).length;
-        if (modCompleted > 0 && modCompleted < mod.lessons.length) {
-          expanded.add(mod.id);
-        }
-      }
-      // If none in progress, expand first non-completed
-      if (expanded.size === 0 && sorted.length > 0) {
-        expanded.add(sorted[0].id);
-      }
-      setExpandedModules(expanded);
+    if (ok) {
+      const [modsRes, progRes, avRes] = await Promise.all([
+        supabase.from('modules').select('id, title, description, order_index, lessons (id, title, order_index, video_url)').eq('course_id', id).order('order_index'),
+        supabase.from('lesson_progress').select('lesson_id, completed').eq('user_id', user.id).eq('completed', true),
+        supabase.from('assessments').select('*').eq('course_id', id).eq('status', 'published'),
+      ]);
+      setModules((modsRes.data ?? []).map((m) => ({ ...m, lessons: [...(m.lessons || [])].sort((a, b) => a.order_index - b.order_index) })) as Module[]);
+      setFeitas(new Set((progRes.data ?? []).map((p) => p.lesson_id)));
+      setAssessments(avRes.data ?? []);
+    } else {
+      // Ementa pública: só os títulos
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: ementa } = await (supabase.rpc as any)('ementa_cursos', { p_curso: id });
+      const mapa = new Map<string, Module>();
+      ((ementa ?? []) as Array<{ module_id: string; module_title: string; module_order: number; lesson_id: string | null; lesson_title: string | null; lesson_order: number }>).forEach((e) => {
+        if (!mapa.has(e.module_id)) mapa.set(e.module_id, { id: e.module_id, title: e.module_title, description: null, order_index: e.module_order, lessons: [] });
+        if (e.lesson_id) mapa.get(e.module_id)!.lessons.push({ id: e.lesson_id, title: e.lesson_title ?? '', order_index: e.lesson_order });
+      });
+      setModules([...mapa.values()].sort((a, b) => a.order_index - b.order_index));
+      setFeitas(new Set());
+      setAssessments([]);
     }
-    if (progressRes.data) setProgress(progressRes.data);
-    setEnrolledCount(enrolledRes.count || 0);
-
-    // Load assessments
-    const { data: assessData } = await supabase
-      .from('assessments')
-      .select('*')
-      .eq('course_id', id)
-      .eq('status', 'published');
-    if (assessData) setAssessments(assessData);
-
     setLoading(false);
   };
 
-  const isLessonCompleted = (lessonId: string) =>
-    progress.some(p => p.lesson_id === lessonId && p.completed);
-
-  const courseLessonIds = new Set(modules.flatMap(m => m.lessons.map(l => l.id)));
-
-  const totalLessons = modules.reduce((acc, m) => acc + m.lessons.length, 0);
-  const completedLessons = progress.filter(p => p.completed && courseLessonIds.has(p.lesson_id)).length;
-  const progressPercent = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
-
-  const getFirstIncompleteLesson = () => {
-    for (const mod of modules) {
-      for (const lesson of mod.lessons) {
-        if (!isLessonCompleted(lesson.id)) return lesson;
-      }
-    }
-    return modules[0]?.lessons[0] || null;
+  const inscrever = async () => {
+    if (!user || !course) return;
+    setInscrevendo(true);
+    const { error } = await enrollUserInCourse(user.id, course.id);
+    setInscrevendo(false);
+    if (error) return toast({ title: 'Não foi possível fazer a inscrição', description: 'Tente de novo ou fale com a Secretaria de Formação.', variant: 'destructive' });
+    toast({ title: 'Inscrição feita', description: 'Já pode começar a primeira aula.' });
+    qc.invalidateQueries({ queryKey: ['vitrine-aluno'] });
+    setLoading(true);
+    carregar();
   };
-
-  const getModuleProgress = (mod: Module) => {
-    const total = mod.lessons.length;
-    const completed = mod.lessons.filter(l => isLessonCompleted(l.id)).length;
-    return { total, completed, percent: total > 0 ? Math.round((completed / total) * 100) : 0 };
-  };
-
-  const toggleModule = (moduleId: string) => {
-    setExpandedModules(prev => {
-      const next = new Set(prev);
-      if (next.has(moduleId)) next.delete(moduleId);
-      else next.add(moduleId);
-      return next;
-    });
-  };
-
-  const nextLesson = getFirstIncompleteLesson();
 
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="space-y-6">
-          <Skeleton className="h-40 w-full rounded-lg" />
-          <Skeleton className="h-32 w-full" />
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  if (!hasAccess) {
-    return (
-      <DashboardLayout>
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <Lock className="h-16 w-16 text-muted-foreground mb-4" />
-          <h2 className="font-['Playfair_Display'] text-2xl font-bold mb-2">Acesso Negado</h2>
-          <p className="text-muted-foreground mb-6">Você não tem acesso a este curso. Solicite sua matrícula.</p>
-          <Button onClick={() => navigate('/explore')}>Explorar Cursos</Button>
+        <div aria-busy="true" aria-label="Carregando o curso">
+          <div className="bg-[#111] h-[320px] md:h-[460px]" />
+          <div className="aluno-coluna mt-10 space-y-3">{[0, 1, 2, 3].map((k) => <div key={k} className="h-14 rounded-lg bg-[#111]" />)}</div>
         </div>
       </DashboardLayout>
     );
@@ -211,324 +113,213 @@ export default function CoursePage() {
   if (!course) {
     return (
       <DashboardLayout>
-        <div className="text-center py-20">
-          <h2 className="font-['Playfair_Display'] text-2xl font-bold">Curso não encontrado</h2>
-          <Button className="mt-4" onClick={() => navigate('/dashboard')}>Voltar</Button>
+        <div className="aluno-coluna py-20">
+          <h1 className="font-['Playfair_Display'] text-[28px] font-bold text-white">Curso não encontrado</h1>
+          <p className="mt-2 text-[#b4b4b4]">Ele pode ter saído do ar. Veja os outros cursos no Início.</p>
+          <Link to="/dashboard" className="aluno-botao aluno-botao--principal mt-6">Voltar ao Início</Link>
         </div>
       </DashboardLayout>
     );
   }
 
-  const studyLineLabels = course.study_lines?.map(l => getStudyLineLabel(l)).join(' · ') || '';
+  const aulasEmOrdem = modules.flatMap((m) => m.lessons);
+  const total = aulasEmOrdem.length;
+  const feitasAqui = aulasEmOrdem.filter((l) => feitas.has(l.id)).length;
+  const pct = total ? Math.round((feitasAqui / total) * 100) : 0;
+  const proximaIdx = aulasEmOrdem.findIndex((l) => !feitas.has(l.id));
+  const proxima = proximaIdx >= 0 ? aulasEmOrdem[proximaIdx] : null;
+  const fundo = course.cover_url;
+  const capa = course.thumbnail_url || course.cover_url;
+  const minutos = course.estimated_duration_minutes && total ? course.estimated_duration_minutes * total : null;
+  const meta = [
+    course.category ? NOME_CATEGORIA[course.category] : null,
+    total ? `${total} ${total === 1 ? 'aula' : 'aulas'}` : null,
+    modules.length > 1 ? `${modules.length} módulos` : null,
+    minutos ? `${Math.floor(minutos / 60)}h${minutos % 60 ? String(minutos % 60).padStart(2, '0') : ''} de aula` : null,
+    course.schedule,
+  ].filter(Boolean).join(' · ');
+
+  const botaoPrincipal = matriculado ? (
+    proxima ? (
+      <Link to={`/lesson/${proxima.id}`} className="aluno-botao aluno-botao--principal">
+        <Play className="h-4 w-4 fill-current" />{feitasAqui === 0 ? 'Começar o curso' : `Continuar a aula ${proximaIdx + 1}`}
+      </Link>
+    ) : aulasEmOrdem[0] ? (
+      <Link to={`/lesson/${aulasEmOrdem[0].id}`} className="aluno-botao aluno-botao--principal"><Play className="h-4 w-4 fill-current" />Rever o curso</Link>
+    ) : null
+  ) : course.enrollment_open !== false ? (
+    <button className="aluno-botao aluno-botao--principal" onClick={inscrever} disabled={inscrevendo}>{inscrevendo ? 'Inscrevendo...' : 'Inscrever-se'}</button>
+  ) : (
+    <button className="aluno-botao aluno-botao--principal" disabled>Inscrições em breve</button>
+  );
+
+  // Onde cada avaliação entra na lista
+  const avaliacoesEm = (tipo: string, campo: string, valor: string) => assessments.filter((a) => a.position_type === tipo && a[campo] === valor);
+  const avaliacoesSoltas = assessments.filter((a) => !['after_module', 'before_module', 'between_lessons'].includes(a.position_type));
+
+  let numero = 0;
 
   return (
     <DashboardLayout>
-      <CabecalhoPagina
-        titulo={course.title}
-        descricao={course.description || undefined}
-        acoes={
-          <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-4 w-4 mr-2" /> <span className="hidden sm:inline">Meus Cursos</span><span className="sm:hidden">Voltar</span>
-          </Button>
-        }
-      />
-      <div className="space-y-6">
-        {/* Situação, categoria e números do curso */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300 text-[10px] px-2 py-0.5">
-            MATRICULADO
-          </Badge>
-          <Badge variant="outline" className="bg-muted text-muted-foreground border-border text-[10px] px-2 py-0.5">
-            {getCategoryLabel(course.category)}
-          </Badge>
-          {course.study_lines?.slice(0, 2).map((line) => (
-            <Badge key={line} variant="outline" className="bg-muted text-muted-foreground border-border text-[10px] px-2 py-0.5">
-              {getStudyLineLabel(line)}
-            </Badge>
-          ))}
-          <div className="flex items-center gap-3 text-xs text-muted-foreground sm:ml-2">
-            <span className="flex items-center gap-1.5">
-              <BookOpen className="h-3.5 w-3.5" /> {totalLessons} aulas
-            </span>
-            <span>·</span>
-            <span className="flex items-center gap-1.5">
-              📚 {modules.length} módulos
-            </span>
-            <span>·</span>
-            <span className="font-semibold text-foreground">{progressPercent}%</span>
-          </div>
+      {/* Destaque do curso */}
+      <section className="relative bg-black">
+        <div className="relative md:absolute md:inset-0 overflow-hidden">
+          {fundo ? (
+            <>
+              <img src={imagem(fundo, 1600)} srcSet={imagemSrcSet(fundo)} sizes="100vw" alt="" className="w-full aspect-[16/9] md:aspect-auto md:h-full object-cover" />
+              <div aria-hidden className="absolute inset-0 hidden md:block" style={{ background: SCRIM_0 }} />
+              <div aria-hidden className="absolute inset-x-0 bottom-0 h-16 md:hidden" style={{ background: SCRIM_1 }} />
+            </>
+          ) : <div className="hidden md:block absolute inset-0 bg-[#111]" />}
         </div>
-
-        {/* Barra de progresso do curso */}
-        <div className="rounded-lg border bg-card px-4 py-3">
-          <div className="flex items-center justify-between gap-3 mb-2">
-            <p className="text-xs font-medium text-muted-foreground">
-              {progressPercent === 0 ? 'Comece sua jornada' : progressPercent === 100 ? '🎉 Curso concluído!' : `Você está ${progressPercent}% do caminho`}
-            </p>
-            {nextLesson && (
-              <Button
-                size="sm"
-                onClick={() => navigate(`/lesson/${nextLesson.id}`)}
-              >
-                <PlayCircle className="h-4 w-4 mr-2" />
-                {progressPercent === 0 ? 'Começar' : 'Continuar'}
-              </Button>
-            )}
-          </div>
-          <Progress value={progressPercent} className="h-2" />
-        </div>
-
-        {/* Two-column layout */}
-        <div>
-          <div className="flex flex-col lg:flex-row gap-6">
-            {/* Left Column - Content */}
-            <div className="flex-1 min-w-0 space-y-8">
-              {/* About Section */}
-              {(course.long_description || course.description) && (
-                <div>
-                  <h2 className="font-['Playfair_Display'] text-lg font-semibold text-foreground mb-3">Sobre o curso</h2>
-                  {course.long_description ? (
-                    <div className="prose prose-sm max-w-none text-muted-foreground" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(course.long_description) }} />
-                  ) : course.description ? (
-                    <p className="text-muted-foreground">{course.description}</p>
-                  ) : null}
-                </div>
-              )}
-
-              {/* Learning Topics */}
-              {course.learning_topics && course.learning_topics.length > 0 && (
-                <div className="rounded-lg border bg-card p-5">
-                  <h3 className="font-['Playfair_Display'] text-lg font-semibold text-foreground mb-4">O que você vai aprender</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {course.learning_topics.map((topic, i) => (
-                      <div key={i} className="flex items-start gap-2.5 text-sm text-muted-foreground">
-                        <CheckCircle className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                        {topic}
-                      </div>
-                    ))}
+        <div className="aluno-coluna relative md:min-h-[460px] py-6 md:py-12 flex flex-col justify-center">
+          <button onClick={() => navigate(-1)} className="self-start inline-flex items-center gap-2 h-9 text-[14px] font-semibold text-[#b4b4b4] hover:text-white mb-4">
+            <ArrowLeft className="h-4 w-4" /> Voltar
+          </button>
+          <div className={`flex gap-10 items-center ${fundo ? '' : 'md:justify-between'}`}>
+            <div className="max-w-[580px]">
+              {!fundo && capa && <img src={imagem(capa, 300, CARTAZ)} alt="" className="md:hidden w-32 aspect-[4/5] object-cover rounded-lg mb-5" />}
+              <h1 className="font-['Playfair_Display'] font-bold text-[30px] md:text-[46px] leading-[1.05] tracking-[-0.02em] text-white">{course.title}</h1>
+              {meta && <p className="mt-3 text-[14px] text-[#b4b4b4]">{meta}</p>}
+              {(course.tagline || course.description) && <p className="mt-4 text-[16px] md:text-[17px] leading-relaxed text-white/90">{course.tagline || course.description}</p>}
+              {matriculado && total > 0 && (
+                <div className="mt-5 max-w-[420px]">
+                  <div className="flex justify-between text-[13px] text-[#b4b4b4]">
+                    <span>{pct === 100 ? 'Curso concluído' : feitasAqui === 0 ? 'Você ainda não começou' : `Você fez ${feitasAqui} de ${total} aulas`}</span>
+                    <span className="text-white tabular-nums">{pct}%</span>
+                  </div>
+                  <div className="mt-2 h-1 rounded-full bg-white/20" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+                    <div className="h-full rounded-full" style={{ width: `${pct}%` }} />
                   </div>
                 </div>
               )}
+              <div className="mt-6 flex flex-wrap gap-3">
+                {botaoPrincipal}
+                {course.trailer_url && <button className="aluno-botao aluno-botao--secundario" onClick={() => setVideo(true)}>Ver apresentação</button>}
+              </div>
+              {!matriculado && course.enrollment_open !== false && <p className="mt-3 text-[13px] text-[#949494]">A inscrição vale na hora e é gratuita.</p>}
+            </div>
+            {!fundo && capa && <img src={imagem(capa, 600, CARTAZ)} alt="" className="hidden md:block w-[280px] aspect-[4/5] object-cover rounded-lg shrink-0" />}
+          </div>
+        </div>
+      </section>
 
-              {/* Info row */}
-              {(course.facilitator || course.schedule || course.start_date || course.audience) && (
-                <div>
-                  <h3 className="font-['Playfair_Display'] text-lg font-semibold text-foreground mb-3">Para quem é este curso</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {course.audience === 'ambos' ? 'Trabalhadores e Frequentadores' : course.audience === 'trabalhadores' ? 'Trabalhadores' : 'Frequentadores'}
-                  </p>
-                  {(course.start_date || course.schedule || course.facilitator) && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm mt-3">
-                      {course.start_date && (
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Calendar className="h-4 w-4" />
-                          {(() => { const [y,m,d] = course.start_date!.split('-'); return `${d}/${m}/${y}`; })()}
-                          {course.end_date && ` a ${(() => { const [y,m,d] = course.end_date!.split('-'); return `${d}/${m}/${y}`; })()}`}
-                        </div>
-                      )}
-                      {course.schedule && (
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Clock className="h-4 w-4" /> {course.schedule}
-                        </div>
-                      )}
-                      {course.facilitator && (
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <User className="h-4 w-4" /> {course.facilitator}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Course Content - Modules */}
-              <div>
-                <h2 className="font-['Playfair_Display'] text-lg font-semibold text-foreground mb-4">Conteúdo do curso</h2>
-
-                {modules.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-8">Nenhum módulo disponível ainda.</p>
-                ) : (
-                  <div className="space-y-2">
-                    {modules.map((mod, modIndex) => {
-                      const modProgress = getModuleProgress(mod);
-                      const isExpanded = expandedModules.has(mod.id);
-
-                      // Assessments before this module
-                      const beforeModuleAssessments = assessments.filter(
-                        a => a.position_type === 'before_module' && a.position_module_id === mod.id
-                      );
-
-                      // Assessments after this module
-                      const afterModuleAssessments = assessments.filter(
-                        a => a.position_type === 'after_module' && a.position_module_id === mod.id
-                      );
-
-                      return (
-                        <div key={mod.id}>
-                          {beforeModuleAssessments.map(a => (
-                            <div key={a.id} className="mb-2">
-                              <AssessmentBlock assessment={a} />
-                            </div>
-                          ))}
-                          <div className={`rounded-lg border bg-card overflow-hidden transition-all ${isExpanded ? 'border-primary/30' : 'hover:border-primary/20'}`}>
-                          <button
-                            onClick={() => toggleModule(mod.id)}
-                            className="w-full flex items-center gap-3 p-3.5 sm:p-4 text-left hover:bg-muted/30 transition-colors min-h-[60px]"
-                          >
-                            {/* Module icon with progress ring */}
-                            <div className={`relative h-11 w-11 flex-shrink-0 rounded-lg flex items-center justify-center font-bold text-sm ${
-                              modProgress.percent === 100
-                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                                : modProgress.completed > 0
-                                ? 'bg-primary/10 text-primary border border-primary/30'
-                                : 'bg-muted text-muted-foreground'
-                            }`}>
-                              {modProgress.percent === 100 ? <CheckCircle className="h-5 w-5" /> : modIndex + 1}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-['Playfair_Display'] font-semibold text-[14px] sm:text-[15px] text-foreground leading-tight line-clamp-2">{mod.title}</p>
-                              <div className="flex items-center gap-2 mt-1.5 text-[11px] text-muted-foreground">
-                                <span>{modProgress.completed}/{modProgress.total} {modProgress.total === 1 ? 'aula' : 'aulas'}</span>
-                                {modProgress.total > 0 && (
-                                  <>
-                                    <span className="text-border">·</span>
-                                    <div className="flex-1 max-w-[80px] h-1 bg-muted rounded-full overflow-hidden">
-                                      <div
-                                        className={`h-full rounded-full transition-all ${modProgress.percent === 100 ? 'bg-emerald-500' : 'bg-primary'}`}
-                                        style={{ width: `${modProgress.percent}%` }}
-                                      />
-                                    </div>
-                                    <span className="font-semibold text-foreground">{modProgress.percent}%</span>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                            {isExpanded ? (
-                              <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+      <div className="aluno-coluna mt-8 md:mt-12 grid gap-10 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-12">
+        {/* Aulas */}
+        <section aria-labelledby="aulas-titulo" className="min-w-0">
+          <div className="flex items-end justify-between mb-4">
+            <h2 id="aulas-titulo" className="text-[22px] font-semibold text-white">Aulas</h2>
+            {total > 0 && <span className="text-[14px] text-[#949494] tabular-nums">{total} {total === 1 ? 'aula' : 'aulas'}</span>}
+          </div>
+          {modules.length === 0 && <p className="rounded-xl bg-[#111] p-5 text-[15px] text-[#b4b4b4]">As aulas deste curso ainda estão sendo preparadas.</p>}
+          <div className="space-y-3">
+            {modules.map((mod, mi) => {
+              const fm = mod.lessons.filter((l) => feitas.has(l.id)).length;
+              const temProxima = mod.lessons.some((l) => l.id === proxima?.id);
+              const aberto = matriculado ? temProxima || (proxima === null && mi === 0) : mi === 0;
+              return (
+                <div key={mod.id} className="space-y-3">
+                  {avaliacoesEm('before_module', 'position_module_id', mod.id).map((a) => <AssessmentBlock key={a.id} assessment={a} />)}
+                  <details open={aberto} className="group rounded-xl bg-[#111] overflow-hidden">
+                    <summary className="flex items-center gap-4 px-5 py-4 cursor-pointer list-none [&::-webkit-details-marker]:hidden hover:bg-[#161616]">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[13px] text-[#949494]">Módulo {mi + 1}{matriculado && mod.lessons.length ? ` · ${fm} de ${mod.lessons.length}` : mod.lessons.length ? ` · ${mod.lessons.length} ${mod.lessons.length === 1 ? 'aula' : 'aulas'}` : ''}</p>
+                        <p className="text-[16px] font-semibold text-white leading-snug">{mod.title}</p>
+                      </div>
+                      {matriculado && mod.lessons.length > 0 && fm === mod.lessons.length && <span className="text-[12px] font-semibold rounded-full px-2.5 py-1 bg-[#172a1d] text-[#3fc07a]">Concluído</span>}
+                      <ChevronDown className="h-5 w-5 text-[#949494] transition-transform group-open:rotate-180 shrink-0" />
+                    </summary>
+                    <ol className="pb-2">
+                      {mod.lessons.map((l) => {
+                        numero += 1;
+                        const n = numero;
+                        const feita = feitas.has(l.id);
+                        const ehProxima = matriculado && proxima?.id === l.id;
+                        const conteudo = (
+                          <>
+                            <span className={`w-8 shrink-0 text-right tabular-nums text-[15px] ${ehProxima ? 'text-white font-semibold' : 'text-[#949494]'}`}>{n}</span>
+                            <span className={`flex-1 min-w-0 text-[15px] leading-snug ${feita ? 'text-[#b4b4b4]' : 'text-white'}`}>{l.title}</span>
+                            {ehProxima && <span className="text-[12px] font-semibold rounded-full px-2.5 py-1 shrink-0" style={{ background: 'var(--ouro-fundo)', color: 'var(--ouro)' }}>Próxima</span>}
+                            {feita && <Check className="h-4 w-4 text-[#3fc07a] shrink-0" aria-label="Feita" />}
+                            {!matriculado && <Lock className="h-4 w-4 text-[#949494] shrink-0" aria-label="Disponível depois da inscrição" />}
+                            {matriculado && !feita && !ehProxima && <Play className="h-4 w-4 text-[#949494] shrink-0 opacity-0 group-hover/aula:opacity-100" />}
+                          </>
+                        );
+                        return (
+                          <li key={l.id}>
+                            {matriculado ? (
+                              <Link to={`/lesson/${l.id}`} className={`group/aula flex items-center gap-4 px-5 min-h-[52px] py-2.5 hover:bg-[#1a1a1a] ${ehProxima ? 'bg-[#1a1a1a]' : ''}`}>{conteudo}</Link>
                             ) : (
-                              <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                              <div className="flex items-center gap-4 px-5 min-h-[52px] py-2.5">{conteudo}</div>
                             )}
-                          </button>
-
-                          {isExpanded && (
-                            <div className="border-t border-border/40">
-                              {mod.lessons.map((lesson, lessonIndex) => {
-                                const completed = isLessonCompleted(lesson.id);
-                                const isNext = nextLesson?.id === lesson.id;
-
-                                // Assessments between lessons
-                                const betweenLessonsAssessments = assessments.filter(
-                                  a => a.position_type === 'between_lessons' && a.position_lesson_after_id === lesson.id
-                                );
-
-                                return (
-                                  <div key={lesson.id}>
-                                    <button
-                                      onClick={() => navigate(`/lesson/${lesson.id}`)}
-                                      className={`w-full flex items-center gap-3 px-4 sm:px-5 py-3 text-left hover:bg-muted/40 transition-colors border-b border-border/20 last:border-b-0 min-h-[52px] ${
-                                        isNext ? 'bg-primary/5' : ''
-                                      }`}
-                                    >
-                                      {completed ? (
-                                        <div className="h-6 w-6 rounded-full bg-emerald-100 border border-emerald-300 flex items-center justify-center flex-shrink-0">
-                                          <CheckCircle className="h-4 w-4 text-emerald-700" />
-                                        </div>
-                                      ) : isNext ? (
-                                        <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center flex-shrink-0 animate-pulse">
-                                          <PlayCircle className="h-4 w-4 text-primary-foreground" />
-                                        </div>
-                                      ) : (
-                                        <div className="h-6 w-6 rounded-full border-2 border-muted-foreground/30 flex-shrink-0" />
-                                      )}
-                                      <span className={`flex-1 text-sm leading-snug ${completed ? 'text-muted-foreground line-through decoration-1' : 'text-foreground'}`}>
-                                        {lesson.title}
-                                      </span>
-                                      {isNext && (
-                                        <Badge variant="outline" className="text-[10px] bg-sky-100 text-sky-800 border-sky-300 whitespace-nowrap">Próxima</Badge>
-                                      )}
-                                    </button>
-                                    {betweenLessonsAssessments.map(a => (
-                                      <div key={a.id} className="px-4 py-2 border-b bg-muted/40">
-                                        <AssessmentBlock assessment={a} />
-                                      </div>
-                                    ))}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          )}
-                        </div>
-                          {afterModuleAssessments.map(a => (
-                            <div key={a.id} className="mt-2">
-                              <AssessmentBlock assessment={a} />
-                            </div>
-                          ))}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {/* Assessments at end of course */}
-                {assessments.filter(a => a.position_type === 'end_of_course').map(a => (
-                  <AssessmentBlock key={a.id} assessment={a} />
-                ))}
-
-                {/* Assessments without specific position (fallback) */}
-                {assessments.filter(a => 
-                  !['end_of_course', 'after_module', 'before_module', 'between_lessons'].includes(a.position_type)
-                ).map(a => (
-                  <AssessmentBlock key={a.id} assessment={a} />
-                ))}
-              </div>
-            </div>
-
-            {/* Right Column - Sticky sidebar card */}
-            <div className="lg:w-80 xl:w-96 shrink-0">
-              <div className="lg:sticky lg:top-6 space-y-4">
-                {/* Thumbnail card */}
-                <div className="rounded-lg border bg-card overflow-hidden">
-                  {(course.thumbnail_url || course.cover_url) && (
-                    <div className="aspect-[4/5] overflow-hidden">
-                      <img src={course.thumbnail_url || course.cover_url!} alt={course.title} className="w-full h-full object-cover" />
-                    </div>
-                  )}
-
-                  <div className="p-5 space-y-4">
-                    {/* Progress */}
-                    <div>
-                      <div className="flex items-center justify-between text-sm mb-2">
-                        <span className="text-muted-foreground">{completedLessons} de {totalLessons} aulas</span>
-                        <span className="font-bold text-foreground">{progressPercent}%</span>
-                      </div>
-                      <Progress value={progressPercent} className="h-2" />
-                    </div>
-
-                    {/* CTA Button */}
-                    {nextLesson && (
-                      <Button
-                        className="w-full"
-                        onClick={() => navigate(`/lesson/${nextLesson.id}`)}
-                      >
-                        <PlayCircle className="h-4 w-4 mr-2" />
-                        {progressPercent === 0 ? 'Começar' : 'Continuar'}
-                      </Button>
-                    )}
-
-                    {progressPercent === 100 && (
-                      <div className="text-center py-2">
-                        <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300 text-sm px-4 py-1.5">
-                          <CheckCircle className="h-4 w-4 mr-1.5" /> Curso Concluído
-                        </Badge>
-                      </div>
-                    )}
-                  </div>
+                            {avaliacoesEm('between_lessons', 'position_lesson_after_id', l.id).map((a) => <div key={a.id} className="px-5 py-2"><AssessmentBlock assessment={a} /></div>)}
+                          </li>
+                        );
+                      })}
+                    </ol>
+                  </details>
+                  {avaliacoesEm('after_module', 'position_module_id', mod.id).map((a) => <AssessmentBlock key={a.id} assessment={a} />)}
                 </div>
-              </div>
-            </div>
+              );
+            })}
+            {avaliacoesSoltas.map((a) => <AssessmentBlock key={a.id} assessment={a} />)}
           </div>
-        </div>
+        </section>
+
+        {/* Sobre o curso */}
+        <aside aria-labelledby="sobre-titulo" className="space-y-8 lg:pt-1">
+          <section>
+            <h2 id="sobre-titulo" className="text-[22px] font-semibold text-white mb-3">Sobre o curso</h2>
+            {course.long_description ? (
+              <div className="prose prose-sm prose-invert max-w-none text-[15px] text-[#e6e6e6]" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(course.long_description) }} />
+            ) : (
+              <p className="text-[15px] text-[#e6e6e6] leading-relaxed">{course.description || 'A Secretaria de Formação ainda vai escrever a apresentação deste curso.'}</p>
+            )}
+          </section>
+
+          {course.learning_topics && course.learning_topics.length > 0 && (
+            <section>
+              <h3 className="text-[17px] font-semibold text-white mb-3">O que você vai aprender</h3>
+              <ul className="space-y-2">
+                {course.learning_topics.map((t, i) => (
+                  <li key={i} className="flex gap-3 text-[15px] text-[#e6e6e6] leading-snug"><Check className="h-4 w-4 mt-0.5 shrink-0" style={{ color: 'var(--ouro)' }} />{t}</li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          <section className="rounded-xl bg-[#111] p-5">
+            <h3 className="text-[17px] font-semibold text-white mb-3">Informações</h3>
+            <dl className="space-y-3 text-[14px]">
+              {course.audience && <Info rotulo="Para quem" valor={PUBLICO[course.audience] ?? course.audience} />}
+              {course.start_date && <Info rotulo="Datas" valor={`${dataBR(course.start_date)}${course.end_date && course.end_date !== course.start_date ? ` a ${dataBR(course.end_date)}` : ''}`} />}
+              {course.schedule && <Info rotulo="Horário" valor={course.schedule} />}
+              {course.facilitator && <Info rotulo="Facilitação" valor={course.facilitator} />}
+              {course.study_lines && course.study_lines.length > 0 && <Info rotulo="Linha de estudo" valor={course.study_lines.map(getStudyLineLabel).join(', ')} />}
+            </dl>
+          </section>
+        </aside>
       </div>
+
+      <Dialog open={video} onOpenChange={setVideo}>
+        <DialogContent className="max-w-4xl p-0 overflow-hidden bg-black border-0">
+          <DialogTitle className="sr-only">Apresentação de {course.title}</DialogTitle>
+          {course.trailer_url && (
+            <div className="aspect-video">
+              <iframe src={videoEmbed(course.trailer_url)} title={`Apresentação de ${course.title}`} className="w-full h-full" allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
+  );
+}
+
+function Info({ rotulo, valor }: { rotulo: string; valor: string }) {
+  return (
+    <div>
+      <dt className="text-[#949494]">{rotulo}</dt>
+      <dd className="text-white mt-0.5">{valor}</dd>
+    </div>
   );
 }

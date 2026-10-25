@@ -60,6 +60,10 @@ export default function CourseFormPage() {
     schedule: '',
     facilitator: '',
     estimated_duration_minutes: '' as string | number,
+    tagline: '',
+    featured: false,
+    featured_order: 0 as string | number,
+    trailer_url: '',
   });
 
   const [newTopic, setNewTopic] = useState('');
@@ -118,6 +122,10 @@ export default function CourseFormPage() {
       schedule: (data as any).schedule || '',
       facilitator: (data as any).facilitator || '',
       estimated_duration_minutes: (data as any).estimated_duration_minutes || '',
+      tagline: (data as any).tagline || '',
+      featured: !!(data as any).featured,
+      featured_order: (data as any).featured_order ?? 0,
+      trailer_url: (data as any).trailer_url || '',
     });
     setAudienceChecks({
       trabalhadores: audience === 'trabalhadores' || audience === 'ambos',
@@ -227,6 +235,10 @@ export default function CourseFormPage() {
       schedule: form.schedule || null,
       facilitator: form.facilitator || null,
       estimated_duration_minutes: form.estimated_duration_minutes ? Number(form.estimated_duration_minutes) : null,
+      tagline: form.tagline.trim() || null,
+      featured: form.featured,
+      featured_order: Number(form.featured_order) || 0,
+      trailer_url: form.trailer_url.trim() || null,
     };
 
     let error;
@@ -444,6 +456,37 @@ export default function CourseFormPage() {
                 <Label htmlFor="duration">Duração estimada por aula (minutos)</Label>
                 <Input type="number" id="duration" value={form.estimated_duration_minutes} onChange={(e) => setForm({ ...form, estimated_duration_minutes: e.target.value })} placeholder="Ex: 45" />
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Vitrine do aluno */}
+          <Card>
+            <CardHeader><CardTitle className="font-['Playfair_Display'] text-lg">Vitrine do aluno</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">Como o curso aparece no Início do aluno, no estilo de uma plataforma de vídeos.</p>
+              <div className="space-y-2">
+                <Label htmlFor="tagline">Frase da vitrine</Label>
+                <Input id="tagline" maxLength={120} value={form.tagline} onChange={(e) => setForm({ ...form, tagline: e.target.value })} placeholder="Ex: Estude a Doutrina Espírita do começo, com a turma de quinta" />
+                <p className="text-xs text-muted-foreground">Até 120 caracteres. Aparece no destaque do topo e no cartão do curso.</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="trailer_url">Vídeo de apresentação (YouTube ou Google Drive)</Label>
+                <Input id="trailer_url" value={form.trailer_url} onChange={(e) => setForm({ ...form, trailer_url: e.target.value })} placeholder="https://www.youtube.com/watch?v=..." />
+                <p className="text-xs text-muted-foreground">Opcional. Abre no botão "Ver apresentação".</p>
+              </div>
+              <div className="flex flex-wrap items-end gap-4">
+                <div className="flex items-center gap-2">
+                  <Checkbox id="featured" checked={form.featured} onCheckedChange={(c) => setForm({ ...form, featured: !!c })} />
+                  <label htmlFor="featured" className="text-sm font-medium">Mostrar nos destaques do topo</label>
+                </div>
+                {form.featured && (
+                  <div className="space-y-2 w-32">
+                    <Label htmlFor="featured_order">Ordem</Label>
+                    <Input type="number" id="featured_order" min={0} value={form.featured_order} onChange={(e) => setForm({ ...form, featured_order: e.target.value })} />
+                  </div>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">A capa de fundo (21:9) aparece grande no destaque. Sem ela, o Início usa a capa do cartão.</p>
             </CardContent>
           </Card>
 

@@ -542,6 +542,10 @@ export type Database = {
           end_date: string | null
           enrollment_open: boolean
           estimated_duration_minutes: number | null
+          tagline: string | null
+          featured: boolean
+          featured_order: number
+          trailer_url: string | null
           facilitator: string | null
           id: string
           learning_topics: string[] | null
@@ -564,6 +568,10 @@ export type Database = {
           end_date?: string | null
           enrollment_open?: boolean
           estimated_duration_minutes?: number | null
+          tagline?: string | null
+          featured?: boolean
+          featured_order?: number
+          trailer_url?: string | null
           facilitator?: string | null
           id?: string
           learning_topics?: string[] | null
@@ -586,6 +594,10 @@ export type Database = {
           end_date?: string | null
           enrollment_open?: boolean
           estimated_duration_minutes?: number | null
+          tagline?: string | null
+          featured?: boolean
+          featured_order?: number
+          trailer_url?: string | null
           facilitator?: string | null
           id?: string
           learning_topics?: string[] | null

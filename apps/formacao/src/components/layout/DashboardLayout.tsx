@@ -5,6 +5,7 @@ import { useAdminNotifications } from '@/hooks/useAdminNotifications';
 import { NotificationBell } from '@/components/layout/NotificationBell';
 import { supabase } from '@/integrations/supabase/client';
 import { MolduraSistema, useAreasLsl, type GrupoMenuLsl, type LinkLslProps } from '@/compartilhado';
+import { AlunoLayout } from '@/components/aluno/AlunoLayout';
 import {
   Loader2, LayoutDashboard, BookOpen, Users, UserCog, FolderOpen, Mail, Megaphone, Library,
   ClipboardCheck, ListChecks, CalendarCheck, Bell, Link2, GraduationCap, Eye,
@@ -101,6 +102,16 @@ export function DashboardLayout({ children, larguraTotal }: DashboardLayoutProps
   if (!user) return null;
 
   const visaoAluno = search.includes('student-view');
+  // Admin que abriu a "Visão do aluno" continua nela pelas páginas do aluno até voltar à gestão
+  if (typeof window !== 'undefined') {
+    try {
+      if (visaoAluno) sessionStorage.setItem('lsl:visao-aluno', '1');
+      if (pathname.startsWith('/admin')) sessionStorage.removeItem('lsl:visao-aluno');
+    } catch { /* sem armazenamento */ }
+  }
+  let lembraVisao = false;
+  try { lembraVisao = sessionStorage.getItem('lsl:visao-aluno') === '1'; } catch { /* sem armazenamento */ }
+  const modoAluno = !pathname.startsWith('/admin') && (!isAdmin || visaoAluno || lembraVisao);
   const ativo = (href: string) => {
     const [rota, q] = href.split('?');
     if (q) return pathname === rota && visaoAluno;
@@ -113,6 +124,15 @@ export function DashboardLayout({ children, larguraTotal }: DashboardLayoutProps
     navigate(href.replace(/^\/formacao/, '') || '/');
     return true;
   };
+
+  if (modoAluno) {
+    return (
+      <AlunoLayout areas={areas} navegar={navegar} facilitador={isFacilitador && !isAdmin} admin={isAdmin}
+        usuario={{ nome: areas?.nome || profile?.full_name, foto: areas?.foto || profile?.avatar_url }}>
+        {children}
+      </AlunoLayout>
+    );
+  }
 
   return (
     <MolduraSistema

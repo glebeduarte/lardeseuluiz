@@ -1,0 +1,95 @@
+/* Área do aluno da Formação em modo noite (estilo true-black-flat da skill de design).
+   Elevação só por claridade: fundo #000, cartão #111, painel interno #2a2a2a, sem bordas nem sombras.
+   O dourado do sol do Lar é a única cor nos dados (progresso, "ao vivo", destaque). Botão principal = branco invertido. */
+
+.lsl-noite {
+  --background: 0 0% 0%;
+  --foreground: 0 0% 100%;
+  --card: 0 0% 7%;
+  --card-foreground: 0 0% 100%;
+  --popover: 0 0% 9%;
+  --popover-foreground: 0 0% 100%;
+  --primary: 0 0% 100%;
+  --primary-foreground: 0 0% 0%;
+  --secondary: 0 0% 16%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 0 0% 16%;
+  --muted-foreground: 0 0% 71%;
+  --accent: 0 0% 16%;
+  --accent-foreground: 0 0% 100%;
+  --border: 0 0% 10%;
+  --input: 0 0% 27%;
+  --ring: 44 100% 54%;
+  --ouro: #ffc116;
+  --ouro-fundo: #2b2206;
+  --cinza-2: #949494;
+  background: #000;
+  color: #fff;
+  color-scheme: dark;
+}
+
+/* Progresso sempre em dourado (é dado, não chrome) */
+.lsl-noite [role="progressbar"] { background: #2a2a2a; }
+.lsl-noite [role="progressbar"] > div { background: var(--ouro) !important; }
+
+/* Selos claros do resto da plataforma viram tons escuros da mesma cor */
+.lsl-noite .bg-emerald-100 { background: #172a1d !important; }
+.lsl-noite .text-emerald-800, .lsl-noite .text-emerald-700 { color: #3fc07a !important; }
+.lsl-noite .border-emerald-300 { border-color: #1f3a28 !important; }
+.lsl-noite .bg-amber-100 { background: #2b2206 !important; }
+.lsl-noite .text-amber-800, .lsl-noite .text-amber-700 { color: #ffc116 !important; }
+.lsl-noite .border-amber-300 { border-color: #3d300a !important; }
+.lsl-noite .bg-sky-100 { background: #0f2230 !important; }
+.lsl-noite .text-sky-800, .lsl-noite .text-sky-700 { color: #7cc4f0 !important; }
+.lsl-noite .border-sky-300 { border-color: #173447 !important; }
+.lsl-noite .prose { color: #e6e6e6; }
+
+/* Página inteira: barra de sistemas e corpo no mesmo preto */
+body.lsl-noite-pagina { background: #000; }
+body.lsl-noite-pagina .lsl-corpo { background: #000; }
+body.lsl-noite-pagina .lsl-conteudo { max-width: none; padding: 0 0 96px; }
+body.lsl-noite-pagina .lsl-barra { background: #000; color: #fff; box-shadow: 0 1px 0 #1a1a1a; }
+body.lsl-noite-pagina .lsl-barra__marca, body.lsl-noite-pagina .lsl-barra__menu { color: #fff; }
+body.lsl-noite-pagina .lsl-barra__menu:hover { background: #1a1a1a; }
+body.lsl-noite-pagina .lsl-barra__aba { color: #b4b4b4; }
+body.lsl-noite-pagina .lsl-barra__aba:hover { color: #fff; background: #1a1a1a; }
+body.lsl-noite-pagina .lsl-barra__aba--ativa, body.lsl-noite-pagina .lsl-barra__aba--ativa:hover { color: #fff; background: #222; }
+body.lsl-noite-pagina .lsl-barra__aba--ativa svg { color: #ffc116; }
+body.lsl-noite-pagina .lsl-barra__perfil { background: #1a1a1a; color: #fff; }
+body.lsl-noite-pagina .lsl-barra__perfil:hover { background: #2a2a2a; }
+
+/* Coluna central (1208px) com margens iguais */
+.aluno-coluna { width: 100%; max-width: 1208px; margin: 0 auto; padding: 0 40px; }
+@media (max-width: 767px) { .aluno-coluna { padding: 0 16px; } }
+
+/* Menu da Formação, logo abaixo da barra de sistemas */
+.aluno-menu { position: sticky; top: var(--lsl-barra-altura); z-index: 30; background: #000; box-shadow: 0 1px 0 #1a1a1a; }
+.aluno-menu__linha { display: flex; align-items: center; gap: 4px; height: 48px; overflow-x: auto; scrollbar-width: none; }
+.aluno-menu__linha::-webkit-scrollbar { display: none; }
+.aluno-menu__nome { font-family: "Playfair Display", Georgia, serif; font-weight: 700; font-size: 17px; color: #fff; margin-right: 18px; white-space: nowrap; }
+.aluno-menu__link { display: inline-flex; align-items: center; height: 36px; padding: 0 12px; border-radius: 999px; color: #b4b4b4; font-size: 14px; font-weight: 600; text-decoration: none; white-space: nowrap; transition: color .15s; }
+.aluno-menu__link:hover { color: #fff; }
+.aluno-menu__link:focus-visible { outline: 2px solid var(--ouro); outline-offset: 2px; }
+.aluno-menu__link--ativo { color: #fff; }
+.aluno-menu__fim { margin-left: auto; }
+
+/* Fileiras roláveis */
+.aluno-fileira { display: flex; gap: 14px; overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: none; padding-bottom: 4px; }
+.aluno-fileira::-webkit-scrollbar { display: none; }
+.aluno-fileira > * { scroll-snap-align: start; }
+
+.aluno-cartaz { transition: transform .2s cubic-bezier(.22,1,.36,1); }
+.aluno-cartaz:hover { transform: translateY(-3px); }
+.aluno-cartaz:active { transform: scale(.98); }
+.aluno-cartaz:focus-visible { outline: 2px solid var(--ouro); outline-offset: 3px; border-radius: 8px; }
+@media (prefers-reduced-motion: reduce) { .aluno-cartaz, .aluno-cartaz:hover, .aluno-cartaz:active { transform: none; transition: none; } }
+
+/* Botões do destaque */
+.aluno-botao { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 22px; border-radius: 999px; font-size: 15px; font-weight: 600; border: 0; cursor: pointer; transition: background-color .15s, transform .1s; text-decoration: none; }
+.aluno-botao:active { transform: scale(.97); }
+.aluno-botao:focus-visible { outline: 2px solid var(--ouro); outline-offset: 3px; }
+.aluno-botao--principal { background: #fff; color: #000; }
+.aluno-botao--principal:hover { background: #e6e6e6; }
+.aluno-botao--secundario { background: rgba(255,255,255,.16); color: #fff; }
+.aluno-botao--secundario:hover { background: rgba(255,255,255,.26); }
+.aluno-botao:disabled { opacity: .5; cursor: default; }

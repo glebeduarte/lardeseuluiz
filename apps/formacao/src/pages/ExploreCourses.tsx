@@ -1,350 +1,93 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useMemo, useState } from 'react';
+import { Search } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
-import { enrollUserInCourse } from '@/lib/enrollments';
-import { Search, BookOpen, Loader2, Lock, Users, ChevronRight } from 'lucide-react';
-import { StudyLineIcons, getCategoryIcon } from '@/components/StudyLineIcons';
-import { PageHero } from '@/components/layout/PageHero';
-import { EmptyState } from '@/components/ui/empty-state';
-import { CoursesLoadingSkeleton } from '@/components/ui/course-skeletons';
+import { useVitrine } from '@/lib/vitrine';
+import { Cartaz } from '@/components/aluno/Vitrine';
 
-interface Course {
-  id: string;
-  title: string;
-  description: string | null;
-  thumbnail_url: string | null;
-  status: string;
-  category: string | null;
-  audience: string | null;
-  study_lines: string[] | null;
-  enrollment_open: boolean;
-}
+// Catálogo de cursos do aluno: todos os cursos que a pessoa pode fazer, em cartazes, com busca e linha de estudo.
 
-interface Enrollment {
-  course_id: string;
-  status: string;
-}
-
-type StudyLineFilter = 'todos' | 'espirita' | 'umbanda' | 'espiritualista';
+const LINHAS = [
+  { id: 'todas', rotulo: 'Todas' },
+  { id: 'espirita', rotulo: 'Espírita' },
+  { id: 'umbanda', rotulo: 'Umbanda' },
+  { id: 'espiritualista', rotulo: 'Espiritualista' },
+];
+const GRUPOS = [
+  { id: 'formacoes', titulo: 'Formações contínuas', detalhe: 'Estudos com calendário e turma' },
+  { id: 'cursos_extras', titulo: 'Cursos extras', detalhe: 'Para aprofundar um tema' },
+  { id: 'materiais', titulo: 'Materiais de apoio', detalhe: 'Para consultar quando precisar' },
+];
 
 export default function ExploreCourses() {
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [enrollingId, setEnrollingId] = useState<string | null>(null);
-  const [studyLineFilter, setStudyLineFilter] = useState<StudyLineFilter>('todos');
   const { user, profile } = useAuth();
-  const { toast } = useToast();
-  const navigate = useNavigate();
+  const { data, isLoading, isError, refetch } = useVitrine(user?.id, profile?.user_type);
+  const [busca, setBusca] = useState('');
+  const [linha, setLinha] = useState('todas');
 
-  useEffect(() => {
-    fetchData();
-  }, [user]);
-
-  const fetchData = async () => {
-    if (!user) return;
-
-    const [coursesRes, enrollmentsRes] = await Promise.all([
-      supabase
-        .from('courses')
-        .select('id, title, description, thumbnail_url, status, category, audience, study_lines, enrollment_open')
-        .eq('status', 'published')
-        .order('created_at', { ascending: false }),
-      supabase
-        .from('enrollments')
-        .select('course_id, status')
-        .eq('user_id', user.id)
-    ]);
-
-    if (coursesRes.data) setCourses(coursesRes.data);
-    if (enrollmentsRes.data) setEnrollments(enrollmentsRes.data);
-    setLoading(false);
-  };
-
-  const getEnrollmentStatus = (courseId: string) => {
-    const enrollment = enrollments.find(e => e.course_id === courseId);
-    return enrollment?.status || null;
-  };
-
-  const handleEnroll = async (courseId: string) => {
-    if (!user) return;
-    setEnrollingId(courseId);
-
-    const { error } = await enrollUserInCourse(user.id, courseId);
-
-    if (error) {
-      toast({ title: 'Erro', description: 'Não foi possível realizar a inscrição.', variant: 'destructive' });
-    } else {
-      toast({
-        title: 'Inscrição realizada!',
-        description: 'Você já pode acessar o curso.',
-      });
-      setEnrollments([...enrollments, { course_id: courseId, status: 'approved' }]);
-    }
-    setEnrollingId(null);
-  };
-
-  const userType = profile?.user_type || 'frequentador';
-  const filteredCourses = courses
-    .filter(course => {
-      if (course.audience === 'trabalhadores' && userType !== 'trabalhador') return false;
-      if (course.audience === 'frequentadores' && userType !== 'frequentador') return false;
-      if (studyLineFilter !== 'todos' && !(course.study_lines?.includes(studyLineFilter))) return false;
-      return true;
-    })
-    .filter(course => course.title.toLowerCase().includes(searchTerm.toLowerCase()));
-
-  const formacoes = filteredCourses.filter(course => course.category === 'formacoes');
-  const cursosExtras = filteredCourses.filter(course => course.category === 'cursos_extras');
-  const materiais = filteredCourses.filter(course => course.category === 'materiais');
-
-  const getStatusBadge = (course: Course) => {
-    const status = getEnrollmentStatus(course.id);
-
-    if (!course.enrollment_open && status !== 'approved') {
-      return <Badge variant="outline" className="bg-muted text-muted-foreground border-border text-[10px]"><Lock className="h-3 w-3 mr-1" />Em Breve</Badge>;
-    }
-    if (status === 'approved') {
-      return <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300 text-[10px]">Matriculado</Badge>;
-    }
-    if (course.enrollment_open && !status) {
-      return <Badge variant="outline" className="bg-sky-100 text-sky-800 border-sky-300 text-[10px]">Inscreva-se</Badge>;
-    }
-    return null;
-  };
-
-  const renderActionButton = (course: Course) => {
-    const status = getEnrollmentStatus(course.id);
-
-    if (!course.enrollment_open && status !== 'approved') {
-      return (
-        <Button size="sm" variant="outline" disabled className="w-full text-xs">
-          <Lock className="h-3 w-3 mr-1" />
-          Em Breve
-        </Button>
-      );
-    }
-    if (status === 'approved') {
-      return (
-        <Button size="sm" className="w-full text-xs" onClick={(e) => { e.stopPropagation(); navigate(`/course/${course.id}`); }}>
-          Acessar Curso
-        </Button>
-      );
-    }
-    return (
-      <Button
-        size="sm"
-        variant="outline"
-        className="w-full text-xs"
-        onClick={(e) => { e.stopPropagation(); handleEnroll(course.id); }}
-        disabled={enrollingId === course.id}
-      >
-        {enrollingId === course.id ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
-        Inscrever-se
-      </Button>
-    );
-  };
-
-  const renderCourseCard = (course: Course) => (
-    <div
-      key={course.id}
-      className={`rounded-lg overflow-hidden border bg-card group transition-all duration-300 ${
-        !course.enrollment_open && getEnrollmentStatus(course.id) !== 'approved' ? 'opacity-60 grayscale' : 'hover:shadow-sm'
-      }`}
-    >
-      {/* Image 4:5 */}
-      <div className="aspect-[4/5] bg-muted relative overflow-hidden">
-        {course.thumbnail_url ? (
-          <img
-            src={course.thumbnail_url}
-            alt={course.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <BookOpen className="h-10 w-10 text-muted-foreground" />
-          </div>
-        )}
-        <div className="absolute top-2 right-2">
-          {getStatusBadge(course)}
-        </div>
-      </div>
-
-      {/* Text */}
-      <div className="p-3 space-y-2">
-        <div className="flex items-center gap-1.5">
-          <StudyLineIcons studyLines={course.study_lines} size="sm" />
-          {course.study_lines && course.study_lines.length > 0 && (
-            <span className="text-[11px] text-muted-foreground">
-              {course.study_lines.map(l => l === 'espirita' ? 'Espírita' : l === 'umbanda' ? 'Umbanda' : 'Espiritualista').join(' · ')}
-            </span>
-          )}
-        </div>
-        <h3 className="font-['Playfair_Display'] font-semibold text-[15px] leading-tight line-clamp-2">
-          {course.title}
-        </h3>
-        {course.description && (
-          <p className="text-[13px] text-muted-foreground line-clamp-2">
-            {course.description}
-          </p>
-        )}
-        <div className="flex gap-1 flex-wrap">
-          {(course.audience === 'trabalhadores' || course.audience === 'ambos') && (
-            <span className="text-[11px] text-primary flex items-center gap-0.5">
-              <Users className="h-3 w-3" /> Trabalhadores
-            </span>
-          )}
-          {(course.audience === 'frequentadores' || course.audience === 'ambos') && (
-            <span className="text-[11px] text-muted-foreground flex items-center gap-0.5">
-              <Users className="h-3 w-3" /> Frequentadores
-            </span>
-          )}
-        </div>
-        {renderActionButton(course)}
-      </div>
-    </div>
-  );
-
-  // Mobile list row — compact horizontal layout
-  const renderCourseListItem = (course: Course) => {
-    const status = getEnrollmentStatus(course.id);
-    const isUnavailable = !course.enrollment_open && status !== 'approved';
-    const isApproved = status === 'approved';
-    return (
-      <button
-        key={course.id}
-        onClick={() => {
-          if (isApproved) navigate(`/course/${course.id}`);
-          else if (!isUnavailable) handleEnroll(course.id);
-        }}
-        disabled={isUnavailable || enrollingId === course.id}
-        aria-label={`${course.title}${isApproved ? ' — acessar curso' : isUnavailable ? ' — em breve' : ' — inscrever-se'}`}
-        className={`w-full flex items-center gap-3 bg-card border rounded-lg p-2.5 text-left transition-all active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
-          isUnavailable ? 'opacity-60 grayscale cursor-not-allowed' : 'hover:border-primary/40'
-        }`}
-      >
-        <div className="relative h-[72px] w-[72px] flex-shrink-0 rounded-lg overflow-hidden bg-muted">
-          {course.thumbnail_url ? (
-            <img src={course.thumbnail_url} alt="" className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <BookOpen className="h-7 w-7 text-muted-foreground" />
-            </div>
-          )}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start gap-2">
-            <h3 className="flex-1 font-['Playfair_Display'] font-semibold text-[14px] leading-tight line-clamp-2">
-              {course.title}
-            </h3>
-            <div className="flex-shrink-0">{getStatusBadge(course)}</div>
-          </div>
-          {course.description && (
-            <p className="text-[12px] text-muted-foreground line-clamp-1 mt-1">
-              {course.description}
-            </p>
-          )}
-          <div className="flex items-center gap-2 mt-1.5">
-            <StudyLineIcons studyLines={course.study_lines} size="sm" />
-            {course.study_lines && course.study_lines.length > 0 && (
-              <span className="text-[10px] text-muted-foreground">
-                {course.study_lines.map(l => l === 'espirita' ? 'Espírita' : l === 'umbanda' ? 'Umbanda' : 'Espiritualista').join(' · ')}
-              </span>
-            )}
-          </div>
-        </div>
-        <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" aria-hidden="true" />
-      </button>
-    );
-  };
-
-  const renderSection = (title: string, subtitle: string, icon: string, coursesList: Course[]) => {
-    if (coursesList.length === 0) return null;
-    return (
-      <div className="space-y-4">
-        <div className="border-t pt-6">
-          <h2 className="font-['Playfair_Display'] text-lg font-semibold flex items-center gap-2">
-            <span>{icon}</span> {title}
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>
-        </div>
-        {/* Mobile: compact list */}
-        <div className="flex flex-col gap-2.5 sm:hidden">
-          {coursesList.map(renderCourseListItem)}
-        </div>
-        {/* sm+: portrait grid */}
-        <div className="hidden sm:grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-5">
-          {coursesList.map(renderCourseCard)}
-        </div>
-      </div>
-    );
-  };
+  const lista = useMemo(() => {
+    const q = busca.trim().toLowerCase();
+    return (data?.cursos ?? []).filter((c) =>
+      (linha === 'todas' || c.linhas.includes(linha)) &&
+      (!q || c.titulo.toLowerCase().includes(q) || (c.descricao ?? '').toLowerCase().includes(q)));
+  }, [data, busca, linha]);
 
   return (
     <DashboardLayout>
-      <PageHero title="Explorar Cursos" description="Descubra novos cursos e inscreva-se" variant="student" />
-      <div className="space-y-6">
+      <div className="aluno-coluna pt-8 md:pt-10">
+        <h1 className="font-['Playfair_Display'] text-[30px] md:text-[34px] font-bold text-white">Cursos</h1>
+        <p className="mt-1 text-[15px] text-[#b4b4b4]">
+          {data ? `${data.cursos.length} cursos e materiais para você · ${data.cursos.filter((c) => c.matricula === 'approved').length} em que já está inscrito` : 'Tudo o que a Formação oferece para você'}
+        </p>
 
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className="relative max-w-md flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar cursos..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-medium text-muted-foreground">Linha:</span>
-            {([
-              { value: 'todos', label: 'Todas', icon: '📚' },
-              { value: 'espirita', label: 'Espírita', icon: '🙏' },
-              { value: 'umbanda', label: 'Umbanda', icon: '🕯️' },
-              { value: 'espiritualista', label: 'Espiritualista', icon: '✨' },
-            ] as { value: StudyLineFilter; label: string; icon: string }[]).map(tab => (
-              <button
-                key={tab.value}
-                onClick={() => setStudyLineFilter(tab.value)}
-                className={`px-3 py-1.5 rounded-md border text-xs font-medium transition-all ${
-                  studyLineFilter === tab.value
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-card text-muted-foreground hover:bg-muted'
-                }`}
-              >
-                {tab.icon} {tab.label}
+        <div className="mt-6 flex flex-col md:flex-row md:items-center gap-3">
+          <label className="relative md:w-[340px]">
+            <span className="sr-only">Buscar curso</span>
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#949494]" />
+            <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar curso"
+              className="w-full h-11 rounded-full bg-[#1a1a1a] pl-11 pr-4 text-[15px] text-white placeholder:text-[#949494] outline-none focus:ring-2 focus:ring-[var(--ouro)]" />
+          </label>
+          <div className="flex gap-2 overflow-x-auto" role="group" aria-label="Linha de estudo">
+            {LINHAS.map((l) => (
+              <button key={l.id} onClick={() => setLinha(l.id)} aria-pressed={linha === l.id}
+                className={`h-11 px-4 rounded-full text-[14px] font-semibold whitespace-nowrap transition-colors ${linha === l.id ? 'bg-white text-black' : 'bg-[#1a1a1a] text-[#b4b4b4] hover:text-white'}`}>
+                {l.rotulo}
               </button>
             ))}
           </div>
         </div>
 
-        {loading ? (
-          <CoursesLoadingSkeleton count={4} />
-        ) : filteredCourses.length === 0 ? (
-          <EmptyState
-            icon={BookOpen}
-            title={searchTerm ? 'Nenhum curso encontrado' : 'Nenhum curso disponível'}
-            description={
-              searchTerm
-                ? 'Tente buscar por outro termo ou remova os filtros aplicados.'
-                : 'Novos cursos serão publicados em breve. Volte mais tarde para conferir as novidades.'
-            }
-          />
-        ) : (
-          <div className="space-y-10">
-            {renderSection('Formações Contínuas', 'Cursos com calendário estruturado e acompanhamento', '📚', formacoes)}
-            {renderSection('Cursos Extras', 'Formações pontuais para aprofundamento específico', '🎓', cursosExtras)}
-            {renderSection('Materiais', 'Recursos de consulta e apoio ao aprendizado — acesso direto', '📖', materiais)}
+        {isLoading && (
+          <div className="mt-10 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-x-3.5 gap-y-8" aria-busy="true">
+            {Array.from({ length: 12 }).map((_, k) => <div key={k} className="aspect-[4/5] rounded-lg bg-[#1a1a1a]" />)}
           </div>
         )}
+        {isError && (
+          <div className="mt-10">
+            <p className="text-white">Não conseguimos carregar os cursos agora.</p>
+            <button className="aluno-botao aluno-botao--secundario mt-4" onClick={() => refetch()}>Tentar de novo</button>
+          </div>
+        )}
+
+        {data && lista.length === 0 && (
+          <p className="mt-10 rounded-xl bg-[#111] p-6 text-[15px] text-[#b4b4b4]">Nenhum curso com {busca ? `"${busca}"` : 'esse filtro'}. Tente outra palavra ou volte para Todas.</p>
+        )}
+
+        <div className="mt-10 space-y-12">
+          {GRUPOS.map((g) => {
+            const itens = lista.filter((c) => c.categoria === g.id);
+            if (!itens.length) return null;
+            return (
+              <section key={g.id} aria-labelledby={`grupo-${g.id}`}>
+                <h2 id={`grupo-${g.id}`} className="text-[20px] font-semibold text-white">{g.titulo}</h2>
+                <p className="text-[13px] text-[#949494] mt-0.5 mb-4">{g.detalhe} · {itens.length} {itens.length === 1 ? 'item' : 'itens'}</p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-x-3.5 gap-y-8 [&>a]:w-auto">
+                  {itens.map((c) => <Cartaz key={c.id} c={c} />)}
+                </div>
+              </section>
+            );
+          })}
+        </div>
       </div>
     </DashboardLayout>
   );
