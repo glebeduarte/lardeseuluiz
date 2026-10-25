@@ -43,6 +43,7 @@ import Rifas from "./pages/site/Rifas";
 import RifasGestao from "./pages/rifas/RifasGestao";
 import RifaGestao from "./pages/rifas/RifaGestao";
 import RifaVender from "./pages/rifas/RifaVender";
+import RifaTelaSorteio from "./pages/rifas/RifaTelaSorteio";
 import Chamamento from "./pages/chamamento/Chamamento";
 import CandidatoChamamento from "./pages/chamamento/Candidato";
 import NotFound from "./pages/NotFound";
@@ -101,6 +102,7 @@ const App = () => (
             <Route path="/app/rifas" element={<RifasGestao />} />
             <Route path="/app/rifas/vender" element={<RifaVender />} />
             <Route path="/app/rifas/:id" element={<RifaGestao />} />
+            <Route path="/app/rifas/:id/sorteio" element={<RifaTelaSorteio />} />
             <Route path="/app/acoes/:id" element={<AcaoDetalhe />} />
             <Route path="/app/acoes/edicao/:id" element={<EdicaoDetalhe />} />
             <Route path="/app/familias" element={<Familias />} />

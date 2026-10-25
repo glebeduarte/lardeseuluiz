@@ -1,0 +1,68 @@
+/* Tela do sorteio: fundo azul do Lar, número em dourado, legível de longe num projetor ou TV. */
+.sorteio {
+  --azul: #003c7f; --azul-escuro: #0f1f3d; --ouro: #ffc116; --claro: #eaf1fb;
+  min-height: 100vh; min-height: 100dvh; background: var(--azul-escuro); color: #fff;
+  font-family: "DM Sans", system-ui, sans-serif; display: flex; flex-direction: column;
+}
+.sorteio__aviso { margin: auto; font-size: 20px; }
+
+.sorteio__topo { display: flex; align-items: center; gap: 20px; padding: 20px 32px; background: var(--azul); }
+.sorteio__logo { width: 64px; height: 64px; object-fit: contain; border-radius: 16px; background: #fff; padding: 6px; flex: none; }
+.sorteio__titulo { flex: 1; min-width: 0; }
+.sorteio__titulo h1 { margin: 0; font: 700 clamp(22px, 3vw, 40px)/1.1 "Playfair Display", Georgia, serif; }
+.sorteio__titulo p { margin: 4px 0 0; font-size: clamp(15px, 1.6vw, 22px); color: var(--claro); }
+.sorteio__acoes { display: flex; gap: 8px; }
+.sorteio__acoes a, .sorteio__acoes button {
+  width: 48px; height: 48px; border-radius: 14px; border: 0; background: rgba(255,255,255,.12); color: #fff;
+  display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.sorteio__acoes svg { width: 22px; height: 22px; }
+
+.sorteio__palco { flex: 1; display: grid; grid-template-columns: 1fr minmax(280px, 380px); gap: 32px; padding: 32px; }
+.sorteio__centro { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 12px; }
+.sorteio__rotulo { margin: 0; font-size: clamp(18px, 2vw, 28px); letter-spacing: .08em; text-transform: uppercase; color: var(--claro); }
+.sorteio__concorrem { margin: 0; font: 700 clamp(72px, 12vw, 180px)/1 "Playfair Display", Georgia, serif; color: var(--ouro); font-variant-numeric: lining-nums; }
+.sorteio__concorrem span { display: block; margin-top: 12px; font: 500 clamp(20px, 2.4vw, 32px)/1.2 "DM Sans", sans-serif; color: #fff; }
+.sorteio__numero {
+  margin: 0; font: 900 clamp(110px, 22vw, 320px)/1 "Playfair Display", Georgia, serif; color: var(--ouro);
+  font-variant-numeric: lining-nums tabular-nums; margin-bottom: 8px;
+}
+.sorteio__numero--girando { color: #fff; opacity: .9; }
+.sorteio__ganhador { animation: sorteio-surge .5s ease-out both; }
+.sorteio__nome { margin: 0; font: 700 clamp(30px, 4.4vw, 64px)/1.15 "Playfair Display", Georgia, serif; }
+.sorteio__vendido { margin: 10px 0 0; font-size: clamp(18px, 2.2vw, 30px); color: var(--claro); }
+
+.sorteio__comando { margin-top: 28px; display: grid; gap: 14px; justify-items: center; max-width: 640px; }
+.sorteio__botao {
+  height: 68px; padding: 0 36px; border-radius: 999px; border: 0; background: var(--ouro); color: var(--azul-escuro);
+  font: 700 22px/1 "DM Sans", sans-serif; display: inline-flex; align-items: center; gap: 12px; cursor: pointer;
+}
+.sorteio__botao svg { width: 26px; height: 26px; }
+.sorteio__botao:disabled { opacity: .45; cursor: not-allowed; }
+.sorteio__botao--sec { background: rgba(255,255,255,.14); color: #fff; }
+.sorteio__duplo { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.sorteio__alerta { margin: 0; padding: 12px 18px; border-radius: 16px; background: #fff3cc; color: #5c3d00; font-size: 17px; }
+.sorteio__confirma { margin: 0; font-size: 20px; color: var(--claro); }
+
+.sorteio__vendedores { background: rgba(255,255,255,.06); border-radius: 24px; padding: 24px; display: flex; flex-direction: column; min-height: 0; }
+.sorteio__vendedores h2 { margin: 0 0 14px; font: 700 clamp(22px, 2.2vw, 30px)/1.2 "Playfair Display", Georgia, serif; color: var(--ouro); }
+.sorteio__vendedores ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; overflow: auto; }
+.sorteio__vendedores li {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 14px;
+  background: rgba(255,255,255,.06); font-size: clamp(17px, 1.6vw, 22px);
+}
+.sorteio__vendedores li b { min-width: 40px; text-align: right; color: var(--ouro); font-variant-numeric: tabular-nums; }
+.sorteio__vendedores li.destaque { background: var(--ouro); color: var(--azul-escuro); }
+.sorteio__vendedores li.destaque b { color: var(--azul-escuro); }
+.sorteio__vazio { margin: 0; color: var(--claro); }
+.sorteio__obrigado { margin: auto 0 0; padding-top: 16px; font-size: 15px; color: var(--claro); }
+
+@keyframes sorteio-surge { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .sorteio__ganhador { animation: none; } }
+
+@media (max-width: 860px) {
+  .sorteio__topo { padding: 14px 16px; gap: 12px; }
+  .sorteio__logo { width: 44px; height: 44px; border-radius: 12px; }
+  .sorteio__palco { grid-template-columns: 1fr; padding: 16px; gap: 20px; }
+  .sorteio__botao { height: 60px; font-size: 19px; padding: 0 28px; }
+}

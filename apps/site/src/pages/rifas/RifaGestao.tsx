@@ -364,17 +364,28 @@ function AbaSorteio({ rifa, pedidos, atualizar }: { rifa: Rifa; pedidos: Pedido[
             {rifa.draw_notes && <p className="text-sm" style={{ color: "#cfe0f5" }}>{rifa.draw_notes}</p>}
           </div>
         </div>
+        <div className="flex flex-wrap gap-2">
+        <Button variant="outline" asChild><Link to={`/app/rifas/${rifa.id}/sorteio`}><Trophy className="w-4 h-4 mr-2" /> Mostrar na tela</Link></Button>
         {ganhador && <Button asChild><a href={linkWhats(ganhador.buyer_phone, `Olá, ${ganhador.buyer_name.split(" ")[0]}! O número ${pad(rifa.winner_number ?? 0, rifa.total_numbers)} foi sorteado na ${rifa.title} e é seu. Parabéns! Vamos combinar a entrega do prêmio: ${rifa.prize}.`)} target="_blank" rel="noopener noreferrer"><MessageCircle className="w-4 h-4 mr-2" /> Avisar o ganhador</a></Button>}
+        </div>
       </CardContent></Card>
     );
   }
 
   return (
+    <div className="grid gap-4">
     <Card>
-      <CardHeader><CardTitle className="font-['Playfair_Display'] text-lg">Registrar o sorteio presencial</CardTitle>
-        <CardDescription>Depois do sorteio feito na casa, digite o número sorteado. O resultado aparece na página da rifa.</CardDescription></CardHeader>
-      <CardContent className="grid gap-4 max-w-xl">
+      <CardHeader><CardTitle className="font-['Playfair_Display'] text-lg">Sortear pela ferramenta</CardTitle>
+        <CardDescription>Abra a tela do sorteio no projetor ou na TV. Ela mostra quem vendeu, quantos números pagos concorrem e sorteia um deles ao acaso.</CardDescription></CardHeader>
+      <CardContent className="grid gap-3 max-w-xl">
         {pendentes > 0 && <p className="rounded-2xl bg-amber-50 text-amber-900 px-4 py-3 text-sm">Ainda há {pendentes} {pendentes === 1 ? "pedido esperando" : "pedidos esperando"} PIX. Só números pagos concorrem: confirme ou libere esses pedidos antes do sorteio.</p>}
+        <div><Button asChild><Link to={`/app/rifas/${rifa.id}/sorteio`}><Trophy className="w-4 h-4 mr-2" /> Abrir a tela do sorteio</Link></Button></div>
+      </CardContent>
+    </Card>
+    <Card>
+      <CardHeader><CardTitle className="font-['Playfair_Display'] text-lg">Ou registre um sorteio feito à mão</CardTitle>
+        <CardDescription>Se o sorteio for feito na casa de outro jeito, digite o número sorteado. O resultado aparece na página da rifa.</CardDescription></CardHeader>
+      <CardContent className="grid gap-4 max-w-xl">
         {rifa.status === "vendendo" && <p className="text-sm text-muted-foreground">Dica: em Configurar, mude a situação para "Vendas encerradas" antes de sortear, para ninguém reservar no meio do sorteio.</p>}
         <div className="grid gap-2"><Label>Número sorteado</Label><Input type="number" min={1} max={rifa.total_numbers} value={numero} onChange={(e) => setNumero(e.target.value)} className="text-2xl font-bold h-14 max-w-[200px]" /></div>
         {numero && n >= 1 && n <= rifa.total_numbers && (
@@ -391,6 +402,7 @@ function AbaSorteio({ rifa, pedidos, atualizar }: { rifa: Rifa; pedidos: Pedido[
         </DialogContent>
       </Dialog>
     </Card>
+    </div>
   );
 }
 
