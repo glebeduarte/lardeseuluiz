@@ -7,7 +7,7 @@
 -- Tudo passa por funções SECURITY DEFINER que conferem esse direito antes de gravar, e cada mudança fica no
 -- registro governanca.acessos_log (quem mudou, o quê e quando).
 --
--- Este arquivo tem comandos DELETE dentro das funções. Rode no Supabase > SQL Editor.
+-- Aplicado no banco em 25/10/2026 (migração "painel_acessos").
 
 -- ---------------------------------------------------------------------------------------------------------------
 -- Registro das mudanças
@@ -22,7 +22,6 @@ create table if not exists governanca.acessos_log (
 );
 create index if not exists acessos_log_pessoa_idx on governanca.acessos_log (person_id, criado_em desc);
 alter table governanca.acessos_log enable row level security;
-drop policy if exists acessos_log_ver on governanca.acessos_log;
 create policy acessos_log_ver on governanca.acessos_log for select to authenticated using (governanca.has_role(auth.uid(), 'admin'));
 grant select on governanca.acessos_log to authenticated;
 
