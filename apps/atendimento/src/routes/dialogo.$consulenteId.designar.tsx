@@ -19,7 +19,7 @@ import { useEscolhaMaca, buscarMacasAtivas, encerrarPorTroca } from "@/component
 
 export const Route = createFileRoute("/dialogo/$consulenteId/designar")({
   component: () => (
-    <RequireAuth roles={["recepcao", "admin"]}>
+    <RequireAuth roles={["recepcao", "dialogador", "admin"]}>
       <Designar />
     </RequireAuth>
   ),
@@ -27,8 +27,12 @@ export const Route = createFileRoute("/dialogo/$consulenteId/designar")({
 
 function Designar() {
   const { consulenteId } = Route.useParams();
-  const { user } = useAuth();
+  const { user, isDialogador, isMedium } = useAuth();
   const navigate = useNavigate();
+  // Quem não abre a ficha (só Acolhimento) volta para o Acolhimento
+  const voltar = () => (isDialogador || isMedium)
+    ? navigate({ to: "/consulentes/$id", params: { id: consulenteId } })
+    : navigate({ to: "/recepcao" });
   const confirm = useConfirm();
   const [escolherMaca, escolhaEl] = useEscolhaMaca();
   const [busy, setBusy] = useState(false);
@@ -117,7 +121,7 @@ function Designar() {
           : `Lotação atualizada: ${ativos + 1}/${lotacao_max} consulentes`,
       },
     );
-    navigate({ to: "/consulentes/$id", params: { id: consulenteId } });
+    voltar();
   };
 
   return (
@@ -127,7 +131,7 @@ function Designar() {
         titulo="Designar maca"
         descricao={<>Consulente: <strong className="text-foreground">{consulente?.nome}</strong></>}
         acoes={
-          <Button variant="outline" onClick={() => navigate({ to: "/consulentes/$id", params: { id: consulenteId } })}>
+          <Button variant="outline" onClick={voltar}>
             <ArrowLeft className="h-4 w-4 mr-2" /> Voltar
           </Button>
         }
