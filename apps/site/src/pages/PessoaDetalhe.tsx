@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, X } from "lucide-react";
+import { ArrowLeft, KeyRound, Plus, X } from "lucide-react";
 
 type ContextType = "casa" | "secretaria" | "projeto";
 type Permission = string;
@@ -201,6 +201,7 @@ export default function PessoaDetalhe() {
             {person.email && <span>{person.email}</span>}
             {person.phone && <span>{person.phone}</span>}
           </div>
+          <Button asChild className="mt-3"><Link to={`/app/acessos/${person.id}`}><KeyRound className="w-4 h-4 mr-2" /> Ver e mudar acessos</Link></Button>
         </div>
 
         {/* Permissões ativas */}

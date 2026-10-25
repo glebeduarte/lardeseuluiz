@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ComponentType } from "react"
 import {
   Search, X, GraduationCap, ListChecks, HandHeart, CalendarDays, HeartPulse, UserRound, Sprout,
   Building2, HeartHandshake, Home, Megaphone, UserPlus, Users, FileText, Wallet, Vote, BookOpen,
-  ClipboardList, MessageCircle, Stethoscope, BarChart3, Globe, Library, CalendarCheck, Settings, Ticket,
+  ClipboardList, MessageCircle, Stethoscope, BarChart3, Globe, Library, CalendarCheck, Settings, Ticket, KeyRound,
 } from "lucide-react";
 import type { AreasLsl } from "./BarraSistemas";
 
@@ -77,7 +77,8 @@ export const ATIVIDADES: AtividadeLsl[] = [
   { id: "financeiro", rotulo: "Lançar no financeiro", ajuda: "Entradas, saídas e prestação de contas", href: "/app/financeiro", grupo: "Na gestão", cor: "cinza", icone: Wallet, palavras: "dinheiro doação despesa financeiro", mostrar: (a) => pode(a, "modulo_financeiro") },
   { id: "assembleias", rotulo: "Organizar uma assembleia", ajuda: "Convocação, presença e ata", href: "/app/assembleias", grupo: "Na gestão", cor: "cinza", icone: Vote, palavras: "assembleia votação ata", mostrar: (a) => pode(a, "modulo_gestao") },
   { id: "pessoas", rotulo: "Procurar uma pessoa", ajuda: "Cadastro único de voluntários e associados", href: "/app/pessoas", grupo: "Na gestão", cor: "cinza", icone: Users, palavras: "pessoa voluntário associado cadastro buscar", mostrar: (a) => pode(a, "modulo_gestao") },
-  { id: "funcoes", rotulo: "Dar acesso a alguém", ajuda: "Funções e o que cada uma pode abrir", href: "/app/configuracoes/funcoes", grupo: "Na gestão", cor: "cinza", icone: Settings, palavras: "acesso permissão função liberar", mostrar: (a) => pode(a, "modulo_admin") },
+  { id: "acessos", rotulo: "Dar acesso a alguém", ajuda: "Papéis no Atendimento, cursos e Governança, numa tela só", href: "/app/acessos", grupo: "Na gestão", cor: "cinza", icone: KeyRound, palavras: "acesso permissão papel liberar login senha médium dialogador matricular", mostrar: (a) => !!a.admin || !!a.formacao_admin || papel(a) },
+  { id: "funcoes", rotulo: "Configurar as funções", ajuda: "O que cada função libera", href: "/app/configuracoes/funcoes", grupo: "Na gestão", cor: "cinza", icone: Settings, palavras: "função permissão módulo", mostrar: (a) => pode(a, "modulo_admin") },
   { id: "site", rotulo: "Ir para o site", ajuda: "A página inicial do Lar", href: "/", grupo: "Para mim", cor: "cinza", icone: Globe, palavras: "site início página" },
 ];
 

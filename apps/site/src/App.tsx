@@ -29,6 +29,7 @@ import Associados from "./pages/Associados";
 import Frequentadores from "./pages/Frequentadores";
 import Pessoas from "./pages/Pessoas";
 import PessoaDetalhe from "./pages/PessoaDetalhe";
+import PainelAcessos from "./pages/acessos/PainelAcessos";
 import Funcoes from "./pages/Funcoes";
 import Perfil from "./pages/Perfil";
 import Projetos from "./pages/Projetos";
@@ -87,6 +88,8 @@ const App = () => (
             <Route path="/app/associados" element={<Associados />} />
             <Route path="/app/pessoas" element={<Pessoas />} />
             <Route path="/app/pessoas/:id" element={<PessoaDetalhe />} />
+            <Route path="/app/acessos" element={<PainelAcessos />} />
+            <Route path="/app/acessos/:personId" element={<PainelAcessos />} />
             <Route path="/app/frequentadores" element={<Frequentadores />} />
             <Route path="/app/secretarias/:id" element={<SecretariaDetalhePage />} />
             <Route path="/app/secretarias/:id/tarefas" element={<SecretariaTarefas />} />

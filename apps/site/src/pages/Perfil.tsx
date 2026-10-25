@@ -11,6 +11,7 @@ import { useMinhaJornada } from "@/components/site/JornadaVoluntario";
 import { ETAPA_COR, ETAPA_LABEL, ETAPAS_JORNADA, dataCurta, proximoPasso, semanaDoEstagio } from "@/lib/chamamento";
 import { db } from "@/lib/acoes";
 import { MolduraSimples, useAreasLsl, iniciaisLsl } from "@/compartilhado";
+import fotoCasa from "@/assets/hero-bg.jpg";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -222,6 +223,21 @@ export default function Perfil() {
   const papelPrincipal = isAdmin ? "Administrador" : isGestor ? "Gestor" : funcoes.length ? "Voluntário" : roles[0] ? ROLE_META[roles[0].role]?.label ?? "Frequentador" : "Frequentador";
   const nomesFuncoes = funcoes.map((f) => f.functions?.name).filter(Boolean).join(" · ");
 
+  // Selos do hero: um por papel, com a cor da área (Governança azul, Formação verde, Atendimento roxo)
+  type PapelHero = { chave: string; texto: string; icone: ComponentType<{ className?: string }>; cor: string };
+  const papeisHero: PapelHero[] = [
+    ...(isAdmin ? [{ chave: "g-admin", texto: "Administrador geral", icone: ShieldCheck, cor: "text-[#0059b1]" }] : isGestor ? [{ chave: "g-gestor", texto: "Gestor", icone: ShieldCheck, cor: "text-[#0059b1]" }] : []),
+    ...secretariasV.filter((x) => x.papel === "coordenador").map((x) => ({ chave: `s-${x.id}`, texto: `Coordena ${x.nome}`, icone: Crown, cor: "text-[#b8860b]" })),
+    ...projetosV.filter((x) => x.coordena).map((x) => ({ chave: `p-${x.id}`, texto: `Coordena ${x.nome}`, icone: Crown, cor: "text-[#b8860b]" })),
+    ...funcoes.filter((f) => f.functions?.name).map((f) => ({ chave: `f-${f.id}`, texto: f.functions.name as string, icone: Briefcase, cor: "text-[#0059b1]" })),
+    ...(atendimento?.papeis ?? []).map((x) => ({ chave: `a-${x}`, texto: x === "admin" ? "Admin do Atendimento" : PAPEIS_ATENDIMENTO[x] ?? x, icone: HeartPulse, cor: "text-[#6d28d9]" })),
+    ...(formacao?.admin ? [{ chave: "fo-admin", texto: "Admin dos cursos", icone: GraduationCap, cor: "text-[#176e69]" }] : []),
+    ...(cursosAtivos.length && !formacao?.admin ? [{ chave: "fo-aluno", texto: cursosAtivos.length === 1 ? "Aluno de 1 curso" : `Aluno de ${cursosAtivos.length} cursos`, icone: GraduationCap, cor: "text-[#176e69]" }] : []),
+    ...(associacao?.status === "ativo" ? [{ chave: "assoc", texto: "Associado", icone: Award, cor: "text-[#b8860b]" }] : []),
+  ];
+  if (!papeisHero.some((x) => x.chave.startsWith("f-") || x.chave.startsWith("g-")) && roles.some((r: Linha) => r.role === "trabalhador"))
+    papeisHero.unshift({ chave: "vol", texto: "Voluntário", icone: Sparkles, cor: "text-[#0059b1]" });
+
   // Tarefas e escalas da pessoa (mesmas consultas usadas nos outros blocos)
   const { data: minhasTarefas = [] } = useQuery({
     queryKey: ["minhas-tarefas"],
@@ -292,37 +308,57 @@ export default function Perfil() {
 
           {aba === "geral" ? (
             <>
-              {/* Saudação */}
-              <section className="relative overflow-hidden rounded-3xl p-6 sm:p-8 text-white"
-                style={{ background: "hsl(211 100% 25%)" }}>
-                {/* O sol do logo do Lar, como no site */}
-                <div className="absolute -right-14 -top-16 w-32 h-32 sm:w-48 sm:h-48 rounded-full" style={{ background: "#ffc116" }} aria-hidden="true" />
-                <div className="relative flex items-center gap-4 sm:gap-5">
-                  <div className="relative w-20 h-20 sm:w-24 sm:h-24 shrink-0">
-                    <div className="w-full h-full rounded-full ring-4 ring-white/70 bg-[hsl(var(--accent))] text-[hsl(var(--primary-dark))] flex items-center justify-center text-2xl font-bold overflow-hidden shadow-lg">
-                      {foto ? <img src={foto} alt="" className="w-full h-full object-cover" /> : iniciaisLsl(nome)}
+              {/* Hero: foto da casa em gradiente, a pessoa e os papéis dela em cada área */}
+              <section className="relative overflow-hidden rounded-3xl text-white min-h-[300px] sm:min-h-[320px] flex flex-col justify-end">
+                <img src={fotoCasa} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover" />
+                <div className="absolute inset-0" aria-hidden="true"
+                  style={{ background: "linear-gradient(180deg, rgba(0,60,127,0.25) 0%, rgba(0,48,104,0.72) 48%, rgba(0,36,82,0.96) 100%)" }} />
+                <div className="absolute -right-12 -top-14 w-32 h-32 sm:w-44 sm:h-44 rounded-full" style={{ background: "#ffc116" }} aria-hidden="true" />
+
+                <div className="relative p-5 sm:p-8 pt-24 sm:pt-28">
+                  <div className="flex items-end gap-4 sm:gap-5">
+                    <div className="relative w-24 h-24 sm:w-28 sm:h-28 shrink-0">
+                      <div className={`w-full h-full rounded-full ring-4 ${foto ? "ring-white/80" : "ring-[#ffc116] ring-offset-2 ring-offset-transparent"} bg-[hsl(var(--accent))] text-[hsl(var(--primary-dark))] flex items-center justify-center text-3xl font-bold overflow-hidden`}>
+                        {foto ? <img src={foto} alt={`Foto de ${primeiroNome}`} className="w-full h-full object-cover" /> : iniciaisLsl(nome)}
+                      </div>
+                      <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading || !person}
+                        className="absolute -bottom-1 -right-1 w-10 h-10 rounded-full bg-white text-primary flex items-center justify-center disabled:opacity-60" aria-label={foto ? "Trocar foto" : "Adicionar foto"}>
+                        {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-5 h-5" />}
+                      </button>
+                      <input ref={fileInputRef} type="file" accept="image/*" className="hidden"
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAvatar(f); e.target.value = ""; }} />
                     </div>
-                    <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading || !person}
-                      className="absolute -bottom-1 -right-1 w-9 h-9 rounded-full bg-white text-primary flex items-center justify-center shadow-md disabled:opacity-60" aria-label="Trocar foto">
-                      {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
+                    <div className="min-w-0 pb-1">
+                      <div className="text-sm text-white/85 inline-flex items-center gap-1.5"><IconeSaudacao className="w-4 h-4" /> {saudacao},</div>
+                      <h1 className="text-3xl sm:text-[42px] font-bold font-['Playfair_Display'] leading-tight truncate">{primeiroNome}!</h1>
+                      <p className="text-[15px] text-white/85 mt-0.5">Que bom ter você no Lar de Seu Luiz.</p>
+                    </div>
+                  </div>
+
+                  {!foto && person && !simulacao?.personId && (
+                    <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading}
+                      className="mt-5 w-full sm:w-auto inline-flex items-center gap-3 rounded-2xl bg-white/15 backdrop-blur border border-white/25 px-4 py-3 text-left hover:bg-white/20 transition-colors">
+                      <span className="w-10 h-10 rounded-full bg-[#ffc116] text-[#0f1f3d] flex items-center justify-center shrink-0"><Camera className="w-5 h-5" /></span>
+                      <span className="min-w-0">
+                        <span className="block font-semibold text-[15px]">Coloque uma foto sua</span>
+                        <span className="block text-[13px] text-white/80">Assim a equipe te reconhece nas escalas, nos cursos e no atendimento.</span>
+                      </span>
                     </button>
-                    <input ref={fileInputRef} type="file" accept="image/*" className="hidden"
-                      onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAvatar(f); e.target.value = ""; }} />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-sm text-white/85 inline-flex items-center gap-1.5"><IconeSaudacao className="w-4 h-4" /> {saudacao},</div>
-                    <h1 className="text-3xl sm:text-4xl font-bold font-['Playfair_Display'] leading-tight truncate">{primeiroNome}!</h1>
-                    <p className="text-sm text-white/85 mt-1">Que bom ter você no Lar de Seu Luiz.</p>
-                  </div>
+                  )}
+
+                  {papeisHero.length > 0 && (
+                    <div className="mt-5 space-y-2">
+                      <div className="text-[12px] font-semibold uppercase tracking-wide text-white/70">Seus papéis na Casa</div>
+                      <div className="flex flex-wrap gap-2">
+                        {papeisHero.map((x) => (
+                          <span key={x.chave} className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[13px] font-semibold text-[#0f1f3d]">
+                            <x.icone className={`w-4 h-4 ${x.cor}`} /> {x.texto}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
-                {(secretariasV.some((s) => s.papel === "coordenador") || projetosV.some((x) => x.coordena) || associacao?.status === "ativo" || funcoes.length > 0) && (
-                  <div className="relative flex flex-wrap gap-2 mt-5">
-                    {secretariasV.filter((s) => s.papel === "coordenador").map((s) => <Selo key={s.id} icone={Crown}>Coordena {s.nome}</Selo>)}
-                    {projetosV.filter((x) => x.coordena).map((x) => <Selo key={x.id} icone={Crown}>Coordena {x.nome}</Selo>)}
-                    {funcoes.length > 0 && !secretariasV.some((s) => s.papel === "coordenador") && <Selo icone={Sparkles}>Voluntário</Selo>}
-                    {associacao?.status === "ativo" && <Selo icone={Award}>Associado</Selo>}
-                  </div>
-                )}
               </section>
 
               {/* Para você agora */}
@@ -631,10 +667,6 @@ const CORES: Record<CorAtalho, { cartao: string; icone: string; fundo: string; t
   rosa: { cartao: "bg-pink-50 border-pink-100", icone: "bg-pink-500", fundo: "bg-pink-100", texto: "text-pink-700", numero: "text-pink-600" },
   cinza: { cartao: "bg-slate-50 border-slate-200", icone: "bg-slate-500", fundo: "bg-slate-100", texto: "text-slate-700", numero: "text-slate-600" },
 };
-
-function Selo({ icone: Icone, children }: { icone: ComponentType<{ className?: string }>; children: ReactNode }) {
-  return <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur px-3 py-1 text-xs font-medium"><Icone className="w-3.5 h-3.5" />{children}</span>;
-}
 
 function Bloco({ titulo, children }: { titulo?: string; children: ReactNode }) {
   return (

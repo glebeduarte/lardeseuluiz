@@ -6,14 +6,14 @@ import { MolduraSistema, useAreasLsl, type GrupoMenuLsl, type LinkLslProps } fro
 import {
   LayoutDashboard, DollarSign, FileText, Vote, Heart, Shield, Users, Building2,
   CalendarDays, Landmark, UserCheck,
-  Briefcase, Sparkles, Settings, HeartPulse, GraduationCap, HeartHandshake, Home, UserPlus, Ticket
+  Briefcase, Sparkles, Settings, HeartPulse, GraduationCap, HeartHandshake, Home, UserPlus, Ticket, KeyRound
 } from "lucide-react";
 
 import { usePermissions, type ModulePermission } from "@/hooks/usePermissions";
 import VisualizarComo from "@/components/simulacao/VisualizarComo";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-interface NavItem { to?: string; href?: string; icon: any; label: string; perm?: ModulePermission | "always"; }
+interface NavItem { to?: string; href?: string; icon: any; label: string; perm?: ModulePermission | "always" | "acessos"; }
 interface NavGroup { label: string; items: NavItem[]; }
 
 const navGroups: NavGroup[] = [
@@ -39,6 +39,7 @@ const navGroups: NavGroup[] = [
       { to: "/app/financeiro", icon: DollarSign, label: "Financeiro", perm: "modulo_financeiro" },
       { to: "/app/assembleias", icon: Vote, label: "Assembleias", perm: "modulo_gestao" },
       { to: "/app/documentos", icon: FileText, label: "Documentos", perm: "always" },
+      { to: "/app/acessos", icon: KeyRound, label: "Acessos", perm: "acessos" },
       { to: "/app/usuarios", icon: Users, label: "Usuários", perm: "modulo_admin" },
       { to: "/app/lgpd", icon: Shield, label: "LGPD", perm: "modulo_admin" },
     ],
@@ -72,13 +73,16 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const areas = useAreasLsl(supabase, user?.id);
+  // Painel de acessos: admin geral, admin do Atendimento ou admin da Formação
+  const ar = areas as { admin?: boolean; formacao_admin?: boolean; atendimento_papeis?: string[] } | null;
+  const podeAcessos = isAdmin || !!ar?.admin || !!ar?.formacao_admin || !!ar?.atendimento_papeis?.includes("admin");
 
   const handleSignOut = async () => { await signOut(); navigate("/login"); };
 
   const grupos: GrupoMenuLsl[] = navGroups.map((g) => ({
     rotulo: g.label,
     itens: g.items
-      .filter((i) => i.perm === "always" || !i.perm || canAccess(i.perm))
+      .filter((i) => i.perm === "always" || !i.perm || (i.perm === "acessos" ? podeAcessos : canAccess(i.perm)))
       .map((i) => ({ href: (i.to || i.href)!, rotulo: i.label, icone: i.icon, externo: !!i.href })),
   }));
 
