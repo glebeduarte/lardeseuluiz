@@ -403,6 +403,15 @@ function AbaConfigurar({ rifa, projetos, atualizar }: { rifa: Rifa; projetos: { 
 
   const salvar = async (status?: RifaStatus) => {
     if ((status ?? f.status) === "vendendo" && !f.pix_key?.trim()) return toast.error("Cadastre a chave PIX antes de abrir as vendas.");
+    const qtd = Number(f.total_numbers);
+    if (!Number.isInteger(qtd) || qtd < 10 || qtd > 10000) return toast.error("A quantidade de números vai de 10 a 10.000.");
+    if (qtd < rifa.total_numbers) {
+      // Diminuir só pode até o maior número já reservado ou vendido
+      const { data: maior } = await db.from("raffle_tickets").select("number").eq("raffle_id", rifa.id).eq("ativo", true)
+        .order("number", { ascending: false }).limit(1).maybeSingle();
+      const m = (maior as { number: number } | null)?.number ?? 0;
+      if (qtd < m) return toast.error(`O número ${pad(m, rifa.total_numbers)} já está reservado ou vendido. A quantidade não pode ficar abaixo de ${m}.`);
+    }
     setSalvando(true);
     const { error } = await db.from("raffles").update({
       title: f.title, prize: f.prize, prize_items: (f.prize_items ?? []).map((x) => x.trim()).filter(Boolean), prize_value: f.prize_value || null, description: f.description || null, cover_url: f.cover_url || null,
@@ -432,7 +441,15 @@ function AbaConfigurar({ rifa, projetos, atualizar }: { rifa: Rifa; projetos: { 
         <div className="grid gap-2"><Label>Explicação para quem compra</Label><Textarea value={f.description ?? ""} onChange={(e) => set("description", e.target.value)} placeholder="Para que vai o dinheiro, como é o prêmio..." /></div>
         <div className="grid sm:grid-cols-3 gap-3">
           <div className="grid gap-2"><Label>Preço do número (R$)</Label><Input inputMode="decimal" value={String(f.ticket_price)} onChange={(e) => set("ticket_price", e.target.value as unknown as number)} /></div>
-          <div className="grid gap-2"><Label>Quantidade de números</Label><Input type="number" min={10} max={10000} value={f.total_numbers} onChange={(e) => set("total_numbers", Number(e.target.value))} /></div>
+          <div className="grid gap-2"><Label>Quantidade de números</Label><Input type="number" min={10} max={10000} value={f.total_numbers} onChange={(e) => set("total_numbers", Number(e.target.value))} />
+            <div className="flex flex-wrap gap-1.5">
+              {[100, 500, 1000].map((mais) => (
+                <button key={mais} type="button" className="h-8 px-3 rounded-full border text-xs font-medium hover:bg-muted"
+                  onClick={() => set("total_numbers", Math.min(10000, Number(f.total_numbers || 0) + mais))}>+{mais}</button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">Vai de 1 até esse número. Pode aumentar a qualquer momento; os números já vendidos continuam iguais.</p>
+          </div>
           <div className="grid gap-2"><Label>Máximo por pedido</Label><Input type="number" min={1} max={500} value={f.max_per_order} onChange={(e) => set("max_per_order", Number(e.target.value))} /></div>
         </div>
         <div className="rounded-2xl bg-[#fff8e0] p-4 grid gap-3">
