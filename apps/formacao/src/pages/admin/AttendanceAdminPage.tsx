@@ -46,7 +46,7 @@ interface AttendanceRecord {
 }
 
 export default function AttendanceAdminPage() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { toast } = useToast();
   const [lessons, setLessons] = useState<LessonWithAttendance[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,16 +64,20 @@ export default function AttendanceAdminPage() {
 
   useEffect(() => {
     fetchLessons();
-  }, []);
+  }, [isAdmin]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchLessons = async () => {
     setLoading(true);
     try {
-      // Get ESDE courses
-      const { data: courses } = await supabase
-        .from('courses')
-        .select('id, title')
-        .in('title', ['ESDE I', 'ESDE II']);
+      // Administrador: cursos do ESDE. Facilitador: só os cursos que ele facilita.
+      let courses: { id: string; title: string }[] | null = null;
+      if (isAdmin) {
+        ({ data: courses } = await supabase.from('courses').select('id, title').in('title', ['ESDE I', 'ESDE II']));
+      } else {
+        const { data: meus } = await (supabase as any).from('course_facilitators').select('course_id').eq('user_id', user?.id ?? '');
+        const ids = ((meus ?? []) as { course_id: string }[]).map((m) => m.course_id);
+        if (ids.length) ({ data: courses } = await supabase.from('courses').select('id, title').in('id', ids));
+      }
 
       if (!courses?.length) {
         setLoading(false);
@@ -114,7 +118,8 @@ export default function AttendanceAdminPage() {
       const lessonIds = lessonData.map((l) => l.id);
       const { data: attendanceData } = await supabase
         .from('attendance_records')
-        .select('lesson_id');
+        .select('lesson_id')
+        .in('lesson_id', lessonIds);
 
       const attendanceCounts: Record<string, number> = {};
       attendanceData?.forEach((r) => {
@@ -292,7 +297,7 @@ export default function AttendanceAdminPage() {
 
   return (
     <DashboardLayout>
-      <CabecalhoPagina titulo="Presenças" descricao="Gerencie a frequência das aulas do ESDE" />
+      <CabecalhoPagina titulo="Presenças" descricao={isAdmin ? "Gerencie a frequência das aulas do ESDE" : "Gere o link de presença das suas aulas e confira quem esteve"} />
       <div className="space-y-6">
 
         {loading ? (
@@ -302,11 +307,11 @@ export default function AttendanceAdminPage() {
         ) : lessons.length === 0 ? (
           <Card>
             <CardContent className="py-8 text-center text-muted-foreground">
-              Nenhuma aula encontrada. Cadastre aulas no curso ESDE primeiro.
+              {isAdmin ? 'Nenhuma aula encontrada. Cadastre aulas no curso ESDE primeiro.' : 'Nenhuma aula nos cursos que você facilita. Fale com a coordenação da Formação.'}
             </CardContent>
           </Card>
         ) : (() => {
-          const courseTitles = ['ESDE I', 'ESDE II'].filter((t) => lessons.some((l) => l.course_title === t));
+          const courseTitles = Array.from(new Set(lessons.map((l) => l.course_title))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
           const renderTable = (rows: LessonWithAttendance[]) => (
             <div className="rounded-lg border bg-card overflow-x-auto">
               <table className="w-full text-sm">

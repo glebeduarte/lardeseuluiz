@@ -17,7 +17,6 @@ import AssembleiaDetalhe from "./pages/AssembleiaDetalhe";
 import Atendimentos from "./pages/Atendimentos";
 import AtendimentosPublic from "./pages/AtendimentosPublic";
 import LGPD from "./pages/LGPD";
-import Usuarios from "./pages/Usuarios";
 import MeuPainel from "./pages/MeuPainel";
 import MinhasContribuicoes from "./pages/associate/MinhasContribuicoes";
 import MinhasAssembleias from "./pages/associate/MinhasAssembleias";
@@ -85,7 +84,7 @@ const App = () => (
             <Route path="/app/assembleias/:id" element={<AssembleiaDetalhe />} />
             <Route path="/app/atendimentos" element={<Atendimentos />} />
             <Route path="/app/lgpd" element={<LGPD />} />
-            <Route path="/app/usuarios" element={<Usuarios />} />
+            <Route path="/app/usuarios" element={<Navigate to="/app/pessoas" replace />} />
             <Route path="/app/secretarias" element={<SecretariasPage />} />
             <Route path="/app/eventos" element={<Eventos />} />
             <Route path="/app/associados" element={<Associados />} />

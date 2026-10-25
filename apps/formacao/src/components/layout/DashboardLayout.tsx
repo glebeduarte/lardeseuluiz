@@ -29,6 +29,10 @@ const gruposAluno: GrupoMenuLsl[] = [
   },
 ];
 
+const gruposFacilitador: GrupoMenuLsl[] = [
+  { rotulo: 'Facilitação', itens: [{ href: '/admin/attendance', rotulo: 'Lançar presença', icone: ListChecks }] },
+];
+
 const gruposAdmin: GrupoMenuLsl[] = [
   { rotulo: '', itens: [{ href: '/admin', rotulo: 'Painel da Formação', icone: LayoutDashboard }] },
   {
@@ -71,7 +75,7 @@ const LinkRR = ({ href, className, title, onClick, children }: LinkLslProps) => 
 
 /** Moldura única da plataforma aplicada à Formação (a mesma da Governança e do Atendimento). */
 export function DashboardLayout({ children, larguraTotal }: DashboardLayoutProps) {
-  const { user, loading, profile, signOut, isAdmin } = useAuth();
+  const { user, loading, profile, signOut, isAdmin, isFacilitador } = useAuth();
   const navigate = useNavigate();
   const { pathname, search } = useLocation();
   const areas = useAreasLsl(supabase, user?.id);
@@ -113,8 +117,8 @@ export function DashboardLayout({ children, larguraTotal }: DashboardLayoutProps
   return (
     <MolduraSistema
       sistema="formacao" titulo="Formação" subtitulo={isAdmin ? 'Gestão de cursos' : 'Área do aluno'} iconeSistema={GraduationCap}
-      grupos={isAdmin ? gruposAdmin : gruposAluno} ativo={ativo} Link={LinkRR} areas={areas} navegar={navegar}
-      usuario={{ nome: areas?.nome || profile?.full_name || user.email?.split('@')[0] || '', papel: isAdmin ? 'Administrador' : 'Aluno', foto: areas?.foto || profile?.avatar_url }}
+      grupos={isAdmin ? gruposAdmin : isFacilitador ? [...gruposAluno, ...gruposFacilitador] : gruposAluno} ativo={ativo} Link={LinkRR} areas={areas} navegar={navegar}
+      usuario={{ nome: areas?.nome || profile?.full_name || user.email?.split('@')[0] || '', papel: isAdmin ? 'Administrador' : isFacilitador ? 'Facilitador' : 'Aluno', foto: areas?.foto || profile?.avatar_url }}
       aoAbrirPerfil={() => window.location.assign('/app/perfil')} aoSair={handleSignOut}
       extraBarra={<div className="lsl-sino">{<NotificationBell />}</div>}
       larguraTotal={larguraTotal}

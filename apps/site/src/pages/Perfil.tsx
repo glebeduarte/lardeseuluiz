@@ -232,6 +232,7 @@ export default function Perfil() {
     ...funcoes.filter((f) => f.functions?.name).map((f) => ({ chave: `f-${f.id}`, texto: f.functions.name as string, icone: Briefcase, cor: "text-[#0059b1]" })),
     ...(atendimento?.papeis ?? []).map((x) => ({ chave: `a-${x}`, texto: x === "admin" ? "Admin do Atendimento" : PAPEIS_ATENDIMENTO[x] ?? x, icone: HeartPulse, cor: "text-[#6d28d9]" })),
     ...(formacao?.admin ? [{ chave: "fo-admin", texto: "Admin dos cursos", icone: GraduationCap, cor: "text-[#176e69]" }] : []),
+    ...((areas as { formacao_facilitador?: boolean } | null)?.formacao_facilitador ? [{ chave: "fo-fac", texto: "Facilitador", icone: GraduationCap, cor: "text-[#176e69]" }] : []),
     ...(cursosAtivos.length && !formacao?.admin ? [{ chave: "fo-aluno", texto: cursosAtivos.length === 1 ? "Aluno de 1 curso" : `Aluno de ${cursosAtivos.length} cursos`, icone: GraduationCap, cor: "text-[#176e69]" }] : []),
     ...(associacao?.status === "ativo" ? [{ chave: "assoc", texto: "Associado", icone: Award, cor: "text-[#b8860b]" }] : []),
   ];

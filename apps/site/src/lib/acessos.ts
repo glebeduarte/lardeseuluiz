@@ -12,7 +12,7 @@ export type Direitos = { governanca: boolean; atendimento: boolean; formacao: bo
 export type PessoaLista = { id: string; nome: string; email: string | null; telefone: string | null; foto: string | null; tem_login: boolean; voluntario: boolean; papeis: number };
 
 export type Curso = {
-  id: string; titulo: string; status: string; inicio: string | null;
+  id: string; titulo: string; status: string; inicio: string | null; facilita: boolean;
   turmas: { id: string; nome: string }[];
   matricula: { id: string; status: string; turma: string } | null;
 };

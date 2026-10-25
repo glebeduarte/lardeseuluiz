@@ -71,7 +71,7 @@ export const ATIVIDADES: AtividadeLsl[] = [
 
   // Cursos (quem cuida)
   { id: "cursos-admin", rotulo: "Cuidar dos cursos", ajuda: "Turmas, aulas, alunos e presença", href: "/formacao/admin", grupo: "Nos cursos", cor: "verde", icone: GraduationCap, palavras: "turma aula aluno presença administrar", mostrar: (a) => !!a.formacao_admin },
-  { id: "presenca", rotulo: "Lançar presença de uma aula", ajuda: "Chamada dos alunos", href: "/formacao/admin/attendance", grupo: "Nos cursos", cor: "verde", icone: CalendarCheck, palavras: "chamada presença lista", mostrar: (a) => !!a.formacao_admin },
+  { id: "presenca", rotulo: "Lançar presença de uma aula", ajuda: "Chamada dos alunos", href: "/formacao/admin/attendance", grupo: "Nos cursos", cor: "verde", icone: CalendarCheck, palavras: "chamada presença lista facilitador", mostrar: (a) => !!a.formacao_admin || !!(a as { formacao_facilitador?: boolean }).formacao_facilitador },
 
   // Gestão
   { id: "financeiro", rotulo: "Lançar no financeiro", ajuda: "Entradas, saídas e prestação de contas", href: "/app/financeiro", grupo: "Na gestão", cor: "cinza", icone: Wallet, palavras: "dinheiro doação despesa financeiro", mostrar: (a) => pode(a, "modulo_financeiro") },

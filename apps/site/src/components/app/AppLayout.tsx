@@ -40,7 +40,6 @@ const navGroups: NavGroup[] = [
       { to: "/app/assembleias", icon: Vote, label: "Assembleias", perm: "modulo_gestao" },
       { to: "/app/documentos", icon: FileText, label: "Documentos", perm: "always" },
       { to: "/app/acessos", icon: KeyRound, label: "Acessos", perm: "acessos" },
-      { to: "/app/usuarios", icon: Users, label: "Usuários", perm: "modulo_admin" },
       { to: "/app/lgpd", icon: Shield, label: "LGPD", perm: "modulo_admin" },
     ],
   },

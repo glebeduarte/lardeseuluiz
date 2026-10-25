@@ -31,6 +31,8 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string, phone?: string) => Promise<SignUpResult>;
   signOut: () => Promise<void>;
   isAdmin: boolean;
+  /** Facilita pelo menos um curso: lança presença e vê os alunos desses cursos */
+  isFacilitador: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -41,6 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdminState, setIsAdminState] = useState(false);
+  const [isFacilitadorState, setIsFacilitadorState] = useState(false);
   const currentUserIdRef = useRef<string | null>(null);
 
   const touchLastActivity = async (userId: string) => {
@@ -64,13 +67,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', userId)
-        .eq('role', 'admin')
-        .maybeSingle(),
+        .eq('user_id', userId),
     ]);
 
     setProfile(profileRes.data && !profileRes.error ? profileRes.data as Profile : null);
-    setIsAdminState(!!roleRes.data && !roleRes.error);
+    const papeis = ((roleRes.data ?? []) as { role: string }[]).map((r) => r.role);
+    setIsAdminState(!roleRes.error && papeis.includes('admin'));
+    setIsFacilitadorState(!roleRes.error && papeis.includes('facilitador'));
   };
 
   useEffect(() => {
@@ -98,6 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else {
           setProfile(null);
           setIsAdminState(false);
+          setIsFacilitadorState(false);
           setLoading(false);
         }
       }
@@ -114,6 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else {
           setProfile(null);
           setIsAdminState(false);
+          setIsFacilitadorState(false);
         }
       } finally {
         setLoading(false);
@@ -169,6 +174,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const isAdmin = isAdminState;
+  const isFacilitador = isFacilitadorState;
 
   return (
     <AuthContext.Provider value={{
@@ -180,6 +186,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signUp,
       signOut,
       isAdmin,
+      isFacilitador,
     }}>
       {children}
     </AuthContext.Provider>

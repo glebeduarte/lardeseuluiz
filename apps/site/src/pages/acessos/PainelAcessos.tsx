@@ -182,6 +182,7 @@ function ResumoPapeis({ dados }: { dados: Acessos }) {
   const selos = [
     ...dados.atendimento.papeis.map((x) => ({ s: "atendimento" as Sistema, t: nomePapel("atendimento", x) })),
     ...dados.formacao.papeis.filter((x) => x === "admin").map((x) => ({ s: "formacao" as Sistema, t: nomePapel("formacao", x) })),
+    ...(dados.formacao.cursos.some((c) => c.facilita) ? [{ s: "formacao" as Sistema, t: "Facilitador" }] : []),
     ...dados.governanca.papeis.filter((x) => x !== "trabalhador").map((x) => ({ s: "governanca" as Sistema, t: nomePapel("governanca", x) })),
   ];
   if (!selos.length) return null;
@@ -366,6 +367,7 @@ function ColunaFormacao({ dados, semLogin, ocupado, executar }: PropsColuna) {
   const f = dados.formacao;
   const pode = dados.direitos.formacao && !semLogin;
   const [filtro, setFiltro] = useState("");
+  const [facilitar, setFacilitar] = useState(false);
   const cursos = useMemo(() => f.cursos.filter((c) => !filtro || c.titulo.toLowerCase().includes(filtro.toLowerCase())), [f.cursos, filtro]);
   const matriculados = f.cursos.filter((c) => c.matricula).length;
   return (
@@ -376,6 +378,19 @@ function ColunaFormacao({ dados, semLogin, ocupado, executar }: PropsColuna) {
             carregando={ocupado === `fo-${r.id}`} travado={f.via_funcao.includes(r.id) ? "Vem de uma função na Governança" : undefined}
             aoMudar={(v) => executar(`fo-${r.id}`, "painel_papel", { p_sistema: "formacao", p_papel: r.id, p_ativo: v }, v ? `${r.nome}: liberado` : `${r.nome}: retirado`)} />
         ))}
+      </Bloco>
+      <Bloco titulo="Facilitador" ajuda="Quem conduz o curso. Lança a presença das aulas e vê os alunos só dos cursos marcados aqui.">
+        {f.cursos.filter((c) => !filtro || c.titulo.toLowerCase().includes(filtro.toLowerCase())).filter((c) => c.facilita || facilitar).map((c) => (
+          <LinhaLiga key={`fa-${c.id}`} titulo={`Facilita: ${c.titulo}`} ligado={c.facilita} desabilitado={!pode}
+            carregando={ocupado === `fa-${c.id}`}
+            aoMudar={(v) => executar(`fa-${c.id}`, "painel_facilitador", { p_curso: c.id, p_ativo: v }, v ? `Agora facilita ${c.titulo}` : `Deixou de facilitar ${c.titulo}`)} />
+        ))}
+        {!facilitar && pode && (
+          <Button variant="outline" size="sm" onClick={() => setFacilitar(true)}>
+            {f.cursos.some((c) => c.facilita) ? "Marcar outro curso" : "Marcar curso que a pessoa facilita"}
+          </Button>
+        )}
+        {!pode && !f.cursos.some((c) => c.facilita) && <p className="text-sm text-muted-foreground">Não facilita nenhum curso.</p>}
       </Bloco>
       <Bloco titulo="Cursos" ajuda="Ao ligar, a pessoa entra na primeira turma do curso. Se houver mais de uma, troque logo abaixo.">
         {f.cursos.length > 6 && (
