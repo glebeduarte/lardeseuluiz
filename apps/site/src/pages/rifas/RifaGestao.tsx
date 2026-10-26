@@ -481,10 +481,13 @@ function AbaConfigurar({ rifa, projetos, atualizar }: { rifa: Rifa; projetos: { 
         </div>
         <div className="grid sm:grid-cols-[1fr_220px] gap-3">
           <div className="grid gap-2"><Label>O que o prêmio inclui (um item por linha)</Label>
-            <Textarea rows={5} value={(f.prize_items ?? []).join("\n")} onChange={(e) => set("prize_items", e.target.value.split("\n"))} placeholder={"Corte\nTratamento\nMaquiagem"} /></div>
+            <p className="text-xs text-muted-foreground -mt-1">Aceita a formatação do WhatsApp: *negrito*, _itálico_ e emojis. Uma linha só em *negrito* vira título de grupo.</p>
+            <Textarea rows={10} value={(f.prize_items ?? []).join("\n")} onChange={(e) => set("prize_items", e.target.value.split("\n"))} placeholder={"Corte\nTratamento\nMaquiagem"} /></div>
           <div className="grid gap-2 content-start"><Label>Valor do prêmio (opcional)</Label><Input value={f.prize_value ?? ""} onChange={(e) => set("prize_value", e.target.value)} placeholder="Ex.: Mais de R$ 1.000" /></div>
         </div>
-        <div className="grid gap-2"><Label>Explicação para quem compra</Label><Textarea value={f.description ?? ""} onChange={(e) => set("description", e.target.value)} placeholder="Para que vai o dinheiro, como é o prêmio..." /></div>
+        <div className="grid gap-2"><Label>Explicação para quem compra</Label>
+          <p className="text-xs text-muted-foreground -mt-1">Pode colar o texto do WhatsApp: *negrito*, _itálico_, linhas com • viram lista e linha em branco separa parágrafos.</p>
+          <Textarea rows={6} value={f.description ?? ""} onChange={(e) => set("description", e.target.value)} placeholder="Para que vai o dinheiro, como é o prêmio..." /></div>
         <div className="grid sm:grid-cols-3 gap-3">
           <div className="grid gap-2"><Label>Preço do número (R$)</Label><Input inputMode="decimal" value={String(f.ticket_price)} onChange={(e) => set("ticket_price", e.target.value as unknown as number)} /></div>
           <div className="grid gap-2"><Label>Quantidade de números</Label><Input type="number" min={10} max={10000} value={f.total_numbers} onChange={(e) => set("total_numbers", Number(e.target.value))} />
@@ -522,7 +525,9 @@ function AbaConfigurar({ rifa, projetos, atualizar }: { rifa: Rifa; projetos: { 
           </div>
           <div className="grid gap-2"><Label>Foto (endereço da imagem)</Label><Input value={f.cover_url ?? ""} onChange={(e) => set("cover_url", e.target.value)} placeholder="Usa a foto da ação, se ligada" /></div>
         </div>
-        <div className="grid gap-2"><Label>Regras</Label><Textarea rows={4} value={f.rules ?? ""} onChange={(e) => set("rules", e.target.value)} placeholder="Regras próprias desta rifa, um parágrafo por regra. O passo a passo (reserva, PIX, sorteio) já aparece sozinho na página." /></div>
+        <div className="grid gap-2"><Label>Regras</Label>
+          <p className="text-xs text-muted-foreground -mt-1">Mesma formatação do WhatsApp. Linhas com • ou números viram lista.</p>
+          <Textarea rows={6} value={f.rules ?? ""} onChange={(e) => set("rules", e.target.value)} placeholder="Regras próprias desta rifa, um parágrafo por regra. O passo a passo (reserva, PIX, sorteio) já aparece sozinho na página." /></div>
         <div className="grid gap-2"><Label>Autorização (aparece na página)</Label><Input value={f.authorization_note ?? ""} onChange={(e) => set("authorization_note", e.target.value)} placeholder="Ex.: Certificado de Autorização SPA/MF nº ..." /></div>
         <div><Button onClick={() => salvar()} disabled={salvando}>{salvando ? "Salvando..." : "Salvar"}</Button></div>
       </CardContent></Card>

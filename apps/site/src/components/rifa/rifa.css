@@ -95,9 +95,23 @@ body:has(.rifa-barra) .lsl-fazer-botao { bottom: 96px; }
 .rifa-premio__valor { margin-left: auto; padding: 4px 12px; border-radius: 999px; background: #0f1f3d; color: #ffc116; font-size: 14px; white-space: nowrap; }
 .rifa-premio__nome { font-family: var(--font-display, Georgia, serif); font-size: 24px; line-height: 1.2; color: #0f1f3d; }
 .rifa-premio__itens { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
-.rifa-premio__itens li { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; color: #0f1f3d; }
-.rifa-premio__itens svg { flex: none; color: #176e69; }
+.rifa-premio__itens li { display: flex; align-items: flex-start; gap: 8px; line-height: 1.4; font-size: 16px; font-weight: 600; color: #0f1f3d; }
+.rifa-premio__itens svg { flex: none; color: #176e69; margin-top: 1px; }
+.rifa-premio__itens li strong { font-weight: 800; }
+.rifa-premio__itens em { font-weight: 500; color: #4a5568; }
+.rifa-premio__itens .rifa-premio__grupo { grid-column: 1 / -1; margin-top: 8px; font-size: 17px; font-weight: 700; color: #7a5200; }
+.rifa-premio__itens .rifa-premio__grupo:first-child { margin-top: 0; }
 .rifa-premio__texto { font-size: 15px; line-height: 1.55; color: #4a5568; margin: 0; }
+
+/* Texto com formatação do WhatsApp (explicação e regras) */
+.texto-whats { display: grid; gap: 10px; }
+.texto-whats p { margin: 0; }
+.texto-whats strong { color: #0f1f3d; font-weight: 700; }
+.texto-whats__titulo { font-weight: 700; color: #0f1f3d; margin-top: 6px !important; }
+.texto-whats__lista { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.texto-whats__lista li { position: relative; padding-left: 20px; }
+.texto-whats__lista li::before { content: ""; position: absolute; left: 2px; top: .6em; width: 8px; height: 8px; border-radius: 50%; background: #ffc116; }
+.rifa-regras__texto { margin-top: 14px; font-size: 17px; line-height: 1.6; }
 
 .rifa-regras { margin-top: 48px; max-width: 860px; border-radius: 24px; background: #fff; padding: 26px 28px; }
 .rifa-regras ul { margin: 14px 0 0; padding: 0; list-style: none; display: grid; gap: 12px; }

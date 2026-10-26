@@ -8,6 +8,7 @@ import PixPagamento from "@/components/rifa/PixPagamento";
 import { db } from "@/lib/acoes";
 import { dataBR, erroAmigavel, pad, PEDIDO_STATUS, reais, useRifaPublica, type Reserva, type RifaPublica } from "@/lib/rifas";
 import "@/components/rifa/rifa.css";
+import TextoWhats, { ehTitulo, inlineWhats, semMarcador } from "@/components/rifa/TextoWhats";
 
 type Guardada = Reserva & { nome: string; telefone: string; quando: string };
 const CHAVE = (slug: string) => `lsl:rifa:${slug}`;
@@ -272,10 +273,12 @@ function CaixaPremio({ rifa }: { rifa: RifaPublica }) {
       <strong className="rifa-premio__nome">{rifa.premio}</strong>
       {itens.length > 0 && (
         <ul className="rifa-premio__itens">
-          {itens.map((i) => <li key={i}><Check size={18} aria-hidden="true" />{i}</li>)}
+          {itens.map((item, n) => ehTitulo(item)
+            ? <li key={n} className="rifa-premio__grupo">{inlineWhats(item.trim(), `g${n}`)}</li>
+            : <li key={n}><Check size={18} aria-hidden="true" /><span>{inlineWhats(semMarcador(item), `i${n}`)}</span></li>)}
         </ul>
       )}
-      {rifa.descricao && <p className="rifa-premio__texto">{rifa.descricao}</p>}
+      <TextoWhats texto={rifa.descricao} className="rifa-premio__texto" />
     </div>
   );
 }
@@ -290,16 +293,16 @@ function ComoFunciona({ rifa }: { rifa: RifaPublica }) {
     { icone: BadgeCheck, titulo: "A coordenação confirma", texto: "Quando o PIX é conferido, sua reserva passa para pago. Você acompanha em \"Consultar minha reserva\", aqui embaixo. Reservas que não forem pagas podem ser liberadas para outras pessoas." },
     { icone: Trophy, titulo: "Sorteio presencial", texto: `O sorteio é feito no Lar de Seu Luiz, ${quando}, só entre os números pagos. O resultado sai nesta página e a pessoa sorteada recebe contato pelo WhatsApp.` },
   ];
-  const regras = (rifa.regras ?? "").split(/\n+/).map((r) => r.trim()).filter(Boolean);
+  const temRegras = !!(rifa.regras ?? "").trim();
   return (
     <Secao id="como-funciona" titulo="Como funciona" fundo="chao"
       intro="Do número escolhido ao sorteio, em cinco passos.">
       <ListaSol colunas={1} itens={passos.map((p, i) => ({ id: p.titulo, marca: <p.icone size={24} />, destaque: i === 0, titulo: p.titulo, texto: p.texto }))} />
-      {(regras.length > 0 || rifa.autorizacao) && (
+      {(temRegras || rifa.autorizacao) && (
         <div className="rifa-regras">
           <h3 className="ini-lead">Regras desta rifa</h3>
+          <TextoWhats texto={rifa.regras} className="rifa-regras__texto" />
           <ul>
-            {regras.map((r) => <li key={r}>{r}</li>)}
             <li>Toda a arrecadação vai para o Lar de Seu Luiz, organização religiosa sem fins lucrativos.</li>
             {rifa.autorizacao && <li>{rifa.autorizacao}</li>}
           </ul>
