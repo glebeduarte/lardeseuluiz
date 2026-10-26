@@ -28,6 +28,7 @@ import Eventos from "./pages/Eventos";
 import Stories from "./pages/Stories";
 import Associados from "./pages/Associados";
 import Frequentadores from "./pages/Frequentadores";
+import PessoasPainel from "./pages/PessoasPainel";
 import Pessoas from "./pages/Pessoas";
 import PessoaDetalhe from "./pages/PessoaDetalhe";
 import PainelAcessos from "./pages/acessos/PainelAcessos";
@@ -90,6 +91,7 @@ const App = () => (
             <Route path="/app/eventos" element={<Eventos />} />
             <Route path="/app/associados" element={<Associados />} />
             <Route path="/app/pessoas" element={<Pessoas />} />
+            <Route path="/app/pessoas/painel" element={<PessoasPainel />} />
             <Route path="/app/pessoas/:id" element={<PessoaDetalhe />} />
             <Route path="/app/acessos" element={<PainelAcessos />} />
             <Route path="/app/acessos/:personId" element={<PainelAcessos />} />

@@ -46,7 +46,8 @@ const navGroups: NavGroup[] = [
   {
     label: "Pessoas",
     items: [
-      { to: "/app/pessoas", icon: UserCheck, label: "Pessoas (unificado)", perm: "modulo_gestao" },
+      { to: "/app/pessoas/painel", icon: Users, label: "Painel de pessoas", perm: "modulo_gestao" },
+      { to: "/app/pessoas", icon: UserCheck, label: "Cadastro de pessoas", perm: "modulo_gestao" },
       { to: "/app/chamamento", icon: UserPlus, label: "Chamamento", perm: "modulo_recepcao" },
       { to: "/app/associados", icon: UserCheck, label: "Associados", perm: "modulo_gestao" },
       { to: "/app/frequentadores", icon: Users, label: "Frequentadores", perm: "modulo_recepcao" },
