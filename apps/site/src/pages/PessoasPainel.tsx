@@ -7,6 +7,7 @@ import {
 import * as XLSX from "xlsx";
 import AppLayout from "@/components/app/AppLayout";
 import { CabecalhoPagina } from "@/compartilhado";
+import FichaPessoa from "@/components/pessoas/FichaPessoa";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -224,6 +225,10 @@ const LinkRR = ({ href, className, children }: { href: string; className: string
 
 function Painel({ pessoas }: { pessoas: Pessoa[] }) {
   const f = useFiltros();
+  const fichaParam = f.sp.get("pessoa");
+  const abrirFicha = (id: string) => f.definir("pessoa", id);
+  const fecharFicha = () => f.definir("pessoa", null);
+  const chaveFiltros = (() => { const c = new URLSearchParams(f.sp); c.delete("pessoa"); return c.toString(); })();
   const [texto, setTexto] = useState(f.busca);
   const [abrirFiltros, setAbrirFiltros] = useState(false);
   const [limite, setLimite] = useState(60);
@@ -313,9 +318,9 @@ function Painel({ pessoas }: { pessoas: Pessoa[] }) {
     };
     return r.sort(cmp[f.ordem]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [linhas, f.sp]);
+  }, [linhas, chaveFiltros]);
 
-  useEffect(() => setLimite(60), [f.sp]);
+  useEffect(() => setLimite(60), [chaveFiltros]);
 
   const pilulas: { chave: string; rotulo: string; tirar: () => void }[] = [
     ...GRUPOS.flatMap((g) => f.lista(g).map((v) => ({ chave: `${g}:${v}`, rotulo: rotuloDe(g, v), tirar: () => f.alternar(g, v) }))),
@@ -361,7 +366,7 @@ function Painel({ pessoas }: { pessoas: Pessoa[] }) {
         acoes={
           <div className="flex gap-2">
             <Button variant="outline" onClick={exportar} disabled={!filtradas.length}><Download className="w-4 h-4 mr-2" />Planilha</Button>
-            <Button asChild><Link to="/app/pessoas"><UserPlus className="w-4 h-4 mr-2" />Cadastrar</Link></Button>
+            <Button onClick={() => abrirFicha("nova")}><UserPlus className="w-4 h-4 mr-2" />Nova pessoa</Button>
           </div>
         } />
 
@@ -419,7 +424,7 @@ function Painel({ pessoas }: { pessoas: Pessoa[] }) {
         <>
           {/* Celular: cartões */}
           <ul className="lg:hidden space-y-2">
-            {filtradas.slice(0, limite).map((l) => <Cartao key={l.id} l={l} ordem={f.ordem} />)}
+            {filtradas.slice(0, limite).map((l) => <Cartao key={l.id} l={l} ordem={f.ordem} abrir={abrirFicha} />)}
           </ul>
           {/* Computador: tabela */}
           <div className="hidden lg:block rounded-2xl border border-border/70 bg-card overflow-hidden">
@@ -436,7 +441,7 @@ function Painel({ pessoas }: { pessoas: Pessoa[] }) {
                 </tr>
               </thead>
               <tbody>
-                {filtradas.slice(0, limite).map((l) => <LinhaTabela key={l.id} l={l} ordem={f.ordem} />)}
+                {filtradas.slice(0, limite).map((l) => <LinhaTabela key={l.id} l={l} ordem={f.ordem} abrir={abrirFicha} />)}
               </tbody>
             </table>
           </div>
@@ -449,6 +454,13 @@ function Painel({ pessoas }: { pessoas: Pessoa[] }) {
           )}
         </>
       )}
+
+      <FichaPessoa
+        pessoaId={fichaParam && fichaParam !== "nova" ? fichaParam : null}
+        aberta={!!fichaParam}
+        fechar={fecharFicha}
+        aoCriar={(id) => abrirFicha(id)}
+      />
 
       <Sheet open={abrirFiltros} onOpenChange={setAbrirFiltros}>
         <SheetContent side="right" className="z-[70] w-full sm:max-w-md p-0 flex flex-col">
@@ -565,13 +577,13 @@ function tagsOrdenadas(l: Linha) {
   return ORDEM_PAPEL.filter((t) => l.tags.has(t) && t !== "aluno" && t !== "facilitador");
 }
 
-function Cartao({ l, ordem }: { l: Linha; ordem: Ordem }) {
+function Cartao({ l, ordem, abrir }: { l: Linha; ordem: Ordem; abrir: (id: string) => void }) {
   const col = colunaOrdem(ordem);
   const linhaAtend = [...l.atendimento.map((a) => ROTULO_ATEND[a] || a), ...l.macas.map((m) => `Maca ${m.numero} ${m.nome} (${ROTULO_DIA[m.dia] || m.dia})`)];
   const linhaSec = [...l.secretarias.map((s) => s.papel === "coordenador" ? `Coordena ${s.nome}` : s.nome), ...l.funcoes.map((x) => x.nome)];
   return (
     <li>
-      <Link to={`/app/pessoas/${l.id}`} className="flex gap-3 rounded-2xl bg-card border border-border/70 p-4 hover:bg-[#f1f6fd] transition-colors">
+      <button type="button" onClick={() => abrir(l.id)} className="w-full text-left flex gap-3 rounded-2xl bg-card border border-border/70 p-4 hover:bg-[#f1f6fd] transition-colors">
         <div className="flex-1 min-w-0 space-y-1.5">
           <div className="flex items-baseline justify-between gap-2">
             <span className="font-semibold text-[16px] leading-tight">{l.nome}</span>
@@ -584,7 +596,7 @@ function Cartao({ l, ordem }: { l: Linha; ordem: Ordem }) {
           <SinaisCadastro l={l} />
         </div>
         <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0 self-center" />
-      </Link>
+      </button>
     </li>
   );
 }
@@ -599,13 +611,12 @@ function SinaisCadastro({ l }: { l: Linha }) {
   );
 }
 
-function LinhaTabela({ l, ordem }: { l: Linha; ordem: Ordem }) {
-  const navigate = useNavigate();
+function LinhaTabela({ l, ordem, abrir }: { l: Linha; ordem: Ordem; abrir: (id: string) => void }) {
   const col = colunaOrdem(ordem);
   return (
-    <tr onClick={() => navigate(`/app/pessoas/${l.id}`)} className="border-t border-border/60 align-top hover:bg-[#f1f6fd] cursor-pointer">
+    <tr onClick={() => abrir(l.id)} className="border-t border-border/60 align-top hover:bg-[#f1f6fd] cursor-pointer">
       <td className="px-4 py-3">
-        <Link to={`/app/pessoas/${l.id}`} onClick={(e) => e.stopPropagation()} className="font-semibold hover:underline">{l.nome}</Link>
+        <button type="button" onClick={(e) => { e.stopPropagation(); abrir(l.id); }} className="font-semibold hover:underline text-left">{l.nome}</button>
         <div className="text-[12px] text-muted-foreground truncate max-w-[220px]">{l.email || l.telefone || "Sem contato"}</div>
       </td>
       <td className="px-3 py-3"><div className="flex flex-wrap gap-1 max-w-[200px]">{tagsOrdenadas(l).map((t) => <Etiqueta key={t} tag={t} />)}</div></td>
