@@ -212,7 +212,7 @@ export const siteSections = [
     step: "06",
     tone: "step-accent",
     title: "Cursos & Formação",
-    text: "ESDE, Diálogo Fraterno, Evangelização — link para formacao.lardeseuluiz.br",
+    text: "ESDE, Diálogo Fraterno, Evangelização — link para lardeseuluiz.com.br/formacao",
   },
   { step: "07", tone: "step-destructive", title: "Projetos Sociais", text: "Feijoada beneficente, ações sociais — galeria com resultados" },
   { step: "08", tone: "step-primary", title: "Transparência", text: "Balancetes aprovados, atas públicas, prestação de contas" },

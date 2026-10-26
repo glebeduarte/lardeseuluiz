@@ -33,7 +33,7 @@ export default function ForgotPassword() {
 
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: 'https://formacao.lardeseuluiz.com.br/reset-password',
+      redirectTo: `${window.location.origin}${import.meta.env.BASE_URL}reset-password`,
     });
     setLoading(false);
 

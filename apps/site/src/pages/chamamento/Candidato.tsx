@@ -301,7 +301,7 @@ export default function Candidato() {
               </CardHeader>
               <CardContent className="space-y-4">
                 {!ind?.tem_conta ? (
-                  <Alert><Info className="h-4 w-4" /><AlertDescription>A pessoa ainda não tem conta na plataforma. Peça para ela criar o acesso em lardeseuluiz.vercel.app/formacao com o mesmo e-mail do cadastro; depois, avance de novo para matricular.</AlertDescription></Alert>
+                  <Alert><Info className="h-4 w-4" /><AlertDescription>A pessoa ainda não tem conta na plataforma. Peça para ela criar o acesso em lardeseuluiz.com.br/formacao com o mesmo e-mail do cadastro; depois, avance de novo para matricular.</AlertDescription></Alert>
                 ) : !ciclo?.course_id ? (
                   <Alert><Info className="h-4 w-4" /><AlertDescription>O ciclo não tem curso definido. Edite o ciclo e escolha o curso na Formação.</AlertDescription></Alert>
                 ) : (

@@ -69,6 +69,17 @@
   ],
   "redirects": [
     {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "formacao.lardeseuluiz.com.br"
+        }
+      ],
+      "destination": "https://lardeseuluiz.com.br/formacao/:path*",
+      "permanent": false
+    },
+    {
       "source": "/cursos",
       "destination": "/formacao/",
       "permanent": false

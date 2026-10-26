@@ -267,7 +267,7 @@ export default function StudentsPage() {
   };
 
   const sendPasswordReset = async (student: Student) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(student.email, { redirectTo: 'https://formacao.lardeseuluiz.com.br/reset-password' });
+    const { error } = await supabase.auth.resetPasswordForEmail(student.email, { redirectTo: 'https://lardeseuluiz.com.br/formacao/reset-password' });
     if (error) toast({ title: 'Erro', description: error.message, variant: 'destructive' });
     else toast({ title: 'E-mail enviado!', description: `Link enviado para ${student.email}` });
   };
