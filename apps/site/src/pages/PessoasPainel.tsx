@@ -201,7 +201,7 @@ const semAcento = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLo
 export default function PessoasPainel() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  useEffect(() => { if (!loading && !user) navigate("/login?voltar=/app/pessoas/painel"); }, [loading, user, navigate]);
+  useEffect(() => { if (!loading && !user) navigate("/login?voltar=/app/pessoas"); }, [loading, user, navigate]);
   const { data, isLoading, error } = usePessoas(!!user);
 
   return (

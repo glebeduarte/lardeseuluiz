@@ -29,7 +29,9 @@ import Stories from "./pages/Stories";
 import Associados from "./pages/Associados";
 import Frequentadores from "./pages/Frequentadores";
 import PessoasPainel from "./pages/PessoasPainel";
-import Pessoas from "./pages/Pessoas";
+
+/** Endereço antigo do painel: leva para /app/pessoas mantendo filtros e ficha aberta. */
+const IrParaPessoas = () => <Navigate to={`/app/pessoas${window.location.search}`} replace />;
 import PessoaDetalhe from "./pages/PessoaDetalhe";
 import PainelAcessos from "./pages/acessos/PainelAcessos";
 import Funcoes from "./pages/Funcoes";
@@ -90,8 +92,8 @@ const App = () => (
             <Route path="/app/secretarias" element={<SecretariasPage />} />
             <Route path="/app/eventos" element={<Eventos />} />
             <Route path="/app/associados" element={<Associados />} />
-            <Route path="/app/pessoas" element={<Pessoas />} />
-            <Route path="/app/pessoas/painel" element={<PessoasPainel />} />
+            <Route path="/app/pessoas" element={<PessoasPainel />} />
+            <Route path="/app/pessoas/painel" element={<IrParaPessoas />} />
             <Route path="/app/pessoas/:id" element={<PessoaDetalhe />} />
             <Route path="/app/acessos" element={<PainelAcessos />} />
             <Route path="/app/acessos/:personId" element={<PainelAcessos />} />
