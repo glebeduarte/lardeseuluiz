@@ -17,7 +17,7 @@ import BuscaPessoa from "@/components/acoes/BuscaPessoa";
 import GradeNumeros, { type Situacao } from "@/components/rifa/GradeNumeros";
 import VendaRapida from "@/components/rifa/VendaRapida";
 import { db, useNomesPessoas, type PessoaBasica } from "@/lib/acoes";
-import { dataBR, erroAmigavel, linkWhats, mensagemCobranca, pad, PEDIDO_COR, PEDIDO_STATUS, reais, RIFA_COR, RIFA_STATUS, type Pedido, type Rifa, type RifaStatus } from "@/lib/rifas";
+import { dataBR, erroAmigavel, linkWhats, mensagemCobranca, pad, PEDIDO_COR, PEDIDO_STATUS, reais, RIFA_COR, RIFA_STATUS, slugRifa, type Pedido, type Rifa, type RifaStatus } from "@/lib/rifas";
 import "@/components/rifa/rifa.css";
 
 const LinkRR = ({ href, className, children }: { href: string; className: string; children: React.ReactNode }) => <Link to={href} className={className}>{children}</Link>;
@@ -458,9 +458,11 @@ function AbaConfigurar({ rifa, projetos, atualizar }: { rifa: Rifa; projetos: { 
       const m = (maior as { number: number } | null)?.number ?? 0;
       if (qtd < m) return toast.error(`O número ${pad(m, rifa.total_numbers)} já está reservado ou vendido. A quantidade não pode ficar abaixo de ${m}.`);
     }
+    const slug = slugRifa(f.slug || "");
+    if (slug.length < 3) return toast.error("O endereço da página precisa de pelo menos 3 letras.");
     setSalvando(true);
     const { error } = await db.from("raffles").update({
-      title: f.title, prize: f.prize, prize_items: (f.prize_items ?? []).map((x) => x.trim()).filter(Boolean), prize_value: f.prize_value || null, description: f.description || null, cover_url: f.cover_url || null,
+      slug, title: f.title, prize: f.prize, prize_items: (f.prize_items ?? []).map((x) => x.trim()).filter(Boolean), prize_value: f.prize_value || null, description: f.description || null, cover_url: f.cover_url || null,
       ticket_price: Number(String(f.ticket_price).replace(",", ".")), total_numbers: Number(f.total_numbers), max_per_order: Number(f.max_per_order),
       pix_key: f.pix_key || null, pix_name: f.pix_name || null, pix_city: f.pix_city || null, whatsapp: f.whatsapp || null,
       draw_date: f.draw_date || null, draw_place: f.draw_place || null, rules: f.rules || null, authorization_note: f.authorization_note || null,
@@ -468,7 +470,7 @@ function AbaConfigurar({ rifa, projetos, atualizar }: { rifa: Rifa; projetos: { 
     }).eq("id", rifa.id);
     setSalvando(false);
     if (error) return toast.error(erroAmigavel(error));
-    toast.success(status === "vendendo" ? "Vendas abertas. A rifa já aparece no site." : status === "encerrada" ? "Vendas encerradas." : "Rifa salva.");
+    toast.success(status === "vendendo" ? "Vendas abertas. A rifa já aparece no site." : status === "encerrada" ? "Vendas encerradas." : slug !== rifa.slug ? "Rifa salva com o endereço novo. O antigo continua levando para ela." : "Rifa salva.");
     atualizar();
   };
 
@@ -478,6 +480,23 @@ function AbaConfigurar({ rifa, projetos, atualizar }: { rifa: Rifa; projetos: { 
         <div className="grid sm:grid-cols-2 gap-3">
           <div className="grid gap-2"><Label>Nome da rifa</Label><Input value={f.title} onChange={(e) => set("title", e.target.value)} /></div>
           <div className="grid gap-2"><Label>Prêmio (nome curto)</Label><Input value={f.prize} onChange={(e) => set("prize", e.target.value)} /></div>
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="rifa-endereco">Endereço da página</Label>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex flex-1 items-stretch rounded-md border border-input bg-background overflow-hidden focus-within:ring-2 focus-within:ring-ring">
+              <span className="hidden sm:flex items-center px-3 text-sm text-muted-foreground bg-muted border-r border-input whitespace-nowrap">{window.location.host}/rifas/</span>
+              <input id="rifa-endereco" value={f.slug} onChange={(e) => set("slug", e.target.value.toLowerCase().replace(/\s+/g, "-"))}
+                onBlur={() => set("slug", slugRifa(f.slug || ""))} className="flex-1 min-w-0 h-10 px-3 text-sm bg-transparent outline-none" autoCapitalize="off" autoCorrect="off" spellCheck={false} />
+            </div>
+            <Button type="button" variant="outline" onClick={() => set("slug", slugRifa(f.title))} disabled={!f.title.trim()}>Usar o nome da rifa</Button>
+          </div>
+          <p className="text-[13px] text-muted-foreground">
+            {slugRifa(f.slug || "") !== rifa.slug
+              ? <>Depois de salvar, o link passa a ser <strong className="text-foreground break-all">{window.location.host}/rifas/{slugRifa(f.slug || "")}</strong>. Quem abrir o link antigo é levado para o novo.</>
+              : <>Só letras sem acento, números e hífen. Se mudar, os links antigos continuam funcionando.</>}
+            {(rifa.slugs_antigos?.length ?? 0) > 0 && <> Endereços antigos que ainda abrem esta rifa: {rifa.slugs_antigos!.join(", ")}.</>}
+          </p>
         </div>
         <div className="grid sm:grid-cols-[1fr_220px] gap-3">
           <div className="grid gap-2"><Label>O que o prêmio inclui (um item por linha)</Label>

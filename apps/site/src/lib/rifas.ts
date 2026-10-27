@@ -29,7 +29,7 @@ export interface Rifa {
   pix_key: string | null; pix_name: string | null; pix_city: string | null; whatsapp: string | null;
   draw_date: string | null; draw_place: string | null; rules: string | null; authorization_note: string | null;
   project_id: string | null; status: RifaStatus; winner_number: number | null; winner_order_id: string | null;
-  drawn_at: string | null; draw_notes: string | null; created_at: string; created_by?: string | null;
+  drawn_at: string | null; draw_notes: string | null; created_at: string; created_by?: string | null; slugs_antigos?: string[];
 }
 export interface Pedido {
   id: string; raffle_id: string; code: string; buyer_name: string; buyer_phone: string; buyer_email: string | null;
@@ -57,6 +57,9 @@ export const linkWhats = (tel: string, msg?: string) => {
 };
 export const dataBR = (d?: string | null) => d ? new Date(d.length === 10 ? d + "T12:00:00" : d).toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" }) : "";
 /** Mensagens do banco vêm como "Erro: texto"; mostra só o texto. */
+/** Endereço da rifa a partir de um texto: minúsculas, sem acento, palavras ligadas por hífen. */
+export const slugRifa = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60).replace(/-+$/g, "");
+
 export const erroAmigavel = (e: unknown) => {
   const m = (e as { message?: string })?.message ?? String(e);
   return m.replace(/^.*?ERROR:\s*/i, "");

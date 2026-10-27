@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Shuffle, Search, Ticket, Gift, Check, MousePointerClick, UserRound, QrCode, BadgeCheck, Trophy } from "lucide-react";
 import { PaginaSite, Secao, ListaSol } from "@/components/inicio/Pagina";
@@ -36,6 +36,8 @@ export default function Rifa() {
         acoes={<Link to="/rifas" className="ini-botao">Ver as rifas da casa</Link>}><div /></PaginaSite>
     );
   }
+  // Endereço antigo: leva para o atual, sem quebrar links já divulgados
+  if (rifa.slug !== slug) return <Navigate to={`/rifas/${rifa.slug}`} replace />;
   return <RifaAberta rifa={rifa} />;
 }
 
