@@ -1,6 +1,6 @@
 /* Rifa: grade de números, barra de escolha e pagamento PIX. Usa os tokens da página inicial (--ini-*) quando existem. */
-.rifa-grade { --r-ouro: #ffc116; --r-azul: #0059b1; --r-escuro: #003c7f; --r-tinta: #0f1f3d; font-family: var(--font-body, Inter, system-ui, sans-serif); }
-.rifa-grade__faixas { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 12px; margin-bottom: 8px; }
+.rifa-grade { min-width: 0; max-width: 100%; --r-ouro: #ffc116; --r-azul: #0059b1; --r-escuro: #003c7f; --r-tinta: #0f1f3d; font-family: var(--font-body, Inter, system-ui, sans-serif); }
+.rifa-grade__faixas { max-width: 100%; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 12px; margin-bottom: 8px; }
 .rifa-grade__faixas::-webkit-scrollbar { display: none; }
 .rifa-grade__faixas button {
   flex: none; display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 52px; padding: 6px 16px; border: 0; border-radius: 16px;
@@ -125,3 +125,10 @@ body:has(.rifa-barra) .lsl-fazer-botao { bottom: 96px; }
   .rifa-regras { padding: 22px 20px; }
 }
 .rifa-previa { margin: 24px var(--ini-gut, 16px) 0; border-radius: 18px; background: #fff3cc; color: #5c4100; padding: 14px 18px; font-size: 16px; line-height: 1.5; }
+@media (max-width: 639px) {
+  body:has(.rifa-barra-venda) .lsl-fazer-botao { bottom: calc(88px + env(safe-area-inset-bottom)); }
+}
+/* Tela do vendedor no celular: o botão flutuante de busca cobriria os números */
+@media (max-width: 639px) {
+  body:has(.rifa-vender-pagina) .lsl-fazer-botao { display: none; }
+}

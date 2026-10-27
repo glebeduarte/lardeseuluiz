@@ -26,7 +26,7 @@ const hoje = () => new Date().toISOString().slice(0, 10);
 const soDigitos = (s: string) => s.replace(/\D/g, "");
 
 const PAPEIS: { valor: string; rotulo: string; ajuda: string }[] = [
-  { valor: "trabalhador", rotulo: "Voluntário", ajuda: "Trabalha na Casa. Pede CPF." },
+  { valor: "trabalhador", rotulo: "Voluntário", ajuda: "Trabalha na Casa." },
   { valor: "frequentador", rotulo: "Frequentador", ajuda: "Vem às palestras e atividades." },
   { valor: "assistido", rotulo: "Assistido", ajuda: "Recebe atendimento espiritual." },
   { valor: "beneficiario_social", rotulo: "Beneficiário social", ajuda: "Atendido pelas ações sociais." },
@@ -95,7 +95,6 @@ function useOpcoes() {
 const msgErro = (e: unknown) => {
   const m = (e as { message?: string })?.message || "Não foi possível salvar.";
   if (/row-level security|permission denied/i.test(m)) return "Você não tem permissão para essa alteração.";
-  if (/CPF/i.test(m)) return "Preencha o CPF da pessoa antes (11 números).";
   if (/duplicate key/i.test(m)) return "Isso já está cadastrado para esta pessoa.";
   if (/health_records|violates foreign key/i.test(m)) return "Esta pessoa tem registros que impedem a exclusão (atendimento de saúde, por exemplo).";
   return m;
@@ -194,7 +193,6 @@ function SecaoDados({ ficha, nova, onSalvo }: { ficha?: Ficha; nova?: boolean; o
       const cpf = soDigitos(d.cpf);
       if (cpf && cpf.length !== 11) throw new Error("O CPF precisa ter 11 números.");
       if (d.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email.trim())) throw new Error("Confira o e-mail.");
-      if (comoVoluntario && nova && !cpf) throw new Error("Para cadastrar como voluntário, preencha o CPF.");
       const linha = {
         full_name: nome, email: d.email.trim().toLowerCase() || null, phone: d.phone.trim() || null,
         cpf: cpf || null, birth_date: d.birth_date || null, notes: d.notes.trim() || null,
@@ -237,7 +235,7 @@ function SecaoDados({ ficha, nova, onSalvo }: { ficha?: Ficha; nova?: boolean; o
         {nova && (
           <div className="space-y-2 rounded-xl bg-muted/50 p-3">
             <label className="flex items-center justify-between gap-3 text-sm"><span>Frequentador</span><Switch checked={comoFrequentador} onCheckedChange={setComoFrequentador} /></label>
-            <label className="flex items-center justify-between gap-3 text-sm"><span>Voluntário <span className="text-muted-foreground">(pede CPF)</span></span><Switch checked={comoVoluntario} onCheckedChange={setComoVoluntario} /></label>
+            <label className="flex items-center justify-between gap-3 text-sm"><span>Voluntário</span><Switch checked={comoVoluntario} onCheckedChange={setComoVoluntario} /></label>
           </div>
         )}
         <Button type="submit" className="w-full h-11" disabled={salvar.isPending || !mudou}>
@@ -283,7 +281,7 @@ function SecaoPapeis({ ficha, atualizar }: { ficha: Ficha; atualizar: () => void
         })}
       </ul>
       {!!ativo("trabalhador") && !soDigitos(ficha.pessoa.cpf || "") && (
-        <p className="mt-2 text-[12px] text-[#8a4b00] bg-[#fff8e0] rounded-lg px-3 py-2">Voluntário sem CPF. Peça o CPF e preencha nos dados pessoais.</p>
+        <p className="mt-2 text-[12px] text-muted-foreground bg-muted/60 rounded-lg px-3 py-2">Ainda sem CPF. A própria pessoa informa no primeiro acesso, ou você preenche nos dados pessoais.</p>
       )}
     </Bloco>
   );
@@ -301,7 +299,6 @@ function SecaoVinculo({ ficha, atualizar }: { ficha: Ficha; atualizar: () => voi
 
   const salvar = useMutation({
     mutationFn: async () => {
-      if (!soDigitos(ficha.pessoa.cpf || "")) throw new Error("CPF");
       const linha = { category: cat, status: sit, admission_date: adm };
       const { error } = v
         ? await db.from("associate_memberships").update(linha).eq("id", v.id)
@@ -341,7 +338,7 @@ function SecaoVinculo({ ficha, atualizar }: { ficha: Ficha; atualizar: () => voi
               : <Button variant="ghost" className="h-11" onClick={() => setAbrir(false)}>Cancelar</Button>}
             <Button className="flex-1 h-11" onClick={() => salvar.mutate()} disabled={salvar.isPending}>{v ? "Salvar vínculo" : "Incluir como associado"}</Button>
           </div>
-          {!soDigitos(ficha.pessoa.cpf || "") && <p className="text-[12px] text-[#8a4b00]">Associado precisa de CPF nos dados pessoais.</p>}
+          {!soDigitos(ficha.pessoa.cpf || "") && <p className="text-[12px] text-muted-foreground">Ainda sem CPF. A pessoa informa no primeiro acesso.</p>}
         </div>
       )}
     </Bloco>

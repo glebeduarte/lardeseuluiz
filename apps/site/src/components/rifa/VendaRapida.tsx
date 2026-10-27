@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Check, MessageCircle, Shuffle } from "lucide-react";
+import { Check, MessageCircle, Plus, Shuffle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +20,7 @@ export default function VendaRapida({ rifaId, slug, total, preco, maximo, coorde
   const ocupados = useMemo(() => new Map<number, Situacao>((pub?.numeros ?? []).map(([n, s]) => [n, s])), [pub]);
   const [escolhidos, setEscolhidos] = useState<Set<number>>(new Set());
   const [digitados, setDigitados] = useState("");
+  const [buscar, setBuscar] = useState("");
   const [nome, setNome] = useState("");
   const [tel, setTel] = useState("");
   const [recebido, setRecebido] = useState(true);
@@ -34,6 +35,17 @@ export default function VendaRapida({ rifaId, slug, total, preco, maximo, coorde
     if (novo.has(n)) novo.delete(n); else if (novo.size < maximo) novo.add(n);
     return novo;
   });
+
+  // Comprador que já sabe o número: digita e adiciona, sem procurar na grade
+  const adicionarDigitado = () => {
+    const n = Number(buscar.replace(/\D/g, ""));
+    if (!n || n < 1 || n > total) return toast.error(`Digite um número de 1 a ${total}.`);
+    if (ocupados.has(n)) return toast.error(`O número ${pad(n, total)} já está ${ocupados.get(n) === "p" ? "vendido" : "reservado"}.`);
+    if (escolhidos.has(n)) { setBuscar(""); return; }
+    if (escolhidos.size >= maximo) return toast.error(`No máximo ${maximo} números por venda.`);
+    setEscolhidos((x) => new Set([...x, n]));
+    setBuscar("");
+  };
 
   const vender = async () => {
     setEnviando(true);
@@ -68,34 +80,78 @@ export default function VendaRapida({ rifaId, slug, total, preco, maximo, coorde
   }
 
   return (
-    <div className="grid gap-5">
-      <div className="grid gap-2">
-        <Label>Números</Label>
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-5 min-w-0">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-3 min-w-0">
+        <Label className="text-base">1. Escolha os números</Label>
         {slug ? (
           <>
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
+              <Input value={buscar} onChange={(e) => setBuscar(e.target.value)} inputMode="numeric" placeholder="Digite um número, ex.: 1234" className="h-11"
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); adicionarDigitado(); } }} aria-label="Digitar número" />
+              <Button type="button" className="h-11" onClick={adicionarDigitado} disabled={!buscar.trim()}><Plus className="w-4 h-4 sm:mr-1" /><span className="hidden sm:inline">Adicionar</span></Button>
+            </div>
             <div className="flex flex-wrap gap-2">
               <Button type="button" variant="outline" size="sm" onClick={() => setEscolhidos((s) => new Set([...s, ...escolherAoAcaso(total, ocupados, s, 1)]))}><Shuffle className="w-4 h-4 mr-1" /> Um ao acaso</Button>
               <Button type="button" variant="outline" size="sm" onClick={() => setEscolhidos((s) => new Set([...s, ...escolherAoAcaso(total, ocupados, s, 5)]))}><Shuffle className="w-4 h-4 mr-1" /> Cinco ao acaso</Button>
             </div>
+            <p className="text-[13px] text-muted-foreground">Ou toque nos números livres. Use as faixas para ver outros números.</p>
             <GradeNumeros total={total} ocupados={ocupados} selecionados={escolhidos} aoTocar={alternar} />
           </>
         ) : (
           <Input value={digitados} onChange={(e) => setDigitados(e.target.value)} placeholder="Digite os números separados por vírgula, ex.: 7, 12, 45" />
         )}
       </div>
-      {lista.length > 0 && <p className="text-sm"><strong>{lista.length}</strong> {lista.length === 1 ? "número" : "números"}: {lista.map((n) => pad(n, total)).join(", ")} · <strong>{reais(lista.length * preco)}</strong></p>}
-      <div className="grid sm:grid-cols-2 gap-3">
-        <div className="grid gap-2"><Label>Nome do comprador</Label><Input value={nome} onChange={(e) => setNome(e.target.value)} /></div>
-        <div className="grid gap-2"><Label>WhatsApp do comprador</Label><Input value={tel} onChange={(e) => setTel(e.target.value)} inputMode="tel" placeholder="(84) 99999-9999" /></div>
+
+      {lista.length > 0 && (
+        <div className="rounded-2xl bg-[#fff8e0] p-4 space-y-2">
+          <p className="text-sm"><strong>{lista.length}</strong> {lista.length === 1 ? "número escolhido" : "números escolhidos"} · <strong>{reais(lista.length * preco)}</strong></p>
+          <div className="flex flex-wrap gap-1.5">
+            {lista.map((n) => (
+              <button key={n} type="button" onClick={() => { setEscolhidos((x) => { const y = new Set(x); y.delete(n); return y; }); }}
+                className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-sm font-semibold tabular-nums shadow-sm" aria-label={`Tirar ${pad(n, total)}`}>
+                {pad(n, total)}<X className="w-3.5 h-3.5 text-muted-foreground" />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
+        <Label className="text-base">2. Dados do comprador</Label>
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div className="grid gap-2" id="vr-comprador"><Label htmlFor="vr-nome">Nome</Label><Input id="vr-nome" value={nome} onChange={(e) => setNome(e.target.value)} className="h-11" autoComplete="off" /></div>
+          <div className="grid gap-2"><Label htmlFor="vr-tel">WhatsApp</Label><Input id="vr-tel" value={tel} onChange={(e) => setTel(e.target.value)} inputMode="tel" placeholder="(84) 99999-9999" className="h-11" autoComplete="off" /></div>
+        </div>
       </div>
       <label className="flex items-start gap-3 rounded-2xl bg-muted/50 p-4 cursor-pointer">
         <input type="checkbox" className="mt-1 h-5 w-5 accent-[#0059b1]" checked={recebido} onChange={(e) => setRecebido(e.target.checked)} />
         <span><strong>Já recebi o pagamento</strong><br />
           <span className="text-sm text-muted-foreground">{coordenacao ? "O pedido entra como pago." : "Fica marcado como recebido por você, até a coordenação confirmar o repasse."}</span></span>
       </label>
-      <div><Button onClick={vender} disabled={enviando || lista.length === 0 || nome.trim().length < 3 || tel.replace(/\D/g, "").length < 10}>
+      <Button className="h-12 w-full sm:w-auto sm:justify-self-start" onClick={vender} disabled={enviando || lista.length === 0 || nome.trim().length < 3 || tel.replace(/\D/g, "").length < 10}>
         <Check className="w-4 h-4 mr-2" /> {enviando ? "Registrando..." : `Registrar venda${lista.length ? ` de ${reais(lista.length * preco)}` : ""}`}
-      </Button></div>
+      </Button>
+      {lista.length > 0 && (nome.trim().length < 3 || tel.replace(/\D/g, "").length < 10) && (
+        <p className="text-[13px] text-muted-foreground -mt-3">Preencha o nome e o WhatsApp do comprador para registrar.</p>
+      )}
+
+      {/* Celular: resumo fixo embaixo enquanto escolhe os números */}
+      {lista.length > 0 && (
+        <>
+          <div className="h-20 sm:hidden" aria-hidden="true" />
+          <div className="rifa-barra-venda sm:hidden fixed inset-x-0 bottom-0 z-[46] bg-white border-t border-border shadow-[0_-6px_24px_rgba(15,31,61,.12)] px-4 pt-3 pb-[calc(12px+env(safe-area-inset-bottom))] flex items-center gap-3">
+            <div className="flex-1 min-w-0">
+              <div className="text-[15px] font-bold tabular-nums">{lista.length} {lista.length === 1 ? "número" : "números"} · {reais(lista.length * preco)}</div>
+              <div className="text-[12px] text-muted-foreground truncate tabular-nums">{lista.map((n) => pad(n, total)).join(", ")}</div>
+            </div>
+            {nome.trim().length >= 3 && tel.replace(/\D/g, "").length >= 10 ? (
+              <Button className="h-12 px-5" onClick={vender} disabled={enviando}><Check className="w-4 h-4 mr-1" />{enviando ? "..." : "Registrar"}</Button>
+            ) : (
+              <Button className="h-12 px-5" onClick={() => { document.getElementById("vr-comprador")?.scrollIntoView({ behavior: "smooth", block: "center" }); setTimeout(() => document.getElementById("vr-nome")?.focus(), 350); }}>Comprador</Button>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }

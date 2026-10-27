@@ -75,7 +75,7 @@ export default function RifaVender() {
   return (
     <MolduraSimples sistema="governanca" areas={areas} usuario={{ nome: areas?.nome, foto: areas?.foto }}
       navegar={(h) => { if (h.startsWith("/formacao") || h.startsWith("/atendimento")) return false; navigate(h); return true; }}>
-      <div className="max-w-3xl mx-auto">
+      <div className="rifa-vender-pagina max-w-3xl mx-auto min-w-0">
         <CabecalhoPagina titulo="Vender números da rifa" Link={LinkRR} voltar={{ href: "/app/perfil", rotulo: "Meu perfil" }}
           descricao="Escolha os números com o comprador, anote o nome e o WhatsApp e diga se já recebeu o dinheiro." />
 
@@ -101,26 +101,26 @@ export default function RifaVender() {
 
             {rifa && (
               <>
-                <div className="grid grid-cols-2 gap-3">
-                  <Card><CardContent className="p-5"><div className="text-2xl font-bold">{rifa.vendidos}{rifa.cota ? <span className="text-base text-muted-foreground"> de {rifa.cota}</span> : null}</div><div className="text-sm text-muted-foreground">números que você vendeu</div></CardContent></Card>
-                  <Card><CardContent className="p-5"><div className="text-2xl font-bold text-amber-700">{reais(rifa.a_repassar)}</div><div className="text-sm text-muted-foreground">recebido, a repassar</div></CardContent></Card>
+                <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                  <Card><CardContent className="p-4 sm:p-5"><div className="text-xl sm:text-2xl font-bold tabular-nums">{rifa.vendidos}{rifa.cota ? <span className="text-base text-muted-foreground"> de {rifa.cota}</span> : null}</div><div className="text-sm text-muted-foreground">números que você vendeu</div></CardContent></Card>
+                  <Card><CardContent className="p-4 sm:p-5"><div className="text-xl sm:text-2xl font-bold text-amber-700 tabular-nums">{reais(rifa.a_repassar)}</div><div className="text-sm text-muted-foreground">recebido, a repassar</div></CardContent></Card>
                 </div>
-                <Card>
-                  <CardHeader><CardTitle className="font-['Playfair_Display'] text-xl">{rifa.titulo}</CardTitle><CardDescription>{rifa.premio} · {reais(rifa.preco)} o número</CardDescription></CardHeader>
-                  <CardContent>
+                <Card className="overflow-hidden">
+                  <CardHeader className="p-4 sm:p-6"><CardTitle className="font-['Playfair_Display'] text-xl">{rifa.titulo}</CardTitle><CardDescription>{reais(rifa.preco)} o número</CardDescription></CardHeader>
+                  <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
                     {total > 0 && <VendaRapida key={rifa.id} rifaId={rifa.id} slug={rifa.slug} total={total} preco={Number(rifa.preco)} maximo={detalhes?.max_per_order ?? rifa.max ?? 50}
                       aoConcluir={() => qc.invalidateQueries({ queryKey: ["minhas-vendas-rifa", sel] })} />}
                   </CardContent>
                 </Card>
 
                 <Card>
-                  <CardHeader><CardTitle className="font-['Playfair_Display'] text-lg">Minhas vendas</CardTitle></CardHeader>
-                  <CardContent className="space-y-2">
+                  <CardHeader className="p-4 sm:p-6"><CardTitle className="font-['Playfair_Display'] text-lg">Minhas vendas</CardTitle></CardHeader>
+                  <CardContent className="space-y-2 p-4 pt-0 sm:p-6 sm:pt-0">
                     {vendas.length === 0 && <p className="text-sm text-muted-foreground">Você ainda não registrou vendas nesta rifa.</p>}
                     {vendas.map((p) => {
                       const nums = (p.raffle_tickets ?? []).filter((t) => p.status === "cancelado" || t.ativo).map((t) => t.number).sort((a, b) => a - b);
                       return (
-                        <div key={p.id} className="flex flex-wrap items-center gap-3 rounded-2xl bg-muted/50 p-4">
+                        <div key={p.id} className="flex flex-wrap items-center gap-2 sm:gap-3 rounded-2xl bg-muted/50 p-3 sm:p-4">
                           <div className="flex-1 min-w-0">
                             <div className="font-semibold">{p.buyer_name} <Badge variant="outline" className={`ml-1 ${PEDIDO_COR[p.status]}`}>{p.status === "reservado" && p.received_by_seller ? "A repassar" : PEDIDO_STATUS[p.status]}</Badge></div>
                             <div className="text-sm text-muted-foreground">{p.code} · {nums.map((n) => pad(n, total)).join(", ")} · {reais(p.amount)}</div>

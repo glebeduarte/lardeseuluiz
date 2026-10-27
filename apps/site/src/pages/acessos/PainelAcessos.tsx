@@ -202,8 +202,8 @@ function NaCasa({ dados, ocupado, executar }: { dados: Acessos; ocupado: string 
   const [pedirCpf, setPedirCpf] = useState(false);
   const [cpf, setCpf] = useState("");
   const mudar = async (v: boolean) => {
-    if (v && !p.tem_cpf && !pedirCpf) { setPedirCpf(true); return; }
-    await executar("vol", "painel_voluntario", { p_ativo: v, p_cpf: v && !p.tem_cpf ? cpf : null }, v ? "Agora consta como voluntário" : "Agora consta como frequentador");
+    // CPF é opcional aqui: a própria pessoa informa no primeiro acesso
+    await executar("vol", "painel_voluntario", { p_ativo: v, p_cpf: v && !p.tem_cpf && cpf.trim() ? cpf : null }, v ? "Agora consta como voluntário" : "Agora consta como frequentador");
     setPedirCpf(false); setCpf("");
   };
   return (
@@ -219,6 +219,7 @@ function NaCasa({ dados, ocupado, executar }: { dados: Acessos; ocupado: string 
         )}
       </div>
       {!pode && <p className="text-[13px] text-muted-foreground mt-2">Só o administrador geral muda isso.</p>}
+      {voluntario && !p.tem_cpf && <p className="text-[13px] text-muted-foreground mt-2">Ainda sem CPF. A pessoa informa no primeiro acesso.</p>}
       {pedirCpf && (
         <div className="mt-3 grid sm:grid-cols-[1fr_auto_auto] gap-2 rounded-2xl bg-[#fff8e0] p-3">
           <Input value={cpf} onChange={(e) => setCpf(e.target.value)} inputMode="numeric" placeholder="CPF da pessoa (só números)" className="h-11 bg-white" aria-label="CPF" autoFocus />
