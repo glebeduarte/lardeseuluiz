@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, MapPin, MessageCircle, Mail, Instagram, Youtube } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { hojeISO, MESES, usePalestras, useProjetos, type Palestra } from "@/lib/site-dados";
 import { SEMANA, diaDeHojeNoLar, useSituacaoDaCasa } from "./agenda-casa";
 import logoLSL from "@/assets/logo-lsl.png";
@@ -350,44 +348,38 @@ function Acoes() {
   );
 }
 
-/* ───────── 6. Estudos ───────── */
-const CURSOS_FIXOS = [
-  { id: "esde", title: "ESDE", desc: "Estudo Sistematizado da Doutrina Espírita, o curso fundamental de dois anos.", href: "/formacao/" },
-  { id: "dialogo", title: "Diálogo Fraterno", desc: "Formação de quem acolhe e orienta os frequentadores.", href: "/formacao/" },
-  { id: "evangelizacao", title: "Evangelização", desc: "Preparação de evangelizadores para crianças e jovens.", href: "/formacao/" },
+/* ───────── 6. Estudos: ESDE ───────── */
+// Na home, só o ESDE, com convite direto para a página de inscrição do ESDE 1 e 2.
+const INSCRICAO_ESDE = "/formacao/inscricao/p/esde2026";
+const ESDE_PONTOS = [
+  { id: "aovivo", title: "ESDE 2 ao vivo", desc: "Aulas às quintas, das 19h30 às 21h, pelo Google Meet, com espaço para perguntas e conversa." },
+  { id: "gravado", title: "ESDE 1 gravado", desc: "Quem está começando assiste às aulas do primeiro módulo no seu tempo, pelo celular ou computador." },
+  { id: "gratis", title: "Online e gratuito", desc: "Não tem custo nem pré-requisito. Basta se inscrever e entrar no grupo do WhatsApp da turma." },
 ];
 
 function Estudos() {
-  const { data } = useQuery({
-    queryKey: ["site-cursos-abertos"],
-    queryFn: async () => {
-      const { data } = await supabase.schema("formacao" as never).from("courses")
-        .select("id, title, description, audience")
-        .eq("status", "published").eq("enrollment_open", true).neq("audience", "trabalhadores").limit(6);
-      return (data ?? []) as { id: string; title: string; description: string | null }[];
-    },
-  });
-  const cursos = data && data.length > 0
-    ? data.map((c) => ({ id: c.id, title: c.title, desc: c.description ?? "", href: `/formacao/inscricao/curso/${c.id}` }))
-    : CURSOS_FIXOS;
   return (
     <section className="ini-estudos" id="formacao" aria-labelledby="ini-estudos-t">
       <div className="ini-estudos__lado">
-        <motion.h2 id="ini-estudos-t" className="ini-titulo" {...surgir()}>Estude com a gente</motion.h2>
+        <motion.h2 id="ini-estudos-t" className="ini-titulo" {...surgir()}>Estude a Doutrina Espírita com o ESDE</motion.h2>
         <motion.p className="ini-corpo" {...surgir(0.1)}>
-          Cursos gratuitos para quem quer entender a Doutrina Espírita e para quem quer servir na casa. As aulas
-          online acontecem às quintas.
+          O ESDE, Estudo Sistematizado da Doutrina Espírita, é o curso de base da casa. Em turma e com
+          acompanhamento, você estuda as obras de Allan Kardec passo a passo: Deus, a vida depois da morte,
+          a reencarnação, a mediunidade e o Evangelho no dia a dia.
         </motion.p>
-        <a href="/formacao/" className="ini-botao">Ver todos os cursos</a>
+        <motion.p className="ini-corpo" {...surgir(0.15)}>
+          É online e gratuito. Você pode começar agora, de onde estiver.
+        </motion.p>
+        <a href={INSCRICAO_ESDE} className="ini-botao">Quero me inscrever no ESDE</a>
       </div>
       <ul className="ini-estudos__lista">
-        {cursos.map((c, i) => (
+        {ESDE_PONTOS.map((c, i) => (
           <motion.li key={c.id} {...surgir(0.05 * i)}>
-            <a href={c.href}>
+            <a href={INSCRICAO_ESDE}>
               <span className="ini-estudos__ponto" aria-hidden="true" />
               <span>
                 <strong>{c.title}</strong>
-                {c.desc && <em>{c.desc}</em>}
+                <em>{c.desc}</em>
               </span>
               <ArrowRight size={22} aria-hidden="true" />
             </a>
