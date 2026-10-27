@@ -1,13 +1,14 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import QRCode from "qrcode";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Check, MessageCircle, Plus, Shuffle, X } from "lucide-react";
+import { Banknote, Check, Clock, Copy, MessageCircle, Plus, QrCode, Shuffle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import GradeNumeros, { escolherAoAcaso, type Situacao } from "@/components/rifa/GradeNumeros";
 import { db } from "@/lib/acoes";
-import { erroAmigavel, linkWhats, mensagemCobranca, pad, reais, useRifaPublica, type Reserva } from "@/lib/rifas";
+import { erroAmigavel, linkWhats, mensagemCobranca, pad, pixCopiaECola, reais, useRifaPublica, type Reserva } from "@/lib/rifas";
 import "./rifa.css";
 
 // Venda feita por voluntário ou pela coordenação: escolhe os números, anota o comprador e diz se já recebeu.
@@ -23,7 +24,9 @@ export default function VendaRapida({ rifaId, slug, total, preco, maximo, coorde
   const [buscar, setBuscar] = useState("");
   const [nome, setNome] = useState("");
   const [tel, setTel] = useState("");
-  const [recebido, setRecebido] = useState(true);
+  // Como o comprador paga: PIX na hora (QR Code na tela), dinheiro com o vendedor ou depois
+  const [forma, setForma] = useState<"pix" | "dinheiro" | "depois">("pix");
+  const recebido = forma === "dinheiro";
   const [enviando, setEnviando] = useState(false);
   const [feito, setFeito] = useState<(Reserva & { nome: string; tel: string }) | null>(null);
 
@@ -60,19 +63,27 @@ export default function VendaRapida({ rifaId, slug, total, preco, maximo, coorde
 
   if (feito) {
     const nums = feito.numeros.map((n) => pad(n, total)).join(", ");
+    const primeiro = feito.nome.split(" ")[0];
     const msg = feito.status === "pago" || recebido
-      ? `Olá, ${feito.nome.split(" ")[0]}! Seus números na rifa do Lar de Seu Luiz estão garantidos: ${nums}. Código ${feito.codigo}. Boa sorte!`
+      ? `Olá, ${primeiro}! Seus números na rifa do Lar de Seu Luiz estão garantidos: ${nums}. Código ${feito.codigo}. Boa sorte!`
       : mensagemCobranca({ nome: feito.nome, codigo: feito.codigo, titulo: pub?.titulo ?? "rifa do Lar de Seu Luiz", numeros: feito.numeros, total, valor: Number(feito.valor),
           chave: pub?.pix_chave ?? null, recebedor: pub?.pix_nome ?? null, cidade: pub?.pix_cidade ?? null, slug: slugAtual });
+    const novaVenda = () => { setFeito(null); setEscolhidos(new Set()); setDigitados(""); setNome(""); setTel(""); setForma("pix"); };
+    const mostrarPix = forma === "pix" && feito.status !== "pago";
     return (
-      <div className="grid gap-4">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-4">
         <div className="rounded-2xl bg-emerald-50 text-emerald-900 p-4">
           <p className="font-semibold">Venda registrada: código {feito.codigo}</p>
-          <p className="text-sm">{feito.nome} · {nums} · {reais(feito.valor)}{feito.status === "pago" ? " · pago" : recebido ? " · você recebeu, falta repassar à coordenação" : " · esperando pagamento"}</p>
+          <p className="text-sm">{feito.nome} · {nums} · {reais(feito.valor)}
+            {feito.status === "pago" ? " · pago" : recebido ? " · você recebeu, falta repassar à coordenação" : forma === "pix" ? " · aguardando o PIX" : " · vai pagar depois"}</p>
         </div>
+        {mostrarPix && (
+          <PixVenda chave={pub?.pix_chave ?? null} nome={pub?.pix_nome ?? null} cidade={pub?.pix_cidade ?? null}
+            valor={Number(feito.valor)} codigo={feito.codigo} telefone={feito.tel} primeiro={primeiro} nums={nums} titulo={pub?.titulo ?? "rifa do Lar de Seu Luiz"} />
+        )}
         <div className="flex flex-wrap gap-2">
-          <Button asChild><a href={linkWhats(feito.tel, msg)} target="_blank" rel="noopener noreferrer"><MessageCircle className="w-4 h-4 mr-2" /> Mandar os números ao comprador</a></Button>
-          <Button variant="outline" onClick={() => { setFeito(null); setEscolhidos(new Set()); setDigitados(""); setNome(""); setTel(""); }}>Nova venda</Button>
+          <Button asChild variant={mostrarPix ? "outline" : "default"}><a href={linkWhats(feito.tel, msg)} target="_blank" rel="noopener noreferrer"><MessageCircle className="w-4 h-4 mr-2" /> Mandar os números ao comprador</a></Button>
+          <Button variant="outline" onClick={novaVenda}>Nova venda</Button>
           {aoConcluir && <Button variant="ghost" onClick={aoConcluir}>Fechar</Button>}
         </div>
       </div>
@@ -123,11 +134,26 @@ export default function VendaRapida({ rifaId, slug, total, preco, maximo, coorde
           <div className="grid gap-2"><Label htmlFor="vr-tel">WhatsApp</Label><Input id="vr-tel" value={tel} onChange={(e) => setTel(e.target.value)} inputMode="tel" placeholder="(84) 99999-9999" className="h-11" autoComplete="off" /></div>
         </div>
       </div>
-      <label className="flex items-start gap-3 rounded-2xl bg-muted/50 p-4 cursor-pointer">
-        <input type="checkbox" className="mt-1 h-5 w-5 accent-[#0059b1]" checked={recebido} onChange={(e) => setRecebido(e.target.checked)} />
-        <span><strong>Já recebi o pagamento</strong><br />
-          <span className="text-sm text-muted-foreground">{coordenacao ? "O pedido entra como pago." : "Fica marcado como recebido por você, até a coordenação confirmar o repasse."}</span></span>
-      </label>
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-2">
+        <Label className="text-base">3. Pagamento</Label>
+        <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Forma de pagamento">
+          {([
+            ["pix", "PIX agora", QrCode],
+            ["dinheiro", "Dinheiro comigo", Banknote],
+            ["depois", "Paga depois", Clock],
+          ] as const).map(([v, r, Icone]) => (
+            <button key={v} type="button" role="radio" aria-checked={forma === v} onClick={() => setForma(v)}
+              className={`flex flex-col items-center justify-center gap-1 rounded-2xl px-2 py-3 text-[13px] font-semibold leading-tight text-center border-2 transition-colors ${forma === v ? "border-[#0059b1] bg-[#e3eefb] text-[#003c7f]" : "border-transparent bg-muted/60 text-foreground"}`}>
+              <Icone className="w-5 h-5" />{r}
+            </button>
+          ))}
+        </div>
+        <p className="text-[13px] text-muted-foreground">
+          {forma === "pix" ? "Depois de registrar, aparece o QR Code do PIX com o valor e o código da venda para o comprador pagar na hora."
+            : forma === "dinheiro" ? (coordenacao ? "O pedido entra como pago." : "Fica marcado como recebido por você, até a coordenação confirmar o repasse.")
+            : "Os números ficam reservados e o comprador recebe o PIX pelo WhatsApp para pagar depois."}
+        </p>
+      </div>
       <Button className="h-12 w-full sm:w-auto sm:justify-self-start" onClick={vender} disabled={enviando || lista.length === 0 || nome.trim().length < 3 || tel.replace(/\D/g, "").length < 10}>
         <Check className="w-4 h-4 mr-2" /> {enviando ? "Registrando..." : `Registrar venda${lista.length ? ` de ${reais(lista.length * preco)}` : ""}`}
       </Button>
@@ -152,6 +178,37 @@ export default function VendaRapida({ rifaId, slug, total, preco, maximo, coorde
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+/** QR Code do PIX para o comprador pagar na hora, lendo a tela do vendedor. O código da venda vai no PIX. */
+export function PixVenda({ chave, nome, cidade, valor, codigo, telefone, primeiro, nums, titulo }: {
+  chave: string | null; nome: string | null; cidade: string | null; valor: number; codigo: string; telefone: string; primeiro: string; nums: string; titulo: string;
+}) {
+  const [qr, setQr] = useState<string | null>(null);
+  const codigoPix = chave ? pixCopiaECola({ chave, nome: nome || "LAR DE SEU LUIZ", cidade: cidade || "NISIA FLORESTA", valor, identificador: codigo }) : null;
+  useEffect(() => {
+    if (!codigoPix) return;
+    QRCode.toDataURL(codigoPix, { margin: 1, width: 520, color: { dark: "#0f1f3d", light: "#ffffff" } }).then(setQr).catch(() => setQr(null));
+  }, [codigoPix]);
+  if (!codigoPix) return <p className="text-sm rounded-2xl bg-amber-50 text-amber-900 p-4">A chave PIX da rifa ainda não foi cadastrada. Peça para a coordenação preencher em Configurar.</p>;
+  const copiar = async () => {
+    try { await navigator.clipboard.writeText(codigoPix); toast.success("Código PIX copiado."); } catch { toast.error("Não consegui copiar."); }
+  };
+  const mensagem = `Olá, ${primeiro}! Para pagar seus números (${nums}) da ${titulo}, use o PIX copia e cola abaixo. O valor é ${reais(valor)}.\n\n${codigoPix}`;
+  return (
+    <div className="rounded-3xl border-2 border-[#ffc116] bg-white p-4 sm:p-5 grid gap-3 justify-items-center text-center">
+      <p className="text-sm font-semibold text-[#7a5200] uppercase tracking-wide">Mostre para o comprador ler</p>
+      <div className="w-full max-w-[280px] aspect-square rounded-2xl bg-white p-2 shadow-[inset_0_0_0_2px_#e3eaf3] grid place-items-center">
+        {qr ? <img src={qr} alt="QR Code do PIX" className="w-full h-auto" /> : <span className="text-sm text-muted-foreground">Gerando QR Code…</span>}
+      </div>
+      <p className="font-['Playfair_Display'] text-4xl font-bold text-[#003c7f] tabular-nums leading-none">{reais(valor)}</p>
+      <p className="text-[13px] text-muted-foreground">Código da venda <strong className="text-foreground">{codigo}</strong>. Ele vai junto no PIX, para a coordenação achar o pagamento.</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">
+        <Button variant="outline" className="h-11" onClick={copiar}><Copy className="w-4 h-4 mr-2" /> Copiar PIX</Button>
+        <Button asChild className="h-11"><a href={linkWhats(telefone, mensagem)} target="_blank" rel="noopener noreferrer"><MessageCircle className="w-4 h-4 mr-2" /> Mandar PIX no WhatsApp</a></Button>
+      </div>
     </div>
   );
 }

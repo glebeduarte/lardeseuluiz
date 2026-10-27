@@ -2,16 +2,16 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Ticket, MessageCircle, Unlock } from "lucide-react";
+import { Ticket, MessageCircle, QrCode, Unlock } from "lucide-react";
 import { MolduraSimples, CabecalhoPagina, useAreasLsl } from "@/compartilhado";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import VendaRapida from "@/components/rifa/VendaRapida";
+import VendaRapida, { PixVenda } from "@/components/rifa/VendaRapida";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { db } from "@/lib/acoes";
-import { erroAmigavel, linkWhats, pad, PEDIDO_COR, PEDIDO_STATUS, reais, type Pedido } from "@/lib/rifas";
+import { erroAmigavel, linkWhats, pad, PEDIDO_COR, PEDIDO_STATUS, reais, useRifaPublica, type Pedido } from "@/lib/rifas";
 
 const LinkRR = ({ href, className, children }: { href: string; className: string; children: React.ReactNode }) => <Link to={href} className={className}>{children}</Link>;
 type MinhaRifa = { id: string; slug: string; titulo: string; premio: string; preco: number; status: string; cota: number | null; vendidos: number; a_repassar: number; total?: number; max?: number };
@@ -63,6 +63,8 @@ export default function RifaVender() {
   useEffect(() => { if (!sel && rifas.length === 1) setSel(rifas[0].id); }, [rifas, sel]);
   const rifa = rifas.find((r) => r.id === sel);
   const total = detalhes?.total_numbers ?? rifa?.total ?? 0;
+  const { data: pub } = useRifaPublica(rifa?.slug);
+  const [pixAberto, setPixAberto] = useState<string | null>(null);
 
   const liberar = async (p: Pedido) => {
     const { error } = await db.rpc("rifa_liberar", { p_pedido: p.id, p_motivo: "Liberado pelo vendedor" });
@@ -126,7 +128,16 @@ export default function RifaVender() {
                             <div className="text-sm text-muted-foreground">{p.code} · {nums.map((n) => pad(n, total)).join(", ")} · {reais(p.amount)}</div>
                           </div>
                           <Button variant="outline" size="icon" asChild><a href={linkWhats(p.buyer_phone)} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp do comprador"><MessageCircle className="w-4 h-4" /></a></Button>
+                          {p.status === "reservado" && !p.received_by_seller && (
+                            <Button variant={pixAberto === p.id ? "default" : "outline"} size="sm" onClick={() => setPixAberto((x) => (x === p.id ? null : p.id))}><QrCode className="w-4 h-4 mr-1" /> PIX</Button>
+                          )}
                           {p.status === "reservado" && <Button variant="ghost" size="sm" onClick={() => liberar(p)}><Unlock className="w-4 h-4 mr-1" /> Liberar</Button>}
+                          {pixAberto === p.id && (
+                            <div className="basis-full">
+                              <PixVenda chave={pub?.pix_chave ?? null} nome={pub?.pix_nome ?? null} cidade={pub?.pix_cidade ?? null} valor={Number(p.amount)} codigo={p.code}
+                                telefone={p.buyer_phone} primeiro={p.buyer_name.split(" ")[0]} nums={nums.map((n) => pad(n, total)).join(", ")} titulo={pub?.titulo ?? rifa.titulo} />
+                            </div>
+                          )}
                         </div>
                       );
                     })}
