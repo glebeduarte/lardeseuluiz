@@ -19,12 +19,13 @@ import VendaRapida from "@/components/rifa/VendaRapida";
 import { db, useNomesPessoas, type PessoaBasica } from "@/lib/acoes";
 import { dataBR, erroAmigavel, linkWhats, mensagemCobranca, pad, PEDIDO_COR, PEDIDO_STATUS, reais, RIFA_COR, RIFA_STATUS, slugRifa, type Pedido, type Rifa, type RifaStatus } from "@/lib/rifas";
 import "@/components/rifa/rifa.css";
+import GuardaRifas from "@/components/rifa/GuardaRifas";
 
 const LinkRR = ({ href, className, children }: { href: string; className: string; children: React.ReactNode }) => <Link to={href} className={className}>{children}</Link>;
 type Vendedor = { raffle_id: string; person_id: string; quota: number | null };
 type Filtro = "reservado" | "repassar" | "pago" | "cancelado" | "todos";
 
-export default function RifaGestao() {
+function RifaGestaoConteudo() {
   const { id } = useParams<{ id: string }>();
   const [params, setParams] = useSearchParams();
   const aba = params.get("aba") ?? "pedidos";
@@ -318,6 +319,8 @@ function AbaNumeros({ rifa, pedidos }: { rifa: Rifa; pedidos: Pedido[] }) {
 function AbaVendedores({ rifa, vendedores, pedidos, nomes, atualizar }: { rifa: Rifa; vendedores: Vendedor[]; pedidos: Pedido[]; nomes: Record<string, PessoaBasica>; atualizar: () => void }) {
   const [pessoa, setPessoa] = useState<PessoaBasica | null>(null);
   const [cota, setCota] = useState("");
+  const [repasse, setRepasse] = useState<{ v: Vendedor; pedidos: Pedido[]; valor: number } | null>(null);
+  const [confirmando, setConfirmando] = useState(false);
   const adicionar = async () => {
     if (!pessoa) return;
     const { error } = await db.from("raffle_sellers").insert({ raffle_id: rifa.id, person_id: pessoa.id, quota: cota ? Number(cota) : null });
@@ -331,41 +334,141 @@ function AbaVendedores({ rifa, vendedores, pedidos, nomes, atualizar }: { rifa: 
     atualizar();
   };
   const linkVenda = `${window.location.origin}/app/rifas/vender`;
+  const qtdNums = (ps: Pedido[]) => ps.reduce((s, p) => s + (p.raffle_tickets ?? []).filter((t) => t.ativo).length, 0);
+  const soma = (ps: Pedido[]) => ps.reduce((s, p) => s + Number(p.amount), 0);
+
+  // Prestação de contas: o que cada vendedor vendeu, o que já entregou e o que ainda está com ele
+  const contas = vendedores.map((v) => {
+    const dele = pedidos.filter((p) => p.seller_person_id === v.person_id && p.status !== "cancelado");
+    const entregues = dele.filter((p) => p.status === "pago");
+    const comEle = dele.filter((p) => p.status === "reservado" && p.received_by_seller);
+    const aReceber = dele.filter((p) => p.status === "reservado" && !p.received_by_seller);
+    return { v, dele, numeros: qtdNums(dele), vendido: soma(dele), entregue: soma(entregues), comEle, comEleValor: soma(comEle), aReceber, aReceberValor: soma(aReceber) };
+  });
+  const tot = contas.reduce((t, c) => ({ vendido: t.vendido + c.vendido, entregue: t.entregue + c.entregue, comEles: t.comEles + c.comEleValor, aReceber: t.aReceber + c.aReceberValor, numeros: t.numeros + c.numeros }),
+    { vendido: 0, entregue: 0, comEles: 0, aReceber: 0, numeros: 0 });
+
+  const confirmarRepasse = async () => {
+    if (!repasse) return;
+    setConfirmando(true);
+    let falhas = 0;
+    for (const p of repasse.pedidos) {
+      const { error } = await db.rpc("rifa_marcar_pago", { p_pedido: p.id, p_pago: true });
+      if (error) falhas++;
+    }
+    setConfirmando(false);
+    const nome = nomes[repasse.v.person_id]?.full_name?.split(" ")[0] ?? "vendedor";
+    if (falhas) toast.error(`${falhas} pedido(s) não foram confirmados. Confira na aba Pedidos.`);
+    else toast.success(`Repasse de ${reais(repasse.valor)} de ${nome} confirmado.`);
+    setRepasse(null); atualizar();
+  };
+
+  const mensagemCobrar = (c: (typeof contas)[number]) => {
+    const primeiro = nomes[c.v.person_id]?.full_name?.split(" ")[0] ?? "";
+    const linhas = [
+      `Olá, ${primeiro}! Tudo bem? Passando para acertarmos as vendas da ${rifa.title}.`,
+      "",
+      `Pelo sistema, você está com ${reais(c.comEleValor)} recebidos dos compradores:`,
+      ...c.comEle.map((p) => `• ${p.buyer_name.split(" ")[0]} (${p.code}): ${reais(Number(p.amount))}`),
+    ];
+    if (c.aReceberValor > 0) linhas.push("", `E ainda faltam ${reais(c.aReceberValor)} de compradores que não pagaram.`);
+    linhas.push("", rifa.pix_key ? `Pode fazer o repasse pelo PIX ${rifa.pix_key} ou entregar na Casa. Obrigado pela ajuda!` : "Pode entregar na Casa. Obrigado pela ajuda!");
+    return linhas.join("\n");
+  };
+
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_380px]">
-      <Card>
-        <CardHeader><CardTitle className="font-['Playfair_Display'] text-lg">Quem está vendendo</CardTitle>
-          <CardDescription>Cada vendedor registra as vendas pelo celular. Quando ele recebe o dinheiro, o pedido aparece como "a repassar" até a coordenação confirmar.</CardDescription></CardHeader>
-        <CardContent className="space-y-2">
-          {vendedores.length === 0 && <p className="text-sm text-muted-foreground py-6 text-center">Nenhum vendedor ainda. Adicione ao lado.</p>}
-          {vendedores.map((v) => {
-            const dele = pedidos.filter((p) => p.seller_person_id === v.person_id && p.status !== "cancelado");
-            const qtd = dele.reduce((s, p) => s + (p.raffle_tickets ?? []).filter((t) => t.ativo).length, 0);
-            const repassar = dele.filter((p) => p.status === "reservado" && p.received_by_seller).reduce((s, p) => s + Number(p.amount), 0);
-            const tel = nomes[v.person_id]?.phone;
-            return (
-              <div key={v.person_id} className="flex flex-wrap items-center gap-3 rounded-2xl bg-muted/50 p-4">
-                <div className="flex-1 min-w-0">
-                  <div className="font-semibold">{nomes[v.person_id]?.full_name ?? "Voluntário"}</div>
-                  <div className="text-sm text-muted-foreground">{qtd} {qtd === 1 ? "número vendido" : "números vendidos"}{v.quota ? ` de ${v.quota}` : ""}{repassar ? ` · ${reais(repassar)} a repassar` : ""}</div>
+      <div className="space-y-4 min-w-0">
+        {vendedores.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <Resumo rotulo="Vendido pelos vendedores" valor={reais(tot.vendido)} nota={`${tot.numeros} números`} />
+            <Resumo rotulo="Já entregue" valor={reais(tot.entregue)} cor="text-emerald-700" />
+            <Resumo rotulo="Com os vendedores" valor={reais(tot.comEles)} cor="text-amber-700" nota="falta repassar" />
+            <Resumo rotulo="Compradores devendo" valor={reais(tot.aReceber)} cor="text-muted-foreground" />
+          </div>
+        )}
+        <Card>
+          <CardHeader><CardTitle className="font-['Playfair_Display'] text-lg">Prestação de contas</CardTitle>
+            <CardDescription>Cada vendedor registra as vendas pelo celular e marca quando recebeu o dinheiro. O valor fica "com o vendedor" até a coordenação confirmar o repasse.</CardDescription></CardHeader>
+          <CardContent className="space-y-2">
+            {vendedores.length === 0 && <p className="text-sm text-muted-foreground py-6 text-center">Nenhum vendedor ainda. Adicione ao lado.</p>}
+            {contas.map((c) => {
+              const tel = nomes[c.v.person_id]?.phone;
+              return (
+                <div key={c.v.person_id} className="rounded-2xl bg-muted/50 p-4 space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold">{nomes[c.v.person_id]?.full_name ?? "Vendedor"}</div>
+                      <div className="text-sm text-muted-foreground lining-nums">
+                        {c.numeros} {c.numeros === 1 ? "número" : "números"}{c.v.quota ? ` de ${c.v.quota}` : ""} · {reais(c.vendido)} vendidos
+                      </div>
+                    </div>
+                    {tel && <Button variant="outline" size="icon" asChild><a href={linkWhats(tel, `Olá! Você está como vendedor da ${rifa.title}. Para registrar as vendas, entre em ${linkVenda}`)} target="_blank" rel="noopener noreferrer" aria-label="Enviar link de venda pelo WhatsApp"><MessageCircle className="w-4 h-4" /></a></Button>}
+                    <Button variant="ghost" size="icon" onClick={() => remover(c.v)} aria-label="Tirar vendedor" disabled={c.dele.length > 0} title={c.dele.length > 0 ? "Vendedor com vendas não pode ser retirado" : "Tirar vendedor"}><Trash2 className="w-4 h-4" /></Button>
+                  </div>
+                  {c.dele.length > 0 && (
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div className="rounded-xl bg-card px-2 py-2"><div className="text-[12px] text-muted-foreground">Entregue</div><div className="font-semibold text-emerald-700 lining-nums">{reais(c.entregue)}</div></div>
+                      <div className="rounded-xl bg-card px-2 py-2"><div className="text-[12px] text-muted-foreground">Com ele</div><div className={`font-semibold lining-nums ${c.comEleValor ? "text-amber-700" : ""}`}>{reais(c.comEleValor)}</div></div>
+                      <div className="rounded-xl bg-card px-2 py-2"><div className="text-[12px] text-muted-foreground">Comprador deve</div><div className="font-semibold text-muted-foreground lining-nums">{reais(c.aReceberValor)}</div></div>
+                    </div>
+                  )}
+                  {(c.comEleValor > 0 || c.aReceberValor > 0) && (
+                    <div className="flex flex-wrap gap-2">
+                      {c.comEleValor > 0 && (
+                        <Button size="sm" onClick={() => setRepasse({ v: c.v, pedidos: c.comEle, valor: c.comEleValor })}><Check className="w-4 h-4 mr-1" /> Recebi {reais(c.comEleValor)}</Button>
+                      )}
+                      {tel && (
+                        <Button size="sm" variant="outline" asChild><a href={linkWhats(tel, mensagemCobrar(c))} target="_blank" rel="noopener noreferrer"><MessageCircle className="w-4 h-4 mr-1" /> Cobrar repasse</a></Button>
+                      )}
+                    </div>
+                  )}
                 </div>
-                {tel && <Button variant="outline" size="icon" asChild><a href={linkWhats(tel, `Olá! Você está como vendedor da ${rifa.title}. Para registrar as vendas, entre em ${linkVenda}`)} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><MessageCircle className="w-4 h-4" /></a></Button>}
-                <Button variant="ghost" size="icon" onClick={() => remover(v)} aria-label="Tirar vendedor"><Trash2 className="w-4 h-4" /></Button>
-              </div>
-            );
-          })}
-        </CardContent>
-      </Card>
-      <Card>
+              );
+            })}
+          </CardContent>
+        </Card>
+      </div>
+      <Card className="self-start">
         <CardHeader><CardTitle className="font-['Playfair_Display'] text-lg">Adicionar vendedor</CardTitle>
-          <CardDescription>A pessoa precisa ter conta na plataforma para vender pelo celular.</CardDescription></CardHeader>
+          <CardDescription>A pessoa precisa ter login na plataforma. Ela passa a ver só a tela de venda: escolhe os números, preenche o comprador e acompanha o que vendeu.</CardDescription></CardHeader>
         <CardContent className="grid gap-3">
-          <div className="grid gap-2"><Label>Voluntário</Label><BuscaPessoa valor={pessoa} onEscolher={setPessoa} /></div>
+          <div className="grid gap-2"><Label>Pessoa</Label><BuscaPessoa valor={pessoa} onEscolher={setPessoa} /></div>
           <div className="grid gap-2"><Label>Cota de números (opcional)</Label><Input type="number" min={1} value={cota} onChange={(e) => setCota(e.target.value)} placeholder="Ex.: 20" /></div>
           <Button onClick={adicionar} disabled={!pessoa}><UserPlus className="w-4 h-4 mr-2" /> Adicionar</Button>
           <Button variant="outline" onClick={() => { navigator.clipboard?.writeText(linkVenda); toast.success("Link de venda copiado."); }}><Copy className="w-4 h-4 mr-2" /> Copiar link de venda</Button>
         </CardContent>
       </Card>
+
+      <Dialog open={!!repasse} onOpenChange={(v) => !v && setRepasse(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="font-['Playfair_Display']">Confirmar repasse de {repasse ? reais(repasse.valor) : ""}?</DialogTitle>
+            <DialogDescription>
+              {repasse ? `${nomes[repasse.v.person_id]?.full_name ?? "O vendedor"} entregou o dinheiro destes pedidos. Eles passam a contar como pagos:` : ""}
+            </DialogDescription>
+          </DialogHeader>
+          <ul className="text-sm space-y-1 max-h-60 overflow-y-auto">
+            {repasse?.pedidos.map((p) => (
+              <li key={p.id} className="flex justify-between gap-3"><span>{p.buyer_name} <span className="text-muted-foreground">({p.code})</span></span><span className="lining-nums">{reais(Number(p.amount))}</span></li>
+            ))}
+          </ul>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRepasse(null)}>Cancelar</Button>
+            <Button onClick={confirmarRepasse} disabled={confirmando}>{confirmando ? "Confirmando..." : "Confirmar repasse"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function Resumo({ rotulo, valor, nota, cor }: { rotulo: string; valor: string; nota?: string; cor?: string }) {
+  return (
+    <div className="rounded-2xl bg-card border border-border/70 px-4 py-3">
+      <div className="text-[12px] text-muted-foreground leading-tight">{rotulo}</div>
+      <div className={`text-lg font-bold lining-nums ${cor ?? ""}`}>{valor}</div>
+      {nota && <div className="text-[12px] text-muted-foreground">{nota}</div>}
     </div>
   );
 }
@@ -563,4 +666,10 @@ function AbaConfigurar({ rifa, projetos, atualizar }: { rifa: Rifa; projetos: { 
       </Card>
     </div>
   );
+}
+
+
+/** Só a coordenação das rifas abre esta tela; vendedores são levados para a tela de venda. */
+export default function RifaGestao() {
+  return <GuardaRifas><RifaGestaoConteudo /></GuardaRifas>;
 }

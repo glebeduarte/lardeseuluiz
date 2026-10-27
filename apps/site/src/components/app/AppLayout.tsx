@@ -13,7 +13,7 @@ import { usePermissions, type ModulePermission } from "@/hooks/usePermissions";
 import VisualizarComo from "@/components/simulacao/VisualizarComo";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-interface NavItem { to?: string; href?: string; icon: any; label: string; perm?: ModulePermission | "always" | "acessos"; }
+interface NavItem { to?: string; href?: string; icon: any; label: string; perm?: ModulePermission | "always" | "acessos" | "rifas_opera" | "rifas_vende"; }
 interface NavGroup { label: string; items: NavItem[]; }
 
 const navGroups: NavGroup[] = [
@@ -27,7 +27,8 @@ const navGroups: NavGroup[] = [
       { to: "/app/secretarias", icon: Building2, label: "Secretarias", perm: "always" },
       { to: "/app/acoes", icon: HeartHandshake, label: "Ações sociais", perm: "modulo_projetos" },
       { to: "/app/familias", icon: Home, label: "Famílias atendidas", perm: "modulo_projetos" },
-      { to: "/app/rifas", icon: Ticket, label: "Rifas", perm: "modulo_projetos" },
+      { to: "/app/rifas", icon: Ticket, label: "Rifas", perm: "rifas_opera" },
+      { to: "/app/rifas/vender", icon: Ticket, label: "Vender rifa", perm: "rifas_vende" },
       { to: "/app/eventos", icon: CalendarDays, label: "Eventos e palestras", perm: "always" },
       { href: "/atendimento/", icon: HeartPulse, label: "Sistema de Macas", perm: "modulo_macas" },
       { href: "/formacao/admin", icon: GraduationCap, label: "Formação", perm: "modulo_formacao" },
@@ -73,7 +74,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
   const areas = useAreasLsl(supabase, user?.id);
   // Painel de acessos: admin geral, admin do Atendimento ou admin da Formação
-  const ar = areas as { admin?: boolean; formacao_admin?: boolean; atendimento_papeis?: string[] } | null;
+  const ar = areas as { admin?: boolean; formacao_admin?: boolean; atendimento_papeis?: string[]; rifas?: { opera?: boolean; vende?: boolean } } | null;
   const podeAcessos = isAdmin || !!ar?.admin || !!ar?.formacao_admin || !!ar?.atendimento_papeis?.includes("admin");
 
   const handleSignOut = async () => { await signOut(); navigate("/login"); };
@@ -81,12 +82,22 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const grupos: GrupoMenuLsl[] = navGroups.map((g) => ({
     rotulo: g.label,
     itens: g.items
-      .filter((i) => i.perm === "always" || !i.perm || (i.perm === "acessos" ? podeAcessos : canAccess(i.perm)))
+      .filter((i) => {
+        if (i.perm === "always" || !i.perm) return true;
+        if (i.perm === "acessos") return podeAcessos;
+        // Rifas: a coordenação vê a gestão; quem é vendedor (ou coordena) vê a tela de venda
+        if (i.perm === "rifas_opera") return !!ar?.rifas?.opera || canAccess("modulo_projetos");
+        if (i.perm === "rifas_vende") return !!ar?.rifas?.vende || !!ar?.rifas?.opera;
+        return canAccess(i.perm);
+      })
       .map((i) => ({ href: (i.to || i.href)!, rotulo: i.label, icone: i.icon, externo: !!i.href })),
   }));
 
   const papel = simulacao ? `Vendo como ${simulacao.rotulo}` : isAdmin ? "Administrador" : isGestor ? "Gestor" : "Trabalhador";
-  const ativo = (href: string) => href === "/app" ? pathname === "/app" : pathname === href || pathname.startsWith(href + "/");
+  const casa = (href: string) => href === "/app" ? pathname === "/app" : pathname === href || pathname.startsWith(href + "/");
+  // Marca só o item mais específico (ex.: "Vender rifa" e não "Rifas" em /app/rifas/vender)
+  const todosHrefs = grupos.flatMap((g) => g.itens.map((i) => i.href));
+  const ativo = (href: string) => casa(href) && !todosHrefs.some((h) => h !== href && h.startsWith(href + "/") && casa(h));
   // Rotas deste app abrem sem recarregar; as outras áreas (Formação, Atendimento) são outros apps
   const navegar = (href: string) => {
     if (href.startsWith("/formacao") || href.startsWith("/atendimento")) return false;

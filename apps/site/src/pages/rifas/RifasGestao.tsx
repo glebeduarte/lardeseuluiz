@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { db } from "@/lib/acoes";
 import { dataBR, erroAmigavel, reais, RIFA_COR, RIFA_STATUS, type Rifa } from "@/lib/rifas";
+import GuardaRifas from "@/components/rifa/GuardaRifas";
 
 const LinkRR = ({ href, className, children }: { href: string; className: string; children: React.ReactNode }) => <Link to={href} className={className}>{children}</Link>;
 
@@ -20,7 +21,7 @@ const slugDe = (t: string) => t.normalize("NFD").replace(/[̀-ͯ]/g, "").toLower
 
 type Resumo = { raffle_id: string; status: string; amount: number; raffle_tickets: { ativo: boolean }[] };
 
-export default function RifasGestao() {
+function RifasGestaoConteudo() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [nova, setNova] = useState(false);
@@ -135,4 +136,10 @@ export default function RifasGestao() {
       </Dialog>
     </AppLayout>
   );
+}
+
+
+/** Só a coordenação das rifas abre esta tela; vendedores são levados para a tela de venda. */
+export default function RifasGestao() {
+  return <GuardaRifas><RifasGestaoConteudo /></GuardaRifas>;
 }

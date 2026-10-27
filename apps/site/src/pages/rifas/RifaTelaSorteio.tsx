@@ -6,6 +6,7 @@ import { db, useNomesPessoas } from "@/lib/acoes";
 import { erroAmigavel, pad, type Pedido, type Rifa } from "@/lib/rifas";
 import logo from "@/compartilhado/logo-lsl.png";
 import "@/components/rifa/rifa-sorteio.css";
+import GuardaRifas from "@/components/rifa/GuardaRifas";
 
 // Tela do sorteio, para projetar na casa: mostra quem vendeu, quantos números concorrem
 // e faz o sorteio pela ferramenta (o número é escolhido ao acaso no banco, entre os pagos).
@@ -18,7 +19,7 @@ const nomeCurto = (nome?: string | null) => {
   return `${partes[0]} ${partes[partes.length - 1]}`;
 };
 
-export default function RifaTelaSorteio() {
+function RifaTelaSorteioConteudo() {
   const { id } = useParams<{ id: string }>();
   const qc = useQueryClient();
   const { data, isLoading } = useQuery({
@@ -179,4 +180,10 @@ export default function RifaTelaSorteio() {
       </main>
     </div>
   );
+}
+
+
+/** Só a coordenação das rifas abre esta tela; vendedores são levados para a tela de venda. */
+export default function RifaTelaSorteio() {
+  return <GuardaRifas><RifaTelaSorteioConteudo /></GuardaRifas>;
 }
