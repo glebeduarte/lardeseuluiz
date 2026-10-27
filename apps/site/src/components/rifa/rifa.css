@@ -1,6 +1,15 @@
 /* Rifa: grade de números, barra de escolha e pagamento PIX. Usa os tokens da página inicial (--ini-*) quando existem. */
 .rifa-grade { min-width: 0; max-width: 100%; --r-ouro: #ffc116; --r-azul: #0059b1; --r-escuro: #003c7f; --r-tinta: #0f1f3d; font-family: var(--font-body, Inter, system-ui, sans-serif); }
-.rifa-grade__faixas { max-width: 100%; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 12px; margin-bottom: 8px; }
+.rifa-grade__navegar { display: flex; align-items: stretch; gap: 6px; margin-bottom: 8px; min-width: 0; }
+.rifa-grade__seta {
+  flex: none; width: 40px; display: grid; place-items: center; border: 0; border-radius: 14px; background: #eef2f7; color: var(--r-escuro); cursor: pointer; margin-bottom: 12px;
+}
+.rifa-grade__seta svg { width: 20px; height: 20px; }
+.rifa-grade__seta:disabled { opacity: .35; cursor: default; }
+.rifa-grade__seta:not(:disabled):hover { background: #dfe8f3; }
+.rifa-grade__faixas.arrastando { cursor: grabbing; user-select: none; }
+.rifa-grade__faixas.arrastando button { pointer-events: none; }
+.rifa-grade__faixas { position: relative; flex: 1; min-width: 0; cursor: grab; scroll-snap-type: x proximity; max-width: 100%; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 12px; }
 .rifa-grade__faixas::-webkit-scrollbar { display: none; }
 .rifa-grade__faixas button {
   flex: none; display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 52px; padding: 6px 16px; border: 0; border-radius: 16px;

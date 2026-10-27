@@ -1,6 +1,7 @@
 import { useEffect, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { MolduraSimples, type AreasLsl } from '@/compartilhado';
+import { useAuth } from '@/contexts/AuthContext';
 import './aluno-noite.css';
 
 // Moldura do aluno na Formação: barra de sistemas no topo, menu da Formação logo abaixo e o conteúdo
@@ -23,6 +24,8 @@ export function AlunoLayout({ children, areas, usuario, navegar, facilitador, ad
   admin?: boolean;
 }) {
   const { pathname } = useLocation();
+  const { signOut } = useAuth();
+  const sair = async () => { await signOut(); window.location.assign('/login'); };
 
   // A barra de sistemas e o fundo da página entram no modo noite enquanto a área do aluno está aberta
   useEffect(() => {
@@ -50,7 +53,7 @@ export function AlunoLayout({ children, areas, usuario, navegar, facilitador, ad
   );
 
   return (
-    <MolduraSimples sistema="formacao" areas={areas} usuario={usuario} navegar={navegar} avisos={menu} semOQueFazer>
+    <MolduraSimples sistema="formacao" areas={areas} usuario={usuario} navegar={navegar} avisos={menu} semOQueFazer aoSair={sair}>
       <div className="lsl-noite min-h-[calc(100vh-108px)]">{children}</div>
     </MolduraSimples>
   );

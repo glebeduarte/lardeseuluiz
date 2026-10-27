@@ -72,7 +72,7 @@ const dataBR = (d?: string | null, longa = false) =>
 const formVazio = { full_name: "", phone: "", birth_date: "", street: "", number: "", complement: "", neighborhood: "", city: "", state: "", zip: "" };
 
 export default function Perfil() {
-  const { user, loading: authLoading, simulacao } = useAuth();
+  const { user, loading: authLoading, simulacao, signOut } = useAuth();
   const { isAdmin, isGestor, permissions, isLoading: permsLoading } = usePermissions();
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -296,7 +296,7 @@ export default function Perfil() {
   };
 
   return (
-    <MolduraSimples sistema="perfil" areas={areas} usuario={{ nome, foto }} navegar={navegar}>
+    <MolduraSimples sistema="perfil" areas={areas} usuario={{ nome, foto }} navegar={navegar} aoSair={async () => { await signOut(); navigate("/login"); }}>
       {carregando ? (
         <div className="flex items-center justify-center py-32 text-muted-foreground gap-2">
           <Loader2 className="w-5 h-5 animate-spin" /> Carregando...

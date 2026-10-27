@@ -18,7 +18,7 @@ type MinhaRifa = { id: string; slug: string; titulo: string; premio: string; pre
 
 // Tela do voluntário vendedor: escolhe a rifa, registra a venda pelo celular e acompanha o que vendeu.
 export default function RifaVender() {
-  const { user, loading } = useAuth();
+  const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const areas = useAreasLsl(supabase, user?.id);
   const qc = useQueryClient();
@@ -73,7 +73,7 @@ export default function RifaVender() {
   };
 
   return (
-    <MolduraSimples sistema="governanca" areas={areas} usuario={{ nome: areas?.nome, foto: areas?.foto }}
+    <MolduraSimples sistema="governanca" areas={areas} aoSair={async () => { await signOut(); navigate("/login"); }} usuario={{ nome: areas?.nome, foto: areas?.foto }}
       navegar={(h) => { if (h.startsWith("/formacao") || h.startsWith("/atendimento")) return false; navigate(h); return true; }}>
       <div className="rifa-vender-pagina max-w-3xl mx-auto min-w-0">
         <CabecalhoPagina titulo="Vender números da rifa" Link={LinkRR} voltar={{ href: "/app/perfil", rotulo: "Meu perfil" }}

@@ -52,6 +52,21 @@
 .lsl-barra__perfil { display: inline-flex; align-items: center; gap: 10px; height: 40px; padding: 0 14px 0 4px; border-radius: 999px; color: var(--lsl-texto); text-decoration: none; font-size: 15px; font-weight: 600; background: #f1f5f9; }
 .lsl-barra__perfil:hover { background: #e3eefa; }
 .lsl-barra__perfil--ativo { background: #fff3cc; }
+button.lsl-barra__perfil { border: 0; cursor: pointer; font-family: inherit; }
+.lsl-barra__perfil-area { position: relative; }
+.lsl-barra__perfil-menu {
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 80; min-width: 220px; padding: 8px; border-radius: 18px; background: #fff;
+  box-shadow: 0 16px 40px rgba(0, 20, 50, 0.18), 0 0 0 1px #e8edf3; display: flex; flex-direction: column; gap: 2px; font-family: var(--lsl-fonte);
+}
+.lsl-barra__perfil-nome { padding: 8px 12px 10px; font-size: 14px; font-weight: 700; color: var(--lsl-texto); border-bottom: 1px solid #eef2f7; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lsl-barra__perfil-menu a, .lsl-barra__perfil-menu button {
+  display: flex; align-items: center; gap: 12px; min-height: 46px; padding: 0 12px; border: 0; border-radius: 12px; background: transparent;
+  color: var(--lsl-texto); font: 500 15px/1.2 var(--lsl-fonte); text-decoration: none; cursor: pointer; text-align: left;
+}
+.lsl-barra__perfil-menu a:hover, .lsl-barra__perfil-menu button:hover { background: #eef4fb; }
+.lsl-barra__perfil-menu svg { width: 18px; height: 18px; color: var(--lsl-azul-escuro); }
+.lsl-barra__perfil-menu button { color: #a3243b; }
+.lsl-barra__perfil-menu button svg { color: #a3243b; }
 .lsl-avatar { width: 32px; height: 32px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; background: var(--lsl-dourado); color: var(--lsl-azul-escuro); font-size: 12px; font-weight: 700; overflow: hidden; }
 .lsl-avatar img { width: 100%; height: 100%; object-fit: cover; }
 

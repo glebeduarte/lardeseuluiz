@@ -66,7 +66,7 @@ export function MolduraSistema(p: MolduraSistemaProps) {
 
   return (
     <>
-      <BarraSistemas atual={p.sistema} areas={p.areas} nome={p.usuario.nome} foto={p.usuario.foto}
+      <BarraSistemas atual={p.sistema} areas={p.areas} nome={p.usuario.nome} foto={p.usuario.foto} aoSair={p.aoSair}
         menuAberto={aberta} aoAlternarMenu={() => setAberta((v) => !v)} navegar={p.navegar} extra={p.extraBarra} />
 
       <div className={`lsl-sombra${aberta ? " lsl-sombra--aberta" : ""}`} onClick={fechar} />
@@ -141,13 +141,15 @@ export function MolduraSistema(p: MolduraSistemaProps) {
 }
 
 /** Página só com a barra de sistemas, sem barra lateral (ex.: perfil para quem não é da gestão). */
-export function MolduraSimples({ sistema, areas, usuario, navegar, children, avisos, semOQueFazer }: {
+export function MolduraSimples({ sistema, areas, usuario, navegar, children, avisos, semOQueFazer, aoSair }: {
   sistema: SistemaLsl; areas: AreasLsl | null; usuario?: { nome?: string | null; foto?: string | null };
   navegar?: (href: string) => boolean; children: ReactNode; avisos?: ReactNode; semOQueFazer?: boolean;
+  /** Mostra "Sair" no menu do perfil (esta moldura não tem barra lateral). */
+  aoSair?: () => void;
 }) {
   return (
     <>
-      <BarraSistemas atual={sistema} areas={areas} nome={usuario?.nome} foto={usuario?.foto} navegar={navegar} />
+      <BarraSistemas atual={sistema} areas={areas} nome={usuario?.nome} foto={usuario?.foto} navegar={navegar} aoSair={aoSair} />
       <div className="lsl-corpo lsl-corpo--sem-lateral">
         {avisos}
         <main className="lsl-conteudo">{children}</main>

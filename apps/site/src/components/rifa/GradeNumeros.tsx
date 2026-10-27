@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { pad } from "@/lib/rifas";
 import "./rifa.css";
 
@@ -28,15 +29,48 @@ export default function GradeNumeros({ total, ocupados, selecionados, aoTocar, d
     return { a, b, livres };
   }), [paginas, porPagina, total, ocupados]);
 
+  // Faixas: setas, arrastar com o mouse e rolar com a roda; a faixa escolhida fica sempre à vista
+  const trilho = useRef<HTMLDivElement>(null);
+  const arrasto = useRef<{ x: number; inicio: number; moveu: boolean } | null>(null);
+  useEffect(() => {
+    const t = trilho.current;
+    const el = t?.querySelector<HTMLElement>(`[data-faixa="${pagina}"]`);
+    // Rola só o trilho das faixas (sem mexer na rolagem da página)
+    if (t && el) t.scrollTo({ left: el.offsetLeft - (t.clientWidth - el.offsetWidth) / 2, behavior: "smooth" });
+  }, [pagina]);
+  useEffect(() => {
+    const el = trilho.current;
+    if (!el) return;
+    const roda = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && el.scrollWidth > el.clientWidth) { el.scrollLeft += e.deltaY; e.preventDefault(); }
+    };
+    el.addEventListener("wheel", roda, { passive: false });
+    return () => el.removeEventListener("wheel", roda);
+  }, [paginas]);
+
   return (
     <div className="rifa-grade">
       {paginas > 1 && (
-        <div className="rifa-grade__faixas" role="tablist" aria-label="Faixa de números">
-          {faixas.map((f, i) => (
-            <button key={i} type="button" role="tab" aria-selected={i === pagina} className={i === pagina ? "ativo" : ""} onClick={() => setPagina(i)}>
-              {pad(f.a, total)} a {pad(f.b, total)}<small>{f.livres} livres</small>
-            </button>
-          ))}
+        <div className="rifa-grade__navegar">
+          <button type="button" className="rifa-grade__seta" onClick={() => setPagina((p) => Math.max(0, p - 1))} disabled={pagina === 0} aria-label="Faixa anterior"><ChevronLeft /></button>
+          <div ref={trilho} className="rifa-grade__faixas" role="tablist" aria-label="Faixa de números"
+            onPointerDown={(e) => { if (e.pointerType !== "mouse") return; arrasto.current = { x: e.clientX, inicio: trilho.current!.scrollLeft, moveu: false }; }}
+            onPointerMove={(e) => {
+              const a = arrasto.current; if (!a || !trilho.current) return;
+              const dx = e.clientX - a.x;
+              if (Math.abs(dx) > 4) { a.moveu = true; trilho.current.classList.add("arrastando"); }
+              trilho.current.scrollLeft = a.inicio - dx;
+            }}
+            onPointerUp={() => { setTimeout(() => { arrasto.current = null; }, 0); trilho.current?.classList.remove("arrastando"); }}
+            onPointerLeave={() => { arrasto.current = null; trilho.current?.classList.remove("arrastando"); }}
+            onClickCapture={(e) => { if (arrasto.current?.moveu) { e.stopPropagation(); e.preventDefault(); } }}>
+            {faixas.map((f, i) => (
+              <button key={i} type="button" role="tab" data-faixa={i} aria-selected={i === pagina} className={i === pagina ? "ativo" : ""} onClick={() => setPagina(i)}>
+                {pad(f.a, total)} a {pad(f.b, total)}<small>{f.livres} livres</small>
+              </button>
+            ))}
+          </div>
+          <button type="button" className="rifa-grade__seta" onClick={() => setPagina((p) => Math.min(paginas - 1, p + 1))} disabled={pagina === paginas - 1} aria-label="Próxima faixa"><ChevronRight /></button>
         </div>
       )}
       <div className="rifa-grade__numeros">

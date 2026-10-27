@@ -1,6 +1,6 @@
 // Cópia gerada por scripts/sincronizar-compartilhado.mjs. Edite em compartilhado/design.
 import { useEffect, useState, type MouseEvent, type ReactNode } from "react";
-import { Globe, Landmark, GraduationCap, HeartPulse, Menu, X } from "lucide-react";
+import { Globe, Landmark, GraduationCap, HeartPulse, LogOut, Menu, UserRound, X } from "lucide-react";
 import logo from "./logo-lsl.png";
 
 // Barra fina no topo de todas as áreas logadas: Site, Governança, Formação, Atendimento e Meu perfil.
@@ -69,9 +69,20 @@ export interface BarraSistemasProps {
   /** Navegação interna do app atual (evita recarregar a página). Retorne true se tratou o link. */
   navegar?: (href: string) => boolean;
   extra?: ReactNode;
+  /** Quando vem, o botão do perfil abre um menu com "Meu perfil" e "Sair". */
+  aoSair?: () => void;
 }
 
-export function BarraSistemas({ atual, areas, nome, foto, menuAberto, aoAlternarMenu, navegar, extra }: BarraSistemasProps) {
+export function BarraSistemas({ atual, areas, nome, foto, menuAberto, aoAlternarMenu, navegar, extra, aoSair }: BarraSistemasProps) {
+  const [menuPerfil, setMenuPerfil] = useState(false);
+  useEffect(() => {
+    if (!menuPerfil) return;
+    const fechar = (e: Event) => { if (!(e.target as HTMLElement)?.closest?.(".lsl-barra__perfil-area")) setMenuPerfil(false); };
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setMenuPerfil(false); };
+    document.addEventListener("pointerdown", fechar);
+    document.addEventListener("keydown", esc);
+    return () => { document.removeEventListener("pointerdown", fechar); document.removeEventListener("keydown", esc); };
+  }, [menuPerfil]);
   const abas: { id: SistemaLsl; rotulo: string; curto: string; href: string; icone: typeof Globe; mostrar: boolean }[] = [
     { id: "site", rotulo: "Site", curto: "Site", href: "/", icone: Globe, mostrar: true },
     { id: "governanca", rotulo: "Governança", curto: "Gestão", href: "/app", icone: Landmark, mostrar: !!areas?.governanca },
@@ -109,11 +120,29 @@ export function BarraSistemas({ atual, areas, nome, foto, menuAberto, aoAlternar
       </nav>
       <div className="lsl-barra__fim">
         {extra}
-        <a href="/app/perfil" onClick={clicar("/app/perfil")} className={`lsl-barra__perfil${atual === "perfil" ? " lsl-barra__perfil--ativo" : ""}`} title="Meu perfil">
-          <span className="lsl-avatar">{fotoExibida ? <img src={fotoExibida} alt="" /> : iniciaisLsl(nomeExibido)}</span>
-          <span>Meu perfil</span>
-          <em>Perfil</em>
-        </a>
+        {aoSair ? (
+          <div className="lsl-barra__perfil-area">
+            <button type="button" onClick={() => setMenuPerfil((v) => !v)} aria-expanded={menuPerfil} aria-haspopup="menu"
+              className={`lsl-barra__perfil${atual === "perfil" ? " lsl-barra__perfil--ativo" : ""}`} title="Meu perfil e sair">
+              <span className="lsl-avatar">{fotoExibida ? <img src={fotoExibida} alt="" /> : iniciaisLsl(nomeExibido)}</span>
+              <span>Meu perfil</span>
+              <em>Perfil</em>
+            </button>
+            {menuPerfil && (
+              <div className="lsl-barra__perfil-menu" role="menu">
+                <div className="lsl-barra__perfil-nome">{nomeExibido}</div>
+                <a href="/app/perfil" role="menuitem" onClick={(e) => { setMenuPerfil(false); clicar("/app/perfil")(e); }}><UserRound />Meu perfil</a>
+                <button type="button" role="menuitem" onClick={() => { setMenuPerfil(false); aoSair(); }}><LogOut />Sair</button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <a href="/app/perfil" onClick={clicar("/app/perfil")} className={`lsl-barra__perfil${atual === "perfil" ? " lsl-barra__perfil--ativo" : ""}`} title="Meu perfil">
+            <span className="lsl-avatar">{fotoExibida ? <img src={fotoExibida} alt="" /> : iniciaisLsl(nomeExibido)}</span>
+            <span>Meu perfil</span>
+            <em>Perfil</em>
+          </a>
+        )}
       </div>
     </header>
   );
