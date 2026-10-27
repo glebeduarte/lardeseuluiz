@@ -1,6 +1,7 @@
 import SiteNav from "@/components/site/SiteNav";
 import SiteFooter from "@/components/site/SiteFooter";
 import CookieBanner from "@/components/site/CookieBanner";
+import PopupRifa from "@/components/site/PopupRifa";
 import Inicio from "@/components/inicio/Inicio";
 import "@/components/inicio/inicio.css";
 
@@ -10,6 +11,7 @@ const Index = () => (
     <Inicio />
     <SiteFooter />
     <CookieBanner />
+    <PopupRifa />
   </div>
 );
 
