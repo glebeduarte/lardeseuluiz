@@ -6,6 +6,7 @@ import { AlertTriangle, Users, Layers, HeartHandshake, Wifi, ShieldAlert, FileWa
 import { CabecalhoPagina } from "@/compartilhado";
 import { RequireAuth } from "@/components/RequireAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { buscarTudo } from "@/lib/paginar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -97,19 +98,12 @@ function RelatoriosPage() {
   const { data: regData } = useQuery({
     queryKey: ["relatorios-registros-macas"],
     queryFn: async () => {
-      const [sRes, pRes, dRes] = await Promise.all([
-        supabase.from("sessoes").select("id, data, tipo"),
-        supabase.from("presencas").select("designacao_id, sessao_id, status"),
-        supabase.from("designacoes").select("id, maca_id"),
+      const [sessoes, presencas, desigs] = await Promise.all([
+        buscarTudo<{ id: string; data: string; tipo: string }>((de, ate) => supabase.from("sessoes").select("id, data, tipo").order("id").range(de, ate)),
+        buscarTudo<{ designacao_id: string; sessao_id: string; status: string }>((de, ate) => supabase.from("presencas").select("designacao_id, sessao_id, status").order("id").range(de, ate)),
+        buscarTudo<{ id: string; maca_id: string }>((de, ate) => supabase.from("designacoes").select("id, maca_id").order("id").range(de, ate)),
       ]);
-      if (sRes.error) throw sRes.error;
-      if (pRes.error) throw pRes.error;
-      if (dRes.error) throw dRes.error;
-      return {
-        sessoes: (sRes.data ?? []) as { id: string; data: string; tipo: string }[],
-        presencas: (pRes.data ?? []) as { designacao_id: string; sessao_id: string; status: string }[],
-        desigs: (dRes.data ?? []) as { id: string; maca_id: string }[],
-      };
+      return { sessoes, presencas, desigs };
     },
   });
 

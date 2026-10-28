@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { buscarTudo } from "@/lib/paginar";
 import { RequireAuth } from "@/components/RequireAuth";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -76,10 +77,12 @@ function LancarSessao() {
         .in("data", ATENDIMENTO_DATES_ISO);
       const dataBySessao = new Map((sessoes ?? []).map((s) => [s.id, s.data]));
 
-      const { data: presencas } = await supabase
+      const presencas = await buscarTudo((de, ate) => supabase
         .from("presencas")
-        .select("sessao_id, designacoes(maca_id)")
-        .in("sessao_id", (sessoes ?? []).map((s) => s.id));
+        .select("id, sessao_id, designacoes(maca_id)")
+        .in("sessao_id", (sessoes ?? []).map((s) => s.id))
+        .order("id")
+        .range(de, ate));
 
       const lancadasPorData = new Map<string, Set<string>>();
       const presencasPorData = new Map<string, number>();
