@@ -83,6 +83,7 @@ function MediumMacaPresenca() {
     return undefined;
   });
   const [calendarioAberto, setCalendarioAberto] = useState(false);
+  const [filtro, setFiltro] = useState<"faltam" | "lancados" | "todos">("todos");
 
   const { data: maca } = useQuery({
     queryKey: ["maca", id],
@@ -383,6 +384,76 @@ function MediumMacaPresenca() {
       </div>
     );
 
+  // ---- Organização da lista do dia ----
+  type Item = {
+    d: NonNullable<typeof lista>[number];
+    c: {
+      id: string; nome: string; telefone: string; ideias_suicidas: boolean; dialogo_pendente: boolean;
+      dialogador: { nome: string } | null;
+    } | null;
+    realizados: number; total: number; projetado: number; proximoFim: boolean;
+    quinzenal: boolean; foraDaSemana: boolean; inativo: boolean;
+  };
+  const itens: Item[] = (lista ?? []).map((d) => {
+    const c = d.consulentes as unknown as Item["c"];
+    const realizados = d.total_presencas;
+    const total = d.sessoes_totais;
+    const projetado = realizados + (d.presenca === "presente" ? 0 : 1);
+    const quinzenal = d.frequencia === "quinzenal";
+    return {
+      d, c, realizados, total, projetado, proximoFim: total - realizados <= 1, quinzenal,
+      foraDaSemana: quinzenal && !d.presenca && !isDataEsperadaQuinzenal(isoDate, d.base_quinzenal, maca?.dia),
+      inativo: d.status === "cancelada",
+    };
+  });
+  const esperados = itens.filter((x) => !x.inativo && (!x.foraDaSemana || !!x.d.presenca));
+  const semAtendimento = itens.filter((x) => !esperados.includes(x));
+  const lancados = esperados.filter((x) => !!x.d.presenca);
+  const pendentes = esperados.filter((x) => !x.d.presenca);
+  const conta = (s: PresencaStatus) => lancados.filter((x) => x.d.presenca === s).length;
+  const resumo: { s: PresencaStatus | "pendente"; n: number; rotulo: string; cor: string }[] = [
+    { s: "presente", n: conta("presente"), rotulo: conta("presente") === 1 ? "presente" : "presentes", cor: "#157a4a" },
+    { s: "ausente", n: conta("ausente"), rotulo: conta("ausente") === 1 ? "falta" : "faltas", cor: "#c0392b" },
+    { s: "falta_justificada", n: conta("falta_justificada"), rotulo: conta("falta_justificada") === 1 ? "justificada" : "justificadas", cor: "#e2a92b" },
+    { s: "atendimento_distancia", n: conta("atendimento_distancia"), rotulo: "à distância", cor: "#1d8fb3" },
+    { s: "pendente", n: pendentes.length, rotulo: "faltam lançar", cor: "#dfe4ea" },
+  ];
+  const visiveis = filtro === "faltam" ? pendentes : filtro === "lancados" ? lancados : esperados;
+
+  // Faixa de datas: as últimas datas da maca até a escolhida, mais a próxima
+  const datasMaca = getAtendimentoDatesByDia(maca.dia);
+  const isosMaca = datasMaca.map((x) => format(x, "yyyy-MM-dd"));
+  const hojeIso = format(new Date(), "yyyy-MM-dd");
+  let posData = isosMaca.indexOf(isoDate);
+  if (posData < 0) posData = Math.max(0, isosMaca.filter((x) => x <= hojeIso).length - 1);
+  const faixaDatas = datasMaca.slice(Math.max(0, posData - 4), Math.min(datasMaca.length, posData + 2));
+
+  const irParaProximoPendente = () => {
+    const alvo = pendentes[0];
+    if (!alvo) return;
+    if (filtro === "lancados") setFiltro("todos");
+    setTimeout(() => document.getElementById(`cartao-${alvo.d.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+  };
+
+  const cartao = (x: Item) => (
+    <ConsulenteCard
+      key={x.d.id}
+      d={x.d}
+      c={x.c}
+      realizados={x.realizados}
+      total={x.total}
+      projetado={x.projetado}
+      proximoFim={x.proximoFim}
+      quinzenal={x.quinzenal}
+      foraDaSemana={x.foraDaSemana}
+      dataSelecionada={isoDate}
+      onMarcar={marcar}
+      onSalvarObs={salvarObs}
+      onProrrogar={(qtd) => prorrogar(x.d.id, x.total, qtd)}
+      onEncaminharDialogo={(modo) => x.c && encaminharDialogo(x.d.id, x.c.id, modo)}
+    />
+  );
+
   return (
     <>
       <CabecalhoPagina
@@ -392,7 +463,7 @@ function MediumMacaPresenca() {
           <span className="inline-flex items-center gap-3 flex-wrap">
             {/* A cor da maca é dado do usuário */}
             <span
-              className="rounded-lg h-11 w-11 inline-flex items-center justify-center font-sans font-bold text-xl shrink-0"
+              className="rounded-xl h-11 w-11 inline-flex items-center justify-center font-sans font-bold text-xl shrink-0"
               style={{ backgroundColor: maca.cor_hex, color: "#fff" }}
             >
               {maca.numero}
@@ -401,27 +472,44 @@ function MediumMacaPresenca() {
             <MacaCategoriaTag numero={maca.numero} categoria={maca.categoria} className="font-sans" />
           </span>
         }
-        descricao={<>
-              Lançar sessão
-              {dataAtendimento
-                ? ` — ${format(dataAtendimento, "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR })}`
-                : " — selecione a data"}
-        </>}
-        acoes={
+        descricao={dataAtendimento
+          ? format(dataAtendimento, "EEEE, d 'de' MMMM", { locale: ptBR }).replace(/^./, (l) => l.toUpperCase())
+          : "Selecione a data do atendimento"}
+      />
+
+      <div className="space-y-4 pb-24 sm:pb-6">
+        {/* Datas da maca: só o número, compactas */}
+        <div className="flex items-center gap-1.5 overflow-x-auto -mx-1 px-1 pb-1" style={{ scrollbarWidth: "none" }} aria-label="Data do atendimento">
+          {faixaDatas.map((dt) => {
+            const iso = format(dt, "yyyy-MM-dd");
+            const ativa = iso === isoDate;
+            return (
+              <button
+                key={iso}
+                type="button"
+                onClick={() => setDataAtendimento(dt)}
+                aria-pressed={ativa}
+                className={cn(
+                  "shrink-0 h-9 min-w-[58px] px-2.5 rounded-lg text-[13px] font-semibold tabular-nums transition-colors",
+                  ativa ? "bg-[#003c7f] text-white" : "bg-card text-foreground shadow-[inset_0_0_0_1px_#e3e8ef] hover:bg-[#eef4fb]",
+                  iso > hojeIso && !ativa && "text-muted-foreground"
+                )}
+              >
+                {format(dt, "dd/MM")}
+              </button>
+            );
+          })}
           <Popover open={calendarioAberto} onOpenChange={setCalendarioAberto}>
             <PopoverTrigger asChild>
-              <Button variant="outline" className="gap-2">
+              <button type="button" className="shrink-0 h-9 w-10 rounded-lg bg-card shadow-[inset_0_0_0_1px_#e3e8ef] inline-flex items-center justify-center hover:bg-[#eef4fb]" aria-label="Escolher outra data">
                 <CalendarIcon className="h-4 w-4" />
-                {dataAtendimento
-                  ? format(dataAtendimento, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
-                  : "Selecionar data"}
-              </Button>
+              </button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="end">
               <Calendar
                 mode="single"
                 selected={dataAtendimento}
-                onSelect={(d) => d && setDataAtendimento(d)}
+                onSelect={(dt) => { if (dt) { setDataAtendimento(dt); setCalendarioAberto(false); } }}
                 initialFocus
                 defaultMonth={dataAtendimento ?? getUltimaAtendimentoDateByDia(maca?.dia)}
                 disabled={(date) => !isAtendimentoDateForDia(date, maca?.dia)}
@@ -429,88 +517,81 @@ function MediumMacaPresenca() {
                 modifiersClassNames={{ atendimento: "bg-primary/10 text-primary font-semibold" }}
                 className={cn("p-3 pointer-events-auto")}
               />
-              <div className="flex items-center justify-between gap-2 border-t p-3">
-                <span className="text-xs text-muted-foreground">
-                  {dataAtendimento
-                    ? format(dataAtendimento, "dd/MM/yyyy", { locale: ptBR })
-                    : "Nenhuma data selecionada"}
-                </span>
-                <Button
-                  size="sm"
-                  disabled={!dataAtendimento}
-                  onClick={() => setCalendarioAberto(false)}
-                >
-                  OK
-                </Button>
-              </div>
             </PopoverContent>
           </Popover>
-        }
-      />
-      <div className="space-y-6">
-
-      {dataAtendimento && !!lista?.length && (
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-card px-3 py-2">
-          <span className="text-xs text-muted-foreground">
-            {ultimoSalvamento
-              ? `Último salvamento por ${ultimoSalvamento.nome} às ${format(new Date(ultimoSalvamento.quando), "HH:mm 'de' dd/MM", { locale: ptBR })}`
-              : "Nenhum registro salvo nesta data ainda"}
-          </span>
-          <Button size="sm" variant="outline" onClick={marcarTodosPresentes} className="gap-2">
-            <Check className="h-4 w-4" /> Marcar todos como presente
-          </Button>
         </div>
-      )}
 
-      <div className="space-y-3">
         {!dataAtendimento && (
-          <div className="text-center text-muted-foreground py-8">
-            Selecione a data do atendimento para visualizar os consulentes.
-          </div>
+          <div className="text-center text-muted-foreground py-8">Selecione a data do atendimento para ver os consulentes.</div>
         )}
         {dataAtendimento && lista?.length === 0 && (
-          <div className="text-center text-muted-foreground py-8">
-            Nenhum consulente ativo nesta maca.
+          <div className="text-center text-muted-foreground py-8">Nenhum consulente ativo nesta maca.</div>
+        )}
+
+        {/* Resumo do dia */}
+        {dataAtendimento && esperados.length > 0 && (
+          <section className="rounded-2xl bg-card p-4 shadow-[inset_0_0_0_1px_#e3e8ef]" aria-label="Resumo do dia">
+            <div className="flex items-baseline justify-between gap-2 flex-wrap">
+              <strong className="text-[17px] tabular-nums">{lancados.length} de {esperados.length} lançados</strong>
+              <span className="text-xs text-muted-foreground">
+                {ultimoSalvamento
+                  ? `Salvo às ${format(new Date(ultimoSalvamento.quando), "HH:mm", { locale: ptBR })} por ${ultimoSalvamento.nome}`
+                  : "Nada lançado nesta data ainda"}
+              </span>
+            </div>
+            <div className="flex h-2.5 rounded-full overflow-hidden bg-[#eef1f5] gap-0.5 my-3" aria-hidden="true">
+              {resumo.filter((r) => r.n > 0).map((r) => <i key={r.s} style={{ flex: r.n, background: r.cor }} />)}
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-muted-foreground tabular-nums">
+              {resumo.filter((r) => r.n > 0).map((r) => (
+                <span key={r.s} className="inline-flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-[3px] inline-block" style={{ background: r.cor }} />{r.n} {r.rotulo}</span>
+              ))}
+            </div>
+            {pendentes.length > 0 && (
+              <Button variant="outline" onClick={marcarTodosPresentes} className="mt-3 w-full h-11 gap-2 border-0 bg-[#e4f5ec] text-[#157a4a] hover:bg-[#d3eedf] hover:text-[#157a4a]">
+                <Check className="h-4 w-4" /> Marcar {pendentes.length === 1 ? "o que falta" : `os ${pendentes.length} restantes`} como presente
+              </Button>
+            )}
+          </section>
+        )}
+
+        {/* Filtro */}
+        {dataAtendimento && esperados.length > 0 && (
+          <div className="grid grid-cols-3 gap-1 rounded-xl bg-[#e9edf3] p-1" role="tablist" aria-label="Filtrar consulentes">
+            {([["faltam", "Faltam", pendentes.length], ["lancados", "Lançados", lancados.length], ["todos", "Todos", itens.length]] as const).map(([v, r, n]) => (
+              <button key={v} type="button" role="tab" aria-selected={filtro === v} onClick={() => setFiltro(v)}
+                className={cn("h-10 rounded-lg text-sm font-semibold tabular-nums", filtro === v ? "bg-card text-foreground shadow-sm" : "text-muted-foreground")}>
+                {r} {n}
+              </button>
+            ))}
           </div>
         )}
-        {lista?.map((d) => {
-          const c = d.consulentes as unknown as {
-            id: string;
-            nome: string;
-            telefone: string;
-            ideias_suicidas: boolean;
-            dialogo_pendente: boolean;
-            dialogador: { nome: string } | null;
-          } | null;
-          const realizados = d.total_presencas;
-          const total = d.sessoes_totais;
-          const projetado = realizados + (d.presenca === "presente" ? 0 : 1);
-          const restantes = total - realizados;
-          const proximoFim = restantes <= 1;
-          const quinzenal = d.frequencia === "quinzenal";
-          const foraDaSemana =
-            quinzenal && !d.presenca && !isDataEsperadaQuinzenal(isoDate, d.base_quinzenal, maca?.dia);
-          return (
-            <ConsulenteCard
-              key={d.id}
-              d={d}
-              c={c}
-              realizados={realizados}
-              total={total}
-              projetado={projetado}
-              proximoFim={proximoFim}
-              quinzenal={quinzenal}
-              foraDaSemana={foraDaSemana}
-              dataSelecionada={isoDate}
-              onMarcar={marcar}
-              onSalvarObs={salvarObs}
-              onProrrogar={(qtd) => prorrogar(d.id, total, qtd)}
-              onEncaminharDialogo={(modo) => c && encaminharDialogo(d.id, c.id, modo)}
-            />
-          );
-        })}
+
+        <div className="space-y-3">
+          {visiveis.map(cartao)}
+          {filtro === "faltam" && pendentes.length === 0 && esperados.length > 0 && (
+            <p className="text-center text-sm text-muted-foreground py-6">Tudo lançado nesta data.</p>
+          )}
+        </div>
+
+        {filtro === "todos" && semAtendimento.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-[13px] font-semibold text-muted-foreground px-1 pt-2">Sem atendimento nesta data</p>
+            {semAtendimento.map(cartao)}
+          </div>
+        )}
       </div>
-      </div>
+
+      {/* Celular: quantos faltam e atalho para o próximo */}
+      {dataAtendimento && esperados.length > 0 && (
+        <div className="maca-barra-fixa sm:hidden fixed inset-x-0 bottom-0 z-40 bg-white shadow-[0_-6px_24px_rgba(15,31,61,.10)] px-4 pt-3 pb-[calc(12px+env(safe-area-inset-bottom))] flex items-center gap-3">
+          <div className="flex-1 min-w-0">
+            <strong className="block text-[15px] tabular-nums">{pendentes.length === 0 ? "Tudo lançado" : `${pendentes.length} ${pendentes.length === 1 ? "falta" : "faltam"} lançar`}</strong>
+            <span className="text-xs text-muted-foreground">{format(dataAtendimento, "EEEE, d 'de' MMMM", { locale: ptBR })}</span>
+          </div>
+          {pendentes.length > 0 && <Button className="h-11 px-4" onClick={irParaProximoPendente}>Próximo pendente</Button>}
+        </div>
+      )}
     </>
   );
 }
@@ -613,38 +694,12 @@ function ConsulenteCard({
   // (legado: variável removida em favor de inativoReal)
   const inativoReal = d.status === "cancelada";
   const encerrado = !inativoReal && (d.status !== "ativa" || realizados >= total);
-  const cardBorder = inativoReal
-    ? "border-muted-foreground/30"
-    : encerrado
-    ? "border-sky-300"
-    : proximoFim
-    ? "border-amber-300"
-    : "";
-  const cardBg = inativoReal
-    ? "bg-muted/40"
-    : encerrado
-    ? "bg-sky-50"
-    : proximoFim
-    ? "bg-amber-50"
-    : "";
-
-  const registradoHoje = !!d.presenca;
   const statusLabel: Record<string, string> = {
     presente: "Presente",
     ausente: "Falta",
     falta_justificada: "Falta justificada",
     atendimento_distancia: "À distância",
   };
-  const chipClass = (status: string, ativo: boolean) =>
-    cn(
-      "shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium whitespace-nowrap",
-      status === "presente" && "border-emerald-300 bg-emerald-100 text-emerald-800",
-      status === "atendimento_distancia" && "border-sky-300 bg-sky-100 text-sky-800",
-      status === "ausente" && "border-destructive/40 bg-destructive/10 text-destructive",
-      status === "falta_justificada" && "border-amber-300 bg-amber-100 text-amber-800",
-      ativo && "ring-2 ring-offset-1 ring-primary"
-    );
-
   const willCloseOnPresente =
     d.status === "ativa" && d.presenca !== "presente" && realizados + 1 >= total;
 
@@ -703,217 +758,221 @@ function ConsulenteCard({
     await finalizarPresenca();
   }
 
+  // Cores por situação do dia: o cartão inteiro toma a cor do que foi lançado
+  const TOM: Record<string, { cartao: string; selo: string; botao: string; texto: string }> = {
+    presente: { cartao: "bg-[#e9f7ef] shadow-[inset_0_0_0_2px_#9fd8b9]", selo: "bg-[#157a4a] text-white", botao: "bg-[#157a4a] text-white", texto: "text-[#157a4a]" },
+    ausente: { cartao: "bg-[#fdeeec] shadow-[inset_0_0_0_2px_#f3b1aa]", selo: "bg-[#b42318] text-white", botao: "bg-[#b42318] text-white", texto: "text-[#b42318]" },
+    falta_justificada: { cartao: "bg-[#fff5d9] shadow-[inset_0_0_0_2px_#f0cf7e]", selo: "bg-[#8a5a00] text-white", botao: "bg-[#c98a00] text-white", texto: "text-[#8a5a00]" },
+    atendimento_distancia: { cartao: "bg-[#e6f4f9] shadow-[inset_0_0_0_2px_#9cd3e3]", selo: "bg-[#0b6c8c] text-white", botao: "bg-[#0b6c8c] text-white", texto: "text-[#0b6c8c]" },
+  };
+  const DIA_COR: Record<string, string> = {
+    presente: "bg-[#dff3e7] text-[#157a4a]",
+    ausente: "bg-[#fbe1de] text-[#b42318]",
+    falta_justificada: "bg-[#fdeec4] text-[#8a5a00]",
+    atendimento_distancia: "bg-[#d9eef6] text-[#0b6c8c]",
+  };
+  const tom = d.presenca ? TOM[d.presenca] : null;
+  const datas = d.datas ?? [];
+  const presencasHist = datas.filter((r) => r.status === "presente" || r.status === "atendimento_distancia").length;
+  const faltasHist = datas.filter((r) => r.status === "ausente").length;
+  const restantes = Math.max(0, total - realizados);
+  const sessaoMostrada = d.presenca ? realizados : Math.min(projetado, total);
+  const feitas = `${realizados} ${realizados === 1 ? "feita" : "feitas"}`;
+  const fraseSessao = encerrado
+    ? `Tratamento concluído · ${realizados} de ${total} sessões`
+    : d.presenca === "presente" || d.presenca === "atendimento_distancia"
+    ? `${realizados}ª sessão feita hoje · ${restantes} ${restantes === 1 ? "restante" : "restantes"}`
+    : d.presenca
+    ? `${feitas} · ${restantes} ${restantes === 1 ? "restante" : "restantes"}`
+    : projetado >= total
+    ? "Hoje é a última sessão do tratamento"
+    : `Hoje seria a ${projetado}ª sessão · ${feitas}, ${restantes} ${restantes === 1 ? "restante" : "restantes"}`;
+  const pontos = Math.min(total, 16);
+
+  // Cartão compacto: inativo ou quinzenal que não vem nesta data
+  if (inativoReal || foraDaSemana) {
+    return (
+      <Card id={`cartao-${d.id}`} className="scroll-mt-20 rounded-2xl border-0 bg-card px-4 py-3.5 shadow-[inset_0_0_0_1px_#e3e8ef]">
+        <div className="flex items-start gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="font-sans font-semibold text-[15px] text-muted-foreground">{c?.nome}</div>
+            <div className="text-[13px] text-muted-foreground tabular-nums">
+              {inativoReal
+                ? `Aguardando novo diálogo · último atendimento ${d.ultimo_atendimento ? format(new Date(d.ultimo_atendimento + "T00:00:00"), "dd/MM") : "sem registro"}`
+                : `Quinzenal · não é esperado nesta data · sessão ${realizados} de ${total}`}
+            </div>
+          </div>
+          <span className="shrink-0 rounded-full bg-[#eef1f5] px-2.5 py-1 text-xs font-semibold text-muted-foreground">{inativoReal ? "Inativo" : "Não esperado"}</span>
+        </div>
+        {!inativoReal && (
+          <Button size="sm" variant="outline" className="mt-2 h-9" onClick={() => onMarcar(d.id, "presente")} disabled={busy}>
+            <Check className="h-4 w-4 mr-1" /> Veio mesmo assim: registrar presença
+          </Button>
+        )}
+      </Card>
+    );
+  }
+
+  const opcoes: { s: PresencaStatus; rotulo: string; Icone: typeof Check; base: string; largo?: boolean }[] = [
+    { s: "presente", rotulo: "Presente", Icone: Check, base: "bg-white text-[#157a4a] shadow-[inset_0_0_0_1.5px_#9fd8b9]", largo: true },
+    { s: "ausente", rotulo: "Falta", Icone: X, base: "bg-white text-[#b42318] shadow-[inset_0_0_0_1.5px_#f3b1aa]" },
+    { s: "falta_justificada", rotulo: "Justificada", Icone: ShieldCheck, base: "bg-white text-[#8a5a00] shadow-[inset_0_0_0_1.5px_#f0cf7e]" },
+    { s: "atendimento_distancia", rotulo: "À distância", Icone: Radio, base: "bg-white text-[#0b6c8c] shadow-[inset_0_0_0_1.5px_#9cd3e3]", largo: true },
+  ];
+
   return (
     <Card
+      id={`cartao-${d.id}`}
       className={cn(
-        "p-4 space-y-3 transition-colors",
-        cardBorder,
-        cardBg,
-        registradoHoje && !inativoReal && "border-emerald-300 bg-emerald-50 ring-2 ring-emerald-300/60"
+        "scroll-mt-20 rounded-2xl border-0 p-4 space-y-3.5 transition-colors",
+        tom ? tom.cartao : proximoFim && !encerrado ? "bg-card shadow-[inset_0_0_0_2px_#f0cf7e]" : "bg-card shadow-[inset_0_0_0_1px_#e3e8ef]"
       )}
     >
-      <div className="flex items-start justify-between flex-wrap gap-2">
-        <div className="flex-1 min-w-[200px]">
-          <div className="font-medium flex items-center gap-2 flex-wrap">
-            {inativoReal && <span className="text-muted-foreground">[inativo]</span>}
-            {c?.nome}
-            {inativoReal && (
-              <Badge variant="outline" className="text-xs bg-muted text-muted-foreground border-border">
-                Inativo
-              </Badge>
-            )}
-            {inativoReal && (
-              <span className="text-xs text-muted-foreground">
-                Último atendimento:{" "}
-                {d.ultimo_atendimento
-                  ? format(new Date(d.ultimo_atendimento + "T00:00:00"), "dd/MM/yyyy")
-                  : "sem registro"}
-              </span>
-            )}
-            {!inativoReal && encerrado && (
-              <Badge
-                variant="outline"
-                className="text-xs bg-sky-100 text-sky-800 border-sky-300"
-              >
-                Encerrado
-              </Badge>
-            )}
-            {!inativoReal && !encerrado && proximoFim && (
-              <Badge
-                variant="outline"
-                className="text-xs bg-amber-100 text-amber-800 border-amber-300"
-              >
-                Próximo do término
-              </Badge>
-            )}
-            {quinzenal && (
-              <Badge variant="outline" className="text-xs bg-sky-100 text-sky-800 border-sky-300">
-                Quinzenal
-              </Badge>
-            )}
-            {!inativoReal && foraDaSemana && (
-              <Badge variant="outline" className="text-xs bg-muted text-muted-foreground border-border">
-                Sem atendimento nesta data
-              </Badge>
-            )}
-            {!inativoReal && registradoHoje && (
-              <Badge variant="outline" className="text-xs bg-emerald-100 text-emerald-800 border-emerald-300">
-                {statusLabel[d.presenca!] ?? "Registrado"} nesta data
-              </Badge>
-            )}
+      {/* Nome e situação de hoje */}
+      <div className="flex items-start gap-3">
+        <div className="flex-1 min-w-0">
+          <h3 className="font-sans text-[17px] font-bold leading-snug">{c?.nome}</h3>
+          <p className="text-[13px] text-muted-foreground mt-0.5">
+            {quinzenal ? "Quinzenal" : "Semanal"}
+            {c?.dialogador?.nome && <> · Dialogador: {c.dialogador.nome}</>}
+          </p>
+        </div>
+        {tom ? (
+          <span className={cn("shrink-0 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold", tom.selo)}>
+            <Check className="h-3.5 w-3.5" />{statusLabel[d.presenca!]}
+          </span>
+        ) : (
+          <span className="shrink-0 inline-flex items-center gap-1.5 rounded-full bg-[#fff3d6] px-2.5 py-1 text-xs font-semibold text-[#8a5a00]">
+            <i className="h-2 w-2 rounded-full border-2 border-current" />Falta lançar
+          </span>
+        )}
+      </div>
+
+      {/* Sessão do tratamento */}
+      <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-1.5">
+        <div className="row-span-2 text-[28px] font-bold leading-none tracking-tight tabular-nums">
+          {sessaoMostrada}<span className="text-sm font-semibold text-muted-foreground tracking-normal"> /{total}</span>
+        </div>
+        <div className="text-[13px] text-muted-foreground tabular-nums leading-snug">{fraseSessao}</div>
+        {total <= 16 ? (
+          <div className="flex gap-1" aria-hidden="true">
+            {Array.from({ length: pontos }, (_, i) => {
+              const n = i + 1;
+              const feito = n <= realizados;
+              const hoje = !encerrado && !d.presenca && n === projetado;
+              const hojeFeito = (d.presenca === "presente" || d.presenca === "atendimento_distancia") && n === realizados;
+              return (
+                <i key={n} className={cn("h-2 flex-1 rounded-full",
+                  hojeFeito ? (d.presenca === "presente" ? "bg-[#157a4a]" : "bg-[#0b6c8c]") : feito ? "bg-[#0059b1]" : hoje ? "bg-white shadow-[inset_0_0_0_2px_#0059b1]" : "bg-black/10")} />
+              );
+            })}
           </div>
-          <div className="text-xs text-muted-foreground mt-1 flex items-center gap-2 flex-wrap">
-            <span>
-              {projetado}ª de {total} sessões do ciclo
-            </span>
-            <span>·</span>
-            <span>
-              {realizados} presença{realizados === 1 ? "" : "s"} registrada
-              {realizados === 1 ? "" : "s"}
-            </span>
-            {c?.dialogador?.nome && (
-              <>
-                <span>·</span>
-                <span>Dialogador: <span className="font-medium text-foreground">{c.dialogador.nome}</span></span>
-              </>
-            )}
-            {c && (
-              <>
-                <span>·</span>
-                <Link
-                  to="/consulentes/$id"
-                  params={{ id: c.id }}
-                  className="inline-flex items-center gap-1 text-primary hover:underline"
-                >
-                  Ver motivos e observações registradas
-                </Link>
-              </>
-            )}
+        ) : (
+          <div className="h-2 rounded-full bg-black/10 overflow-hidden" aria-hidden="true">
+            <i className="block h-full bg-[#0059b1]" style={{ width: `${Math.min(100, (realizados / total) * 100)}%` }} />
           </div>
-          <div className="mt-2 flex items-center gap-2 overflow-x-auto pb-1">
-            <span className="shrink-0 text-xs text-muted-foreground">Datas:</span>
-            {(d.datas ?? []).length === 0 && (
-              <span className="text-xs text-muted-foreground italic">nenhum registro ainda</span>
-            )}
-            {(d.datas ?? []).map((r) => (
-              <span
-                key={r.data + r.status}
-                className={chipClass(r.status, r.data === dataSelecionada)}
-                title={statusLabel[r.status] ?? r.status}
-              >
+        )}
+      </div>
+
+      {/* Datas dos atendimentos: pequenas, só o número */}
+      <div>
+        <div className="flex justify-between text-xs text-muted-foreground mb-1.5 tabular-nums">
+          <span>Datas</span>
+          <span>{presencasHist} {presencasHist === 1 ? "presença" : "presenças"}{faltasHist ? ` · ${faltasHist} ${faltasHist === 1 ? "falta" : "faltas"}` : ""}</span>
+        </div>
+        {datas.length === 0 ? (
+          <p className="text-xs text-muted-foreground">Primeiro atendimento.</p>
+        ) : (
+          <div className="flex flex-wrap gap-1">
+            {datas.map((r) => (
+              <span key={r.data + r.status} title={statusLabel[r.status] ?? r.status}
+                className={cn("rounded-md px-1.5 py-0.5 text-[11px] font-semibold tabular-nums", DIA_COR[r.status] ?? "bg-muted text-muted-foreground",
+                  r.data === dataSelecionada && "ring-2 ring-[#0059b1] ring-offset-1")}>
                 {format(new Date(r.data + "T00:00:00"), "dd/MM")}
               </span>
             ))}
           </div>
-        </div>
-        {inativoReal && (
-          <p className="max-w-xs text-xs text-muted-foreground">
-            Consulente inativo: o registro de presença fica bloqueado até que um novo diálogo fraterno
-            seja realizado e ele volte a ser designado para esta maca.
-          </p>
-        )}
-        {!inativoReal && foraDaSemana && (
-          <p className="max-w-xs text-xs text-muted-foreground">
-            Atendimento quinzenal: nesta data ele não é esperado, por isso não há registro de falta.
-            Se ele comparecer, use "Registrar mesmo assim".
-          </p>
-        )}
-        {!inativoReal && foraDaSemana && (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => onMarcar(d.id, "presente")}
-            disabled={busy}
-          >
-            <Check className="h-4 w-4 mr-1" /> Registrar mesmo assim
-          </Button>
-        )}
-        {!inativoReal && !foraDaSemana && (
-        <div className="flex gap-2 flex-wrap">
-          <Button
-            size="sm"
-            className={
-              d.presenca === "presente"
-                ? ""
-                : "text-primary hover:text-primary"
-            }
-            variant={d.presenca === "presente" ? undefined : "outline"}
-            onClick={handlePresenteClick}
-            disabled={busy}
-          >
-            <Check className="h-4 w-4 mr-1" /> Presente
-          </Button>
-          <Button
-            size="sm"
-            className={
-              d.presenca === "ausente"
-                ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                : "text-destructive hover:text-destructive"
-            }
-            variant={d.presenca === "ausente" ? undefined : "outline"}
-            onClick={() => onMarcar(d.id, "ausente")}
-          >
-            <X className="h-4 w-4 mr-1" /> Falta
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="sm" variant="outline" className="gap-1" disabled={busy}>
-                <MoreHorizontal className="h-4 w-4" /> Mais ações
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onMarcar(d.id, "falta_justificada")}>
-                <ShieldCheck className="h-4 w-4 mr-2" /> Falta justificada
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onMarcar(d.id, "atendimento_distancia")}>
-                <Radio className="h-4 w-4 mr-2" /> Atendimento à distância
-              </DropdownMenuItem>
-              <DropdownMenuItem disabled={!c} onClick={() => onEncaminharDialogo("encaminhamento")}>
-                Encaminhar ao diálogo
-              </DropdownMenuItem>
-              <DropdownMenuItem disabled={!c} onClick={() => onEncaminharDialogo("alta")}>
-                Encaminhar para alta
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
         )}
       </div>
 
-      {!inativoReal && (
+      {proximoFim && !encerrado && !d.presenca && projetado >= total && (
+        <p className="rounded-xl bg-[#fff5d9] px-3 py-2.5 text-[13px] text-[#5c3b00]">
+          <strong>Última sessão.</strong> Ao marcar presença, você escolhe entre dar alta ou prorrogar o tratamento.
+        </p>
+      )}
+
+      {/* Presença: todos os botões à vista */}
+      <div className="grid grid-cols-2 gap-2">
+        {opcoes.map(({ s, rotulo, Icone, base, largo }) => {
+          const ativo = d.presenca === s;
+          return (
+            <button
+              key={s}
+              type="button"
+              disabled={busy}
+              aria-pressed={ativo}
+              onClick={() => (s === "presente" ? handlePresenteClick() : onMarcar(d.id, s))}
+              className={cn(
+                "inline-flex items-center justify-center gap-2 rounded-xl font-bold transition-all active:scale-[.98] disabled:opacity-60",
+                largo ? "col-span-2" : "",
+                s === "presente" ? "h-14 text-base" : "h-12 text-[15px]",
+                ativo ? TOM[s].botao : base,
+                d.presenca && !ativo && "opacity-70"
+              )}
+            >
+              {ativo ? <Check className="h-5 w-5" /> : <Icone className="h-5 w-5" />}
+              {rotulo}{ativo && largo ? " · lançado" : ""}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Observação do dia */}
       <div>
-        <div className="flex items-center justify-between gap-2">
-          <label className="text-xs text-muted-foreground">
-            Observações deste atendimento
-          </label>
-          {temRascunho && (
-            <span className="text-[11px] font-medium text-amber-800">
-              Rascunho salvo — ainda não gravado
-            </span>
-          )}
+        <div className="flex items-center justify-between gap-2 mb-1">
+          <label htmlFor={`obs-${d.id}`} className="text-[13px] font-semibold text-muted-foreground">Observação de hoje</label>
+          {temRascunho ? (
+            <span className="text-xs font-semibold text-[#8a5a00]">Rascunho, ainda não salvo</span>
+          ) : d.observacao ? (
+            <span className="text-xs font-semibold text-[#157a4a]">Salva</span>
+          ) : null}
         </div>
         <Textarea
+          id={`obs-${d.id}`}
           value={obs}
           onChange={(e) => setObs(e.target.value)}
-          placeholder="Anote observações deste atendimento..."
+          placeholder="Como foi o atendimento?"
           rows={2}
-          className="mt-1"
+          className="bg-white/80 border-0 shadow-[inset_0_0_0_1px_#e3e8ef] text-[15px]"
         />
-        <div className="flex justify-between items-center mt-2 flex-wrap gap-2">
-          <ProrrogarPopover onConfirm={onProrrogar} />
-          <Button
-            size="sm"
-            onClick={async () => {
-              await onSalvarObs(d.id, obs);
-              limparRascunho();
-            }}
-            disabled={obs === d.observacao}
-          >
+        {obs !== d.observacao && (
+          <Button size="sm" className="mt-2 h-9" onClick={async () => { await onSalvarObs(d.id, obs); limparRascunho(); }}>
             <Save className="h-4 w-4 mr-1" /> Salvar observação
           </Button>
+        )}
+      </div>
+
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        {c ? (
+          <Link to="/consulentes/$id" params={{ id: c.id }} className="text-sm font-semibold text-primary hover:underline">
+            Ver ficha e motivos
+          </Link>
+        ) : <span />}
+        <div className="flex items-center gap-2">
+          <ProrrogarPopover onConfirm={onProrrogar} />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="sm" variant="outline" className="gap-1 h-9" disabled={busy}>
+                <MoreHorizontal className="h-4 w-4" /> Mais
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem disabled={!c} onClick={() => onEncaminharDialogo("encaminhamento")}>Encaminhar ao diálogo</DropdownMenuItem>
+              <DropdownMenuItem disabled={!c} onClick={() => onEncaminharDialogo("alta")}>Encaminhar para alta</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
-      )}
 
       <Dialog open={confirmCloseOpen} onOpenChange={setConfirmCloseOpen}>
         <DialogContent>

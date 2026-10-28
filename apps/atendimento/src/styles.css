@@ -225,3 +225,8 @@
     font-family: var(--font-mono);
   }
 }
+
+/* Lançar presenças no celular: a barra fixa de baixo substitui o botão flutuante de busca */
+@media (max-width: 639px) {
+  body:has(.maca-barra-fixa) .lsl-fazer-botao { display: none; }
+}
