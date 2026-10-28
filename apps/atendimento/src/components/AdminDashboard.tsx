@@ -75,7 +75,7 @@ const TONE_ICON_BG: Record<Tone, string> = {
 };
 
 const QUICK_ACTIONS: { to: string; label: string; icon: LucideIcon }[] = [
-  { to: "/recepcao/imprimir", label: "Imprimir lista", icon: ClipboardList },
+  { to: "/recepcao/imprimir", label: "Listas do dia", icon: ClipboardList },
   { to: "/medium", label: "Lançar sessão", icon: Sparkles },
   { to: "/dialogo/novo", label: "Novo diálogo", icon: MessageSquare },
 ];

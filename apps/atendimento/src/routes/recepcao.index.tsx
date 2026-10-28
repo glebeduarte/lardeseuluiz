@@ -124,7 +124,7 @@ function RecepcaoIndex() {
         acoes={
           <Link to="/recepcao/imprimir" className="shrink-0">
             <Button>
-              <Printer className="h-4 w-4 mr-2" /> Imprimir lista de chegada
+              <Printer className="h-4 w-4 mr-2" /> Listas do dia
             </Button>
           </Link>
         }
