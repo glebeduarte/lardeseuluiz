@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertTriangle, Check, ChevronDown } from "lucide-react";
+import { AlertTriangle, ArrowRightLeft, Check, ChevronDown } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { CabecalhoPagina } from "@/compartilhado";
@@ -18,6 +18,7 @@ import { LinkRota } from "@/components/LinkRota";
 import { ConsulenteObservacoes } from "@/components/ConsulenteObservacoes";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { cn } from "@/lib/utils";
+import { TransferirMacaDialog } from "@/components/TransferirMacaDialog";
 
 export const Route = createFileRoute("/consulentes/$id")({
   component: () => (
@@ -43,6 +44,7 @@ type DesignacaoHist = {
   created_at: string;
   closed_at: string | null;
   closure_reason: string | null;
+  observacoes?: string | null;
   reactivated_at?: string | null;
   reactivated_by?: string | null;
   maca_id: string;
@@ -104,13 +106,14 @@ function Ficha() {
   const qc = useQueryClient();
   const confirm = useConfirm();
   const [enviando, setEnviando] = useState<Acao | null>(null);
+  const [transferindo, setTransferindo] = useState(false);
 
   const { data: c } = useQuery({
     queryKey: ["consulente-full", id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("consulentes")
-        .select("*, designacoes(id, status, sessoes_realizadas, sessoes_totais, created_at, closed_at, closure_reason, reactivated_at, reactivated_by, maca_id, dialogador_id, macas(numero, nome, cor_hex, dia))")
+        .select("*, designacoes(id, status, sessoes_realizadas, sessoes_totais, created_at, closed_at, closure_reason, observacoes, reactivated_at, reactivated_by, maca_id, dialogador_id, macas(numero, nome, cor_hex, dia))")
         .eq("id", id)
         .order("created_at", { foreignTable: "designacoes", ascending: false })
         .single();
@@ -178,7 +181,8 @@ function Ficha() {
 
   const designacoes = (c.designacoes ?? []) as DesignacaoHist[];
   const presencas = historico ?? [];
-  const ativa = designacoes.find((d) => d.status === "ativa");
+  const ativas = designacoes.filter((d) => d.status === "ativa");
+  const ativa = ativas[0];
   const ultima = [...designacoes]
     .filter((d) => d.status !== "ativa")
     .sort((a, b) => +new Date(b.closed_at || b.created_at) - +new Date(a.closed_at || a.created_at))[0];
@@ -197,6 +201,8 @@ function Ficha() {
     qc.invalidateQueries({ queryKey: ["consulente-full", id] });
     qc.invalidateQueries({ queryKey: ["consulente-historico"] });
     qc.invalidateQueries({ queryKey: ["consulentes"] });
+    qc.invalidateQueries({ queryKey: ["consulente-observacoes", id] });
+    qc.invalidateQueries({ queryKey: ["macas-transferencia"] });
   };
 
   const executar = async (
@@ -290,8 +296,15 @@ function Ficha() {
 
     if (etapa === "tratamento" && ativa) {
       const faltam = Math.max((ativa.sessoes_totais || 8) - (ativa.sessoes_realizadas || 0), 0);
-      titulo = `Em tratamento na Maca ${ativa.macas?.numero ?? ""}`;
-      texto = <>{ativa.macas?.nome} · {diaLabel(ativa.macas?.dia)} · {ativa.sessoes_realizadas} de {ativa.sessoes_totais} sessões{faltam > 0 ? `, faltam ${faltam}` : ""}.</>;
+      if (ativas.length > 1) {
+        titulo = `Em tratamento nas Macas ${ativas.map((a) => a.macas?.numero ?? "").join(" e ")}`;
+        texto = <>{ativas.map((a, i) => (
+          <span key={a.id}>{i > 0 && <br />}Maca {a.macas?.numero} · {a.macas?.nome} · {diaLabel(a.macas?.dia)} · {a.sessoes_realizadas} de {a.sessoes_totais} sessões</span>
+        ))}</>;
+      } else {
+        titulo = `Em tratamento na Maca ${ativa.macas?.numero ?? ""}`;
+        texto = <>{ativa.macas?.nome} · {diaLabel(ativa.macas?.dia)} · {ativa.sessoes_realizadas} de {ativa.sessoes_totais} sessões{faltam > 0 ? `, faltam ${faltam}` : ""}.</>;
+      }
       if (c.dialogo_pendente) {
         aviso = true;
         texto = <>{texto} O diálogo fraterno ainda não foi registrado.</>;
@@ -315,6 +328,11 @@ function Ficha() {
           })}>Encaminhar ao diálogo</Button>,
         );
       }
+      if (isMedium || isDialogador || isAdmin) botoes.push(
+        <Button key="transferir" variant="outline" disabled={!!enviando} onClick={() => setTransferindo(true)}>
+          <ArrowRightLeft className="mr-1.5 h-4 w-4" /> Transferir de maca
+        </Button>,
+      );
       if (isMedium || isDialogador) botoes.push(<Prorrogar key="prorrogar" desabilitado={!!enviando} aoConfirmar={(n) => executar("prorrogar", null, n)} />);
       if (isDialogador) botoes.push(
         <Button key="encerrar" variant="ghost" className="text-muted-foreground" disabled={!!enviando} onClick={() => executar("encerrar_sem_alta", {
@@ -394,6 +412,18 @@ function Ficha() {
             alta={c.alta_at ? { at: c.alta_at, por: c.alta_por } : null}
           />
         </Recolhivel>
+
+        <TransferirMacaDialog
+          aberto={transferindo}
+          aoFechar={() => setTransferindo(false)}
+          consulenteId={id}
+          consulenteNome={c.nome}
+          ativas={ativas.map((a) => ({
+            designacaoId: a.id, macaId: a.maca_id, numero: a.macas?.numero ?? 0, nome: a.macas?.nome ?? "Maca",
+            cor_hex: a.macas?.cor_hex ?? "#888", feitas: a.sessoes_realizadas, totais: a.sessoes_totais,
+          }))}
+          aoConcluir={atualizar}
+        />
 
         {isAdmin && <AjustesAdmin c={c} designacoes={designacoes} ativaId={ativa?.id} aoMudar={atualizar} />}
       </div>
@@ -528,6 +558,7 @@ function Participacoes({ designacoes, presencas, altaEm }: { designacoes: Design
                   {dataBR(d.created_at)}{d.closed_at ? ` a ${dataBR(d.closed_at)}` : " até hoje"} · {recebeu} de {d.sessoes_totais || 8} sessões
                   {d.reactivated_at ? ` · voltou em ${dataBR(d.reactivated_at)}` : ""}
                 </div>
+                {d.observacoes && <div className="text-xs text-foreground/80">{d.observacoes}</div>}
                 {daqui.length > 0 && (
                   <div className="flex flex-wrap gap-1">
                     {daqui.map((p) => {
@@ -648,7 +679,8 @@ function HistoricoLista({
   const eventos: Evt[] = [{ sortAt: createdAt, at: dataBR(createdAt), titulo: "Diálogo fraterno", detalhe: "Cadastro do consulente", autor: dialogadorNome }];
   designacoes.forEach((d) => {
     const macaTxt = d.macas ? `Maca ${d.macas.numero} · ${d.macas.nome}` : "Maca";
-    eventos.push({ sortAt: d.created_at, at: dataBR(d.created_at), titulo: "Entrou na maca", detalhe: macaTxt, autor: d.dialogador?.nome ?? null });
+    const veio = d.observacoes?.match(/^(Transferido da|Adicionado mantendo)[^·]*· [^.]*/)?.[0];
+    eventos.push({ sortAt: d.created_at, at: dataBR(d.created_at), titulo: "Entrou na maca", detalhe: veio ? `${macaTxt} · ${veio}` : macaTxt, autor: d.dialogador?.nome ?? null });
     if (d.closed_at) eventos.push({ sortAt: d.closed_at, at: dataBR(d.closed_at), titulo: resultado(d).texto, detalhe: macaTxt });
     if (d.reactivated_at) eventos.push({ sortAt: d.reactivated_at, at: dataBR(d.reactivated_at), titulo: "Voltou para a maca", detalhe: macaTxt });
   });
