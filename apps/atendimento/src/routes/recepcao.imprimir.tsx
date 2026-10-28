@@ -105,9 +105,10 @@ function ListasDoDia() {
     },
   });
 
-  // ---- Pendentes de diálogo (não depende do dia) ----
+  // ---- Pendentes de diálogo (não depende do dia): só os dos últimos 2 meses ----
+  const limiteDialogo = (() => { const d = new Date(); d.setMonth(d.getMonth() - 2); return isoDe(d); })();
   const { data: pendentes, isLoading: carregandoPend } = useQuery({
-    queryKey: ["listas-dia-dialogo"],
+    queryKey: ["listas-dia-dialogo", limiteDialogo],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("consulentes")
@@ -138,6 +139,8 @@ function ListasDoDia() {
           };
         })
         .filter(Boolean)
+        // Só quem espera há no máximo 2 meses; mais que isso fica como inativo arquivado
+        .filter((p) => (p!.desde || "") >= limiteDialogo)
         .sort((a, b) => (a!.desde || "").localeCompare(b!.desde || "")) as {
           id: string; nome: string; telefone: string | null; desde: string; motivo: string; maca: { numero: number; nome: string; cor_hex: string } | null; sessoes: string | null; dialogador: string | null;
         }[];
@@ -295,8 +298,8 @@ function ListasDoDia() {
             <>
               <div className="grade-macas grid gap-3 sm:grid-cols-2">
                 {macas.map((m) => {
-                  const vagas = Math.max(m.lotacao_max ?? 10, m.ativos.length);
-                  const linhasVazias = Math.max(0, Math.min(2, vagas - m.ativos.length));
+                  // Sempre 10 linhas por maca: os ativos e o restante em branco para anotar
+                  const linhasVazias = Math.max(0, 10 - m.ativos.length);
                   return (
                     <section key={m.id} className="bloco-maca rounded-lg overflow-hidden shadow-[inset_0_0_0_1.5px_#0f1f3d33]">
                       <header className="px-3 py-1.5 flex items-baseline justify-between gap-2" style={{ background: m.cor_hex, color: corTexto(m.cor_hex) }}>
@@ -309,7 +312,8 @@ function ListasDoDia() {
                       <table className="w-full text-[12px] border-collapse">
                         <thead>
                           <tr className="text-[10px] text-[#4a5568]">
-                            <th className="text-left font-semibold pl-3 py-1">Consulente</th>
+                            <th className="font-semibold pl-2 pr-1 py-1 w-12">Ficha</th>
+                            <th className="text-left font-semibold pl-2 py-1">Consulente</th>
                             <th className="font-semibold w-12 py-1">Sessão</th>
                             <th className="font-semibold w-7 py-1">P</th>
                             <th className="font-semibold w-7 py-1 pr-2">F</th>
@@ -318,7 +322,8 @@ function ListasDoDia() {
                         <tbody>
                           {m.ativos.map((a) => (
                             <tr key={a.id} className={cn("border-t border-[#0f1f3d1f]", a.naoVem && "text-[#8a94a6]")}>
-                              <td className="pl-3 py-1.5 leading-tight">
+                              <td className="pl-2 pr-1 py-1.5 align-middle"><span className="block h-5 w-full rounded-[3px] shadow-[inset_0_0_0_1.5px_#0f1f3d59]" /></td>
+                              <td className="pl-2 py-1.5 leading-tight">
                                 <span className="font-semibold">{a.nome}</span>
                                 {(a.naoVem || a.ultima || a.quinzenal || a.distancia || a.trabalhador || a.faltouUltima) && (
                                   <span className="block text-[10px] text-[#4a5568]">
@@ -336,7 +341,7 @@ function ListasDoDia() {
                             </tr>
                           ))}
                           {Array.from({ length: linhasVazias }, (_, i) => (
-                            <tr key={`v${i}`} className="border-t border-[#0f1f3d1f]"><td className="pl-3 py-2 text-[10px] text-[#c0c6d0]">vaga</td><td /><td /><td /></tr>
+                            <tr key={`v${i}`} className="border-t border-[#0f1f3d1f]"><td className="pl-2 pr-1 py-2 align-middle"><span className="block h-5 w-full rounded-[3px] shadow-[inset_0_0_0_1.5px_#0f1f3d59]" /></td><td className="pl-2 py-2 text-[10px] text-[#c0c6d0]">vaga</td><td /><td /><td /></tr>
                           ))}
                         </tbody>
                       </table>
@@ -344,7 +349,7 @@ function ListasDoDia() {
                   );
                 })}
               </div>
-              <p className="mt-3 text-[11px] text-[#4a5568]">P presença · F falta. Sessão mostra qual será a de hoje no tratamento. Quadrado preenchido já foi lançado no sistema.</p>
+              <p className="mt-3 text-[11px] text-[#4a5568]">Ficha: número da ficha que a pessoa recebeu. P presença · F falta. Sessão mostra qual será a de hoje no tratamento. Quadrado preenchido já foi lançado no sistema.</p>
             </>
           )}
         </Folha>
@@ -395,7 +400,7 @@ function ListasDoDia() {
       {/* 3. Pendentes de diálogo */}
       {aba === "dialogo" && !carregandoPend && (
         <Folha titulo="Pendentes de diálogo fraterno"
-          resumo={`${pendentes?.length ?? 0} ${(pendentes?.length ?? 0) === 1 ? "pessoa" : "pessoas"} · da espera mais antiga para a mais recente`}>
+          resumo={`${pendentes?.length ?? 0} ${(pendentes?.length ?? 0) === 1 ? "pessoa" : "pessoas"} esperando desde ${dataCurta(limiteDialogo)} · da espera mais antiga para a mais recente · quem espera há mais de 2 meses fica arquivado`}>
           {(pendentes?.length ?? 0) === 0 ? <p className="text-sm">Ninguém esperando diálogo.</p> : (
             <div className="space-y-4">
               {gruposDialogo.map((g) => (
