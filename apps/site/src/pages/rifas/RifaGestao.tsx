@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Check, Copy, ExternalLink, MessageCircle, Plus, Search, Trash2, Undo2, Unlock, Trophy, UserPlus } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Copy, ExternalLink, MessageCircle, Plus, Search, Trash2, Undo2, Unlock, Trophy, UserPlus } from "lucide-react";
 import AppLayout from "@/components/app/AppLayout";
 import { CabecalhoPagina } from "@/compartilhado";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -24,6 +24,7 @@ import GuardaRifas from "@/components/rifa/GuardaRifas";
 const LinkRR = ({ href, className, children }: { href: string; className: string; children: React.ReactNode }) => <Link to={href} className={className}>{children}</Link>;
 type Vendedor = { raffle_id: string; person_id: string; quota: number | null };
 type Filtro = "reservado" | "repassar" | "pago" | "cancelado" | "todos";
+const POR_PAGINA = 20;
 
 function RifaGestaoConteudo() {
   const { id } = useParams<{ id: string }>();
@@ -127,6 +128,8 @@ function AbaPedidos({ rifa, pedidos, nomes, atualizar }: { rifa: Rifa; pedidos: 
   const [ocupado, setOcupado] = useState<string | null>(null);
   const [remover, setRemover] = useState<Pedido | null>(null);
   const [motivoRemocao, setMotivoRemocao] = useState("");
+  const [pagina, setPagina] = useState(1);
+  useEffect(() => { setPagina(1); }, [filtro, busca]);
   // Remover venda (apagar de vez) é só para quem criou a rifa
   const { data: meuId } = useQuery({ queryKey: ["meu-uid"], queryFn: async () => (await db.auth.getUser()).data.user?.id ?? null });
   const souCriador = !!rifa.created_by && rifa.created_by === meuId;
@@ -141,6 +144,11 @@ function AbaPedidos({ rifa, pedidos, nomes, atualizar }: { rifa: Rifa; pedidos: 
     .filter((p) => filtro === "todos" ? true : filtro === "repassar" ? p.status === "reservado" && p.received_by_seller : p.status === filtro)
     .filter((p) => !q || p.buyer_name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q) || p.buyer_phone.replace(/\D/g, "").includes(q.replace(/\D/g, "") || "§")
       || numerosDo(p).some((n) => String(n) === q));
+  const totalPaginas = Math.max(1, Math.ceil(lista.length / POR_PAGINA));
+  const paginaAtual = Math.min(pagina, totalPaginas);
+  const inicio = (paginaAtual - 1) * POR_PAGINA;
+  const visiveis = lista.slice(inicio, inicio + POR_PAGINA);
+  const irPara = (n: number) => { setPagina(n); window.scrollTo({ top: 0, behavior: "smooth" }); };
 
   const marcarPago = async (p: Pedido, pago = true) => {
     setOcupado(p.id);
@@ -191,7 +199,7 @@ function AbaPedidos({ rifa, pedidos, nomes, atualizar }: { rifa: Rifa; pedidos: 
         </CardContent></Card>
       ) : (
         <div className="grid gap-3">
-          {lista.map((p) => {
+          {visiveis.map((p) => {
             const nums = numerosDo(p);
             const vendedor = p.seller_person_id ? nomes[p.seller_person_id]?.full_name : null;
             const msg = p.status === "pago"
@@ -240,6 +248,16 @@ function AbaPedidos({ rifa, pedidos, nomes, atualizar }: { rifa: Rifa; pedidos: 
               </Card>
             );
           })}
+          {totalPaginas > 1 && (
+            <div className="flex items-center justify-between gap-3 pt-2">
+              <Button variant="outline" onClick={() => irPara(paginaAtual - 1)} disabled={paginaAtual === 1}><ChevronLeft className="w-4 h-4 sm:mr-1" /><span className="hidden sm:inline">Anterior</span></Button>
+              <span className="text-sm text-muted-foreground text-center">
+                {inicio + 1} a {Math.min(inicio + POR_PAGINA, lista.length)} de {lista.length}
+                <span className="block text-xs">Página {paginaAtual} de {totalPaginas}</span>
+              </span>
+              <Button variant="outline" onClick={() => irPara(paginaAtual + 1)} disabled={paginaAtual === totalPaginas}><span className="hidden sm:inline">Próxima</span><ChevronRight className="w-4 h-4 sm:ml-1" /></Button>
+            </div>
+          )}
         </div>
       )}
 
