@@ -46,6 +46,7 @@ import { getOrCreateSessaoForDate } from "@/lib/sessao";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { MacaCategoriaTag } from "@/lib/maca-categoria";
+import OutrasMacasPainel, { useOutrasMacas } from "@/components/OutrasMacasPainel";
 import { CabecalhoPagina } from "@/compartilhado";
 import { LinkRota } from "@/components/LinkRota";
 import { useConfirm } from "@/components/ConfirmDialog";
@@ -94,6 +95,8 @@ function MediumMacaPresenca() {
     },
   });
 
+  const { data: outrasMacas = [] } = useOutrasMacas(id);
+
   // Seleciona automaticamente a data mais recente (última terça ou último sábado) conforme o dia da maca
   useEffect(() => {
     if (maca && !dataAtendimento) {
@@ -129,17 +132,17 @@ function MediumMacaPresenca() {
           !isDesignacaoArquivada(d.status, d.closed_at, maca?.dia)
       );
       const ids = desigs.map((d) => d.id);
-      let presencas: Array<{ designacao_id: string; status: string; observacao: string | null }> = [];
+      let presencas: Array<{ designacao_id: string; status: string; observacao: string | null; atendido_em_maca_id?: string | null }> = [];
       const totalPresencas = new Map<string, number>();
       const ultimoAtend = new Map<string, string>();
       const datasMap = new Map<string, Array<{ data: string; status: string }>>();
       if (ids.length && sessao) {
         const { data: p } = await supabase
           .from("presencas")
-          .select("designacao_id, status, observacao")
+          .select("designacao_id, status, observacao, atendido_em_maca_id")
           .eq("sessao_id", sessao.id)
           .in("designacao_id", ids);
-        presencas = p ?? [];
+        presencas = (p ?? []) as unknown as typeof presencas;
         const { data: allP } = await supabase
           .from("presencas")
           .select("designacao_id, status, sessoes(data)")
@@ -193,6 +196,7 @@ function MediumMacaPresenca() {
 
           presenca: pMap.get(d.id)?.status ?? null,
           observacao: pMap.get(d.id)?.observacao ?? "",
+          atendido_em_maca_id: pMap.get(d.id)?.atendido_em_maca_id ?? null,
           total_presencas: totalPresencas.get(d.id) ?? d.sessoes_realizadas,
           ultimo_atendimento: ultimoAtend.get(d.id) ?? null,
           datas,
@@ -447,6 +451,7 @@ function MediumMacaPresenca() {
       quinzenal={x.quinzenal}
       foraDaSemana={x.foraDaSemana}
       dataSelecionada={isoDate}
+      atendidoEm={(() => { const m = outrasMacas.find((o) => o.id === (x.d as { atendido_em_maca_id?: string | null }).atendido_em_maca_id); return m ? `Maca ${m.numero} · ${m.nome}` : null; })()}
       onMarcar={marcar}
       onSalvarObs={salvarObs}
       onProrrogar={(qtd) => prorrogar(x.d.id, x.total, qtd)}
@@ -574,6 +579,10 @@ function MediumMacaPresenca() {
           )}
         </div>
 
+        {sessao && dataAtendimento && (
+          <OutrasMacasPainel macaOrigem={id} sessaoId={sessao.id} isoDate={isoDate} dia={maca.dia} />
+        )}
+
         {filtro === "todos" && semAtendimento.length > 0 && (
           <div className="space-y-2">
             <p className="text-[13px] font-semibold text-muted-foreground px-1 pt-2">Sem atendimento nesta data</p>
@@ -606,6 +615,7 @@ function ConsulenteCard({
   quinzenal,
   foraDaSemana,
   dataSelecionada,
+  atendidoEm,
   onMarcar,
   onSalvarObs,
   onProrrogar,
@@ -634,6 +644,7 @@ function ConsulenteCard({
   quinzenal?: boolean;
   foraDaSemana?: boolean;
   dataSelecionada: string;
+  atendidoEm?: string | null;
   onMarcar: (id: string, s: PresencaStatus) => unknown | Promise<unknown>;
   onSalvarObs: (id: string, obs: string) => unknown | Promise<unknown>;
   onProrrogar: (qtd: number) => unknown | Promise<unknown>;
@@ -847,6 +858,12 @@ function ConsulenteCard({
           </span>
         )}
       </div>
+
+      {atendidoEm && d.presenca && (
+        <p className="rounded-xl bg-white/70 px-3 py-2 text-[13px] text-foreground/80">
+          Atendido na <strong>{atendidoEm}</strong> nesta data, porque a maca foi redistribuída.
+        </p>
+      )}
 
       {/* Sessão do tratamento */}
       <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-1.5">
