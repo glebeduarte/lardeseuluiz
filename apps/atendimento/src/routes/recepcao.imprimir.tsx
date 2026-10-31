@@ -235,7 +235,24 @@ function ListasDoDia() {
           .lsl-conteudo { padding: 0 !important; max-width: none !important; }
           .folha { box-shadow: none !important; border-radius: 0 !important; padding: 0 !important; }
           .bloco-maca, .linha-impressa, tr { break-inside: avoid; }
-          .grade-macas { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 4mm !important; }
+          /* Macas em pares: cada par é uma linha que nunca é cortada entre duas folhas */
+          .grade-macas { display: block !important; }
+          .linha-macas { display: grid !important; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; gap: 3mm !important;
+            margin: 0 0 3mm !important; break-inside: avoid; page-break-inside: avoid; }
+          .bloco-maca { min-width: 0; }
+          .bloco-maca > header { padding: 1.2mm 2.5mm !important; }
+          .bloco-maca > header span { font-size: 10.5pt !important; }
+          .bloco-maca > header span span, .bloco-maca > header > span:last-child { font-size: 8.5pt !important; }
+          .bloco-maca .mediuns { padding: 0.8mm 2.5mm !important; font-size: 7.5pt !important; line-height: 1.25 !important; }
+          .tab-maca { table-layout: fixed; font-size: 8.5pt !important; }
+          .tab-maca th { font-size: 7pt !important; padding-top: 0.6mm !important; padding-bottom: 0.6mm !important; }
+          .tab-maca tbody tr { height: 7.6mm; }
+          .tab-maca td { padding-top: 0.4mm !important; padding-bottom: 0.4mm !important; overflow: hidden; }
+          .tab-maca td .detalhe { font-size: 6.5pt !important; line-height: 1.15 !important; }
+          .tab-maca .nome-cons { display: block; overflow-wrap: anywhere; line-height: 1.15; }
+          .tab-maca .caixa-ficha { height: 4.6mm !important; }
+          .folha > header { margin-bottom: 3mm !important; padding-bottom: 2mm !important; }
+          .legenda-macas { break-inside: avoid; }
           * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
       `}</style>
@@ -296,8 +313,10 @@ function ListasDoDia() {
           resumo={`${dataTitulo} · ${totalHoje} esperados em ${macas.length} macas${totalAtivos > totalHoje ? ` · ${totalAtivos - totalHoje} ${totalAtivos - totalHoje === 1 ? "quinzenal não vem" : "quinzenais não vêm"}` : ""}`}>
           {macas.length === 0 ? <p className="text-sm">Nenhuma maca ativa neste dia.</p> : (
             <>
-              <div className="grade-macas grid gap-3 sm:grid-cols-2">
-                {macas.map((m) => {
+              <div className="grade-macas space-y-3">
+                {Array.from({ length: Math.ceil(macas.length / 2) }, (_, i) => macas.slice(i * 2, i * 2 + 2)).map((par) => (
+                <div key={par[0].id} className="linha-macas grid gap-3 sm:grid-cols-2">
+                {par.map((m) => {
                   // Sempre 10 linhas por maca: os ativos e o restante em branco para anotar
                   const linhasVazias = Math.max(0, 10 - m.ativos.length);
                   return (
@@ -306,10 +325,10 @@ function ListasDoDia() {
                         <span className="font-bold text-[14px]">Maca {m.numero} · {m.nome} <span className="font-semibold opacity-85 text-[12px]">({categoriaDe(m)})</span></span>
                         <span className="text-[12px] font-semibold tabular-nums whitespace-nowrap">{m.ativos.length}/{m.lotacao_max ?? "–"}</span>
                       </header>
-                      <p className="px-3 py-1 text-[11px] text-[#4a5568] bg-[#f5f7fa]">
+                      <p className="mediuns px-3 py-1 text-[11px] text-[#4a5568] bg-[#f5f7fa]">
                         <strong className="text-[#0f1f3d]">Médiuns:</strong> {m.mediuns.length ? m.mediuns.join(", ") : "não definidos"}
                       </p>
-                      <table className="w-full text-[12px] border-collapse">
+                      <table className="tab-maca w-full text-[12px] border-collapse">
                         <thead>
                           <tr className="text-[10px] text-[#4a5568]">
                             <th className="font-semibold pl-2 pr-1 py-1 w-12">Ficha</th>
@@ -322,11 +341,11 @@ function ListasDoDia() {
                         <tbody>
                           {m.ativos.map((a) => (
                             <tr key={a.id} className={cn("border-t border-[#0f1f3d1f]", a.naoVem && "text-[#8a94a6]")}>
-                              <td className="pl-2 pr-1 py-1.5 align-middle"><span className="block h-5 w-full rounded-[3px] shadow-[inset_0_0_0_1.5px_#0f1f3d59]" /></td>
+                              <td className="pl-2 pr-1 py-1.5 align-middle"><span className="caixa-ficha block h-5 w-full rounded-[3px] shadow-[inset_0_0_0_1.5px_#0f1f3d59]" /></td>
                               <td className="pl-2 py-1.5 leading-tight">
-                                <span className="font-semibold">{a.nome}</span>
+                                <span className="nome-cons font-semibold">{a.nome}</span>
                                 {(a.naoVem || a.ultima || a.quinzenal || a.distancia || a.trabalhador || a.faltouUltima) && (
-                                  <span className="block text-[10px] text-[#4a5568]">
+                                  <span className="detalhe block text-[10px] text-[#4a5568]">
                                     {[a.naoVem ? "quinzenal, não vem hoje" : a.quinzenal ? "quinzenal" : null,
                                       a.ultima && !a.naoVem ? "última sessão" : null,
                                       a.distancia ? "à distância" : null,
@@ -341,15 +360,17 @@ function ListasDoDia() {
                             </tr>
                           ))}
                           {Array.from({ length: linhasVazias }, (_, i) => (
-                            <tr key={`v${i}`} className="border-t border-[#0f1f3d1f]"><td className="pl-2 pr-1 py-2 align-middle"><span className="block h-5 w-full rounded-[3px] shadow-[inset_0_0_0_1.5px_#0f1f3d59]" /></td><td className="pl-2 py-2 text-[10px] text-[#c0c6d0]">vaga</td><td /><td /><td /></tr>
+                            <tr key={`v${i}`} className="border-t border-[#0f1f3d1f]"><td className="pl-2 pr-1 py-2 align-middle"><span className="caixa-ficha block h-5 w-full rounded-[3px] shadow-[inset_0_0_0_1.5px_#0f1f3d59]" /></td><td className="pl-2 py-2 text-[10px] text-[#c0c6d0]">vaga</td><td /><td /><td /></tr>
                           ))}
                         </tbody>
                       </table>
                     </section>
                   );
                 })}
+                </div>
+                ))}
               </div>
-              <p className="mt-3 text-[11px] text-[#4a5568]">Ficha: número da ficha que a pessoa recebeu. P presença · F falta. Sessão mostra qual será a de hoje no tratamento. Quadrado preenchido já foi lançado no sistema.</p>
+              <p className="legenda-macas mt-3 text-[11px] text-[#4a5568]">Ficha: número da ficha que a pessoa recebeu. P presença · F falta. Sessão mostra qual será a de hoje no tratamento. Quadrado preenchido já foi lançado no sistema.</p>
             </>
           )}
         </Folha>
