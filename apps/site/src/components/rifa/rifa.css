@@ -141,3 +141,8 @@ body:has(.rifa-barra) .lsl-fazer-botao { bottom: 96px; }
 @media (max-width: 639px) {
   body:has(.rifa-vender-pagina) .lsl-fazer-botao { display: none; }
 }
+
+/* Opção de mostrar os números ocupados (ocultos por padrão na página pública) */
+.rifa-grade__mostrar { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-size: 15px; font-weight: 600; color: #0f1f3d; cursor: pointer; min-height: 44px; }
+.rifa-grade__mostrar input { width: 20px; height: 20px; accent-color: #176e69; flex: none; }
+.rifa-grade__vazio { grid-column: 1 / -1; margin: 8px 0; font-size: 16px; color: #4a5568; }

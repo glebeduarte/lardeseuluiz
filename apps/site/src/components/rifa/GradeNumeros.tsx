@@ -16,18 +16,29 @@ export default function GradeNumeros({ total, ocupados, selecionados, aoTocar, d
   /** No modo de gestão, números ocupados também são clicáveis (para ver o pedido). */
   rotuloOcupado?: boolean;
 }) {
-  const porPagina = total > 200 ? 100 : total;
-  const paginas = Math.ceil(total / porPagina);
+  // Para quem compra, os números ocupados ficam ocultos por padrão: aparecem primeiro os disponíveis.
+  // Na gestão (rotuloOcupado), a grade mostra tudo.
+  const [mostrarOcupados, setMostrarOcupados] = useState(!!rotuloOcupado);
+  const visiveis = useMemo(() => {
+    const out: number[] = [];
+    for (let n = 1; n <= total; n++) {
+      if (mostrarOcupados || !ocupados.has(n) || selecionados?.has(n) || n === destaque) out.push(n);
+    }
+    return out;
+  }, [total, ocupados, selecionados, destaque, mostrarOcupados]);
+  const qtdOcupados = ocupados.size;
+
+  const porPagina = visiveis.length > 200 ? 100 : Math.max(1, visiveis.length);
+  const paginas = Math.max(1, Math.ceil(visiveis.length / porPagina));
   const [pagina, setPagina] = useState(0);
-  const inicio = pagina * porPagina + 1;
-  const fim = Math.min(total, inicio + porPagina - 1);
+  useEffect(() => { if (pagina > paginas - 1) setPagina(Math.max(0, paginas - 1)); }, [pagina, paginas]);
+  const naPagina = visiveis.slice(pagina * porPagina, (pagina + 1) * porPagina);
 
   const faixas = useMemo(() => Array.from({ length: paginas }, (_, i) => {
-    const a = i * porPagina + 1, b = Math.min(total, a + porPagina - 1);
-    let livres = 0;
-    for (let n = a; n <= b; n++) if (!ocupados.has(n)) livres++;
-    return { a, b, livres };
-  }), [paginas, porPagina, total, ocupados]);
+    const fatia = visiveis.slice(i * porPagina, (i + 1) * porPagina);
+    const livres = fatia.filter((n) => !ocupados.has(n)).length;
+    return { a: fatia[0] ?? 1, b: fatia[fatia.length - 1] ?? 1, livres };
+  }), [paginas, porPagina, visiveis, ocupados]);
 
   // Faixas: setas, arrastar com o mouse e rolar com a roda; a faixa escolhida fica sempre à vista
   const trilho = useRef<HTMLDivElement>(null);
@@ -50,6 +61,12 @@ export default function GradeNumeros({ total, ocupados, selecionados, aoTocar, d
 
   return (
     <div className="rifa-grade">
+      {!rotuloOcupado && qtdOcupados > 0 && (
+        <label className="rifa-grade__mostrar">
+          <input type="checkbox" checked={mostrarOcupados} onChange={(e) => { setMostrarOcupados(e.target.checked); setPagina(0); }} />
+          <span>Mostrar os números já vendidos ou reservados ({qtdOcupados})</span>
+        </label>
+      )}
       {paginas > 1 && (
         <div className="rifa-grade__navegar">
           <button type="button" className="rifa-grade__seta" onClick={() => setPagina((p) => Math.max(0, p - 1))} disabled={pagina === 0} aria-label="Faixa anterior"><ChevronLeft /></button>
@@ -74,8 +91,8 @@ export default function GradeNumeros({ total, ocupados, selecionados, aoTocar, d
         </div>
       )}
       <div className="rifa-grade__numeros">
-        {Array.from({ length: fim - inicio + 1 }, (_, i) => {
-          const n = inicio + i;
+        {naPagina.length === 0 && <p className="rifa-grade__vazio">Todos os números já foram vendidos ou reservados.</p>}
+        {naPagina.map((n) => {
           const s = ocupados.get(n);
           const escolhido = selecionados?.has(n);
           const classe = n === destaque ? "ganhador" : escolhido ? "escolhido" : s === "p" ? "vendido" : s === "r" ? "reservado" : "livre";
