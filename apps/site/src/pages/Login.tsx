@@ -1,6 +1,6 @@
 import { useState } from "react";
 import logoLSL from "@/assets/logo-lsl-new.png";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -82,6 +82,11 @@ const Login = () => {
             <div className="space-y-2">
               <Label htmlFor="password">Senha</Label>
               <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} />
+              {!isSignUp && (
+                <div className="text-right">
+                  <Link to="/recuperar-senha" className="text-sm text-muted-foreground hover:text-primary hover:underline underline-offset-4">Esqueci minha senha</Link>
+                </div>
+              )}
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Processando..." : isSignUp ? "Criar conta" : "Entrar"}

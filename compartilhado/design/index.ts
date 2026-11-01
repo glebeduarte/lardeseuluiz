@@ -3,3 +3,4 @@ export * from "./MolduraSistema";
 export * from "./CabecalhoPagina";
 export * from "./OQueFazer";
 export * from "./CadastroObrigatorio";
+export * from "./TrocaSenhaObrigatoria";

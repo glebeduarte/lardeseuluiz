@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
     if (!pessoa.user_id) return json({ error: "Esta pessoa ainda não tem login. Crie o acesso pelo painel de acessos." });
 
     const senha = senhaProvisoria();
-    const { data: atualizado, error } = await gov.auth.admin.updateUserById(pessoa.user_id, { password: senha });
+    const { data: atualizado, error } = await gov.auth.admin.updateUserById(pessoa.user_id, { password: senha, app_metadata: { must_change_password: true } });
     if (error) return json({ error: error.message });
 
     // Obriga a troca no próximo acesso, nas áreas que guardam essa marca.

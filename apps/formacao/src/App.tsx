@@ -43,7 +43,7 @@ import EsdeCalendarEditorPage from "./pages/admin/EsdeCalendarEditorPage";
 import AttendancePage from "./pages/AttendancePage";
 import MyAttendancePage from "./pages/MyAttendancePage";
 import AnnouncementsListPage from "./pages/AnnouncementsListPage";
-import { CadastroObrigatorio } from "@/compartilhado";
+import { CadastroObrigatorio, TrocaSenhaObrigatoria } from "@/compartilhado";
 import { supabase as clienteLsl } from "@/integrations/supabase/client";
 import { ForcePasswordChangeGuard } from "./components/ForcePasswordChangeGuard";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -58,6 +58,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <CadastroObrigatorio cliente={clienteLsl} />
+        <TrocaSenhaObrigatoria cliente={clienteLsl} />
         <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}>
           <ForcePasswordChangeGuard />
           <Routes>

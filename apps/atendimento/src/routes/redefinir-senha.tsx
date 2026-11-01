@@ -67,6 +67,7 @@ function RedefinirSenhaPage() {
       const { data: userData } = await supabase.auth.getUser();
       if (userData.user) {
         await supabase.from("profiles").update({ must_change_password: false }).eq("id", userData.user.id);
+        await (supabase.schema("public") as any).rpc("concluir_troca_senha");
       }
       toast.success("Senha redefinida com sucesso! Faça login novamente.");
       await supabase.auth.signOut();

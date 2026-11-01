@@ -1,5 +1,5 @@
 import { Toaster } from "@/components/ui/toaster";
-import { CadastroObrigatorio } from "@/compartilhado";
+import { CadastroObrigatorio, TrocaSenhaObrigatoria } from "@/compartilhado";
 import { supabase as clienteLsl } from "@/integrations/supabase/client";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,6 +9,8 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Design from "./pages/Design";
 import Login from "./pages/Login";
+import RecuperarSenha from "./pages/RecuperarSenha";
+import RedefinirSenha from "./pages/RedefinirSenha";
 import AppDashboard from "./pages/AppDashboard";
 import Financeiro from "./pages/Financeiro";
 import Documentos from "./pages/Documentos";
@@ -67,12 +69,15 @@ const App = () => (
         <Toaster />
         <Sonner />
         <CadastroObrigatorio cliente={clienteLsl} />
+        <TrocaSenhaObrigatoria cliente={clienteLsl} />
         <BrowserRouter>
           <FaixaSimulacao />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/design" element={<Design />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/recuperar-senha" element={<RecuperarSenha />} />
+            <Route path="/redefinir-senha" element={<RedefinirSenha />} />
             <Route path="/atendimentos" element={<AtendimentosPublic />} />
             <Route path="/agenda" element={<Agenda />} />
             <Route path="/a-casa" element={<ACasa />} />
