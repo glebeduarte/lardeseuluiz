@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2, Trash2, Plus, X, KeyRound, ChevronRight, Save, Crown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import ResetarSenhaPessoa from "@/components/pessoas/ResetarSenhaPessoa";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -149,6 +150,7 @@ export default function FichaPessoa({ pessoaId, aberta, fechar, aoCriar }: {
                 <Link to={`/app/acessos/${ficha.pessoa.id}`} className="mt-2 flex items-center gap-3 rounded-xl border border-border/70 px-3 py-3 hover:bg-[#f1f6fd]">
                   <KeyRound className="w-4 h-4 text-[#0059b1]" /><span className="flex-1 text-sm font-medium">Abrir acessos desta pessoa</span><ChevronRight className="w-4 h-4 text-muted-foreground" />
                 </Link>
+                {ficha.pessoa.user_id && <div className="mt-2"><ResetarSenhaPessoa pessoa={ficha.pessoa} className="w-full justify-start rounded-xl text-amber-800 border-amber-300 hover:bg-amber-50 hover:text-amber-900" /></div>}
               </Bloco>
               <SecaoExcluir ficha={ficha} aoExcluir={() => { qc.invalidateQueries({ queryKey: ["pessoas-listagem"] }); qc.invalidateQueries({ queryKey: ["people-full"] }); fechar(); }} />
             </>

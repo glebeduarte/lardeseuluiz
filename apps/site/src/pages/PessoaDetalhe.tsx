@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import AppLayout from "@/components/app/AppLayout";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import ResetarSenhaPessoa from "@/components/pessoas/ResetarSenhaPessoa";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -201,7 +202,10 @@ export default function PessoaDetalhe() {
             {person.email && <span>{person.email}</span>}
             {person.phone && <span>{person.phone}</span>}
           </div>
-          <Button asChild className="mt-3"><Link to={`/app/acessos/${person.id}`}><KeyRound className="w-4 h-4 mr-2" /> Ver e mudar acessos</Link></Button>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button asChild><Link to={`/app/acessos/${person.id}`}><KeyRound className="w-4 h-4 mr-2" /> Ver e mudar acessos</Link></Button>
+            <ResetarSenhaPessoa pessoa={person} />
+          </div>
         </div>
 
         {/* Permissões ativas */}
