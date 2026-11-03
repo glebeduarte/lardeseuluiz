@@ -184,7 +184,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const simulando = isRealAdmin && viewAsRole && viewAsRole !== "admin";
 
   return (
-    <MolduraSistema
+    <MolduraSistema cliente={supabase}
       sistema="atendimento" titulo="Atendimento" subtitulo="Sistema de Macas" iconeSistema={HeartPulse}
       grupos={grupos} ativo={isActive} Link={LinkTS} areas={areas} navegar={navegar}
       usuario={{ nome: displayName, papel: simulando ? `Vendo como ${papel}` : papel, foto: areas?.foto }}

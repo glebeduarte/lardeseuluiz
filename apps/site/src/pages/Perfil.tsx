@@ -296,7 +296,7 @@ export default function Perfil() {
   };
 
   return (
-    <MolduraSimples sistema="perfil" areas={areas} usuario={{ nome, foto }} navegar={navegar} aoSair={async () => { await signOut(); navigate("/login"); }}>
+    <MolduraSimples cliente={supabase} sistema="perfil" areas={areas} usuario={{ nome, foto }} navegar={navegar} aoSair={async () => { await signOut(); navigate("/login"); }}>
       {carregando ? (
         <div className="flex items-center justify-center py-32 text-muted-foreground gap-2">
           <Loader2 className="w-5 h-5 animate-spin" /> Carregando...

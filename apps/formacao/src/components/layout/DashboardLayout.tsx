@@ -1,8 +1,6 @@
 import { ReactNode, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useAdminNotifications } from '@/hooks/useAdminNotifications';
-import { NotificationBell } from '@/components/layout/NotificationBell';
 import { supabase } from '@/integrations/supabase/client';
 import { MolduraSistema, useAreasLsl, type GrupoMenuLsl, type LinkLslProps } from '@/compartilhado';
 import { AlunoLayout } from '@/components/aluno/AlunoLayout';
@@ -81,8 +79,6 @@ export function DashboardLayout({ children, larguraTotal }: DashboardLayoutProps
   const { pathname, search } = useLocation();
   const areas = useAreasLsl(supabase, user?.id);
 
-  useAdminNotifications();
-
   const handleSignOut = async () => {
     await signOut();
     navigate('/auth');
@@ -135,12 +131,11 @@ export function DashboardLayout({ children, larguraTotal }: DashboardLayoutProps
   }
 
   return (
-    <MolduraSistema
+    <MolduraSistema cliente={supabase}
       sistema="formacao" titulo="Formação" subtitulo={isAdmin ? 'Gestão de cursos' : 'Área do aluno'} iconeSistema={GraduationCap}
       grupos={isAdmin ? gruposAdmin : isFacilitador ? [...gruposAluno, ...gruposFacilitador] : gruposAluno} ativo={ativo} Link={LinkRR} areas={areas} navegar={navegar}
       usuario={{ nome: areas?.nome || profile?.full_name || user.email?.split('@')[0] || '', papel: isAdmin ? 'Administrador' : isFacilitador ? 'Facilitador' : 'Aluno', foto: areas?.foto || profile?.avatar_url }}
       aoAbrirPerfil={() => window.location.assign('/app/perfil')} aoSair={handleSignOut}
-      extraBarra={<div className="lsl-sino">{<NotificationBell />}</div>}
       larguraTotal={larguraTotal}
       semOQueFazer
     >

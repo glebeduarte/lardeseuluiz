@@ -239,3 +239,32 @@ button.lsl-barra__perfil { border: 0; cursor: pointer; font-family: inherit; }
 @media (prefers-reduced-motion: reduce) { .lsl-fazer__fundo, .lsl-fazer__painel { animation: none; } }
 .lsl-conteudo { padding-bottom: 96px; }
 body:has([data-lsl-barra-inferior]) .lsl-fazer-botao { bottom: 80px; }
+
+/* ---------- Sino de avisos da gestão ---------- */
+.lsl-avisos { position: relative; }
+.lsl-avisos__sino { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border: 0; border-radius: 999px; background: transparent; color: var(--lsl-azul-escuro); cursor: pointer; }
+.lsl-avisos__sino:hover { background: #eef4fb; }
+.lsl-avisos__selo { position: absolute; top: 2px; right: 0; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: #dc2626; color: #fff; font-size: 11px; font-weight: 700; line-height: 18px; text-align: center; }
+.lsl-avisos__painel { position: absolute; right: 0; top: calc(100% + 8px); z-index: 70; width: min(380px, calc(100vw - 24px)); background: #fff; border-radius: 14px; box-shadow: 0 12px 32px rgba(15,35,60,.18), 0 0 0 1px #e8edf3; overflow: hidden; font-family: var(--lsl-fonte); color: var(--lsl-texto); }
+.lsl-avisos__topo { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 14px; border-bottom: 1px solid #eef2f6; }
+.lsl-avisos__topo strong { font-size: 15px; }
+.lsl-avisos__topo button { display: inline-flex; align-items: center; gap: 4px; border: 0; background: transparent; color: var(--lsl-azul-escuro); font: inherit; font-size: 12px; cursor: pointer; padding: 4px 6px; border-radius: 6px; }
+.lsl-avisos__topo button:hover { background: #eef4fb; }
+.lsl-avisos__filtros { display: flex; gap: 6px; padding: 8px 14px; overflow-x: auto; border-bottom: 1px solid #eef2f6; }
+.lsl-avisos__filtros button { flex: none; border: 1px solid #dde5ee; background: #fff; border-radius: 999px; padding: 3px 10px; font: inherit; font-size: 12px; cursor: pointer; color: var(--lsl-texto); }
+.lsl-avisos__filtros button.ativo { background: var(--lsl-azul-escuro); border-color: var(--lsl-azul-escuro); color: #fff; }
+.lsl-avisos__lista { max-height: 60vh; overflow-y: auto; padding: 6px; }
+.lsl-avisos__vazio { margin: 0; padding: 28px 12px; text-align: center; font-size: 14px; color: #64748b; }
+.lsl-avisos__item { width: 100%; display: flex; align-items: flex-start; gap: 10px; padding: 10px; border: 0; border-radius: 10px; background: transparent; text-align: left; font: inherit; color: inherit; cursor: pointer; }
+.lsl-avisos__item:hover { background: #f4f7fb; }
+.lsl-avisos__item--novo { background: #f3f8fe; }
+.lsl-avisos__icone { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 999px; background: #e3eefa; color: var(--lsl-azul-escuro); }
+.lsl-avisos__icone--formacao { background: #fff3cc; color: #8a6200; }
+.lsl-avisos__icone--atendimento { background: #e0f4f1; color: #0f766e; }
+.lsl-avisos__icone--rifas { background: #fde8e8; color: #b42318; }
+.lsl-avisos__texto { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.lsl-avisos__texto strong { font-size: 14px; }
+.lsl-avisos__item:not(.lsl-avisos__item--novo) .lsl-avisos__texto strong { font-weight: 500; }
+.lsl-avisos__texto span { font-size: 13px; color: #475569; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.lsl-avisos__texto small { font-size: 12px; color: #94a3b8; }
+.lsl-avisos__ponto { flex: none; width: 8px; height: 8px; margin-top: 6px; border-radius: 999px; background: var(--lsl-azul-escuro); }

@@ -2,6 +2,7 @@
 import { useEffect, useState, type MouseEvent, type ReactNode } from "react";
 import { Globe, Landmark, GraduationCap, HeartPulse, LogOut, Menu, UserRound, X } from "lucide-react";
 import logo from "./logo-lsl.png";
+import { SinoAvisos, veAvisos } from "./SinoAvisos";
 
 // Barra fina no topo de todas as áreas logadas: Site, Governança, Formação, Atendimento e Meu perfil.
 // Mostra só as áreas que a conta pode abrir (função public.minhas_areas no banco).
@@ -71,9 +72,11 @@ export interface BarraSistemasProps {
   extra?: ReactNode;
   /** Quando vem, o botão do perfil abre um menu com "Meu perfil" e "Sair". */
   aoSair?: () => void;
+  /** Cliente Supabase do app. Com ele, a barra mostra o sino de avisos para quem cuida de alguma área. */
+  cliente?: ClienteSupabase;
 }
 
-export function BarraSistemas({ atual, areas, nome, foto, menuAberto, aoAlternarMenu, navegar, extra, aoSair }: BarraSistemasProps) {
+export function BarraSistemas({ atual, areas, nome, foto, menuAberto, aoAlternarMenu, navegar, extra, aoSair, cliente }: BarraSistemasProps) {
   const [menuPerfil, setMenuPerfil] = useState(false);
   useEffect(() => {
     if (!menuPerfil) return;
@@ -120,6 +123,7 @@ export function BarraSistemas({ atual, areas, nome, foto, menuAberto, aoAlternar
       </nav>
       <div className="lsl-barra__fim">
         {extra}
+        {cliente && veAvisos(areas) && <SinoAvisos cliente={cliente} navegar={navegar} />}
         {aoSair ? (
           <div className="lsl-barra__perfil-area">
             <button type="button" onClick={() => setMenuPerfil((v) => !v)} aria-expanded={menuPerfil} aria-haspopup="menu"

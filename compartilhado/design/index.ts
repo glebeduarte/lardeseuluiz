@@ -4,3 +4,4 @@ export * from "./CabecalhoPagina";
 export * from "./OQueFazer";
 export * from "./CadastroObrigatorio";
 export * from "./TrocaSenhaObrigatoria";
+export * from "./SinoAvisos";

@@ -38,8 +38,11 @@ export interface MolduraSistemaProps {
   rodape?: (recolhida: boolean) => ReactNode;
   /** Faixas acima do conteúdo (simulação, avisos). */
   avisos?: ReactNode;
-  /** Itens à direita da barra de sistemas (ex.: sino de avisos). */
+  /** Itens à direita da barra de sistemas. */
   extraBarra?: ReactNode;
+  /** Cliente Supabase do app: liga o sino de avisos da gestão. */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  cliente?: any;
   navegar?: (href: string) => boolean;
   larguraTotal?: boolean;
   versao?: string;
@@ -66,7 +69,7 @@ export function MolduraSistema(p: MolduraSistemaProps) {
   return (
     <>
       <BarraSistemas atual={p.sistema} areas={p.areas} nome={p.usuario.nome} foto={p.usuario.foto} aoSair={p.aoSair}
-        menuAberto={aberta} aoAlternarMenu={() => setAberta((v) => !v)} navegar={p.navegar} extra={p.extraBarra} />
+        menuAberto={aberta} aoAlternarMenu={() => setAberta((v) => !v)} navegar={p.navegar} extra={p.extraBarra} cliente={p.cliente} />
 
       <div className={`lsl-sombra${aberta ? " lsl-sombra--aberta" : ""}`} onClick={fechar} />
 
@@ -140,15 +143,17 @@ export function MolduraSistema(p: MolduraSistemaProps) {
 }
 
 /** Página só com a barra de sistemas, sem barra lateral (ex.: perfil para quem não é da gestão). */
-export function MolduraSimples({ sistema, areas, usuario, navegar, children, avisos, semOQueFazer, aoSair }: {
+export function MolduraSimples({ sistema, areas, usuario, navegar, children, avisos, semOQueFazer, aoSair, cliente }: {
   sistema: SistemaLsl; areas: AreasLsl | null; usuario?: { nome?: string | null; foto?: string | null };
   navegar?: (href: string) => boolean; children: ReactNode; avisos?: ReactNode; semOQueFazer?: boolean;
   /** Mostra "Sair" no menu do perfil (esta moldura não tem barra lateral). */
   aoSair?: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  cliente?: any;
 }) {
   return (
     <>
-      <BarraSistemas atual={sistema} areas={areas} nome={usuario?.nome} foto={usuario?.foto} navegar={navegar} aoSair={aoSair} />
+      <BarraSistemas atual={sistema} areas={areas} nome={usuario?.nome} foto={usuario?.foto} navegar={navegar} aoSair={aoSair} cliente={cliente} />
       <div className="lsl-corpo lsl-corpo--sem-lateral">
         {avisos}
         <main className="lsl-conteudo">{children}</main>

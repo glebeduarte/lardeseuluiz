@@ -75,7 +75,7 @@ export default function RifaVender() {
   };
 
   return (
-    <MolduraSimples sistema="governanca" areas={areas} aoSair={async () => { await signOut(); navigate("/login"); }} usuario={{ nome: areas?.nome, foto: areas?.foto }}
+    <MolduraSimples cliente={supabase} sistema="governanca" areas={areas} aoSair={async () => { await signOut(); navigate("/login"); }} usuario={{ nome: areas?.nome, foto: areas?.foto }}
       navegar={(h) => { if (h.startsWith("/formacao") || h.startsWith("/atendimento")) return false; navigate(h); return true; }}>
       <div className="rifa-vender-pagina max-w-3xl mx-auto min-w-0">
         <CabecalhoPagina titulo="Vender números da rifa" Link={LinkRR} voltar={{ href: "/app/perfil", rotulo: "Meu perfil" }}

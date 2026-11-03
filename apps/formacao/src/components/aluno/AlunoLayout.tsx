@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Link, useLocation } from 'react-router-dom';
 import { MolduraSimples, type AreasLsl } from '@/compartilhado';
 import { useAuth } from '@/contexts/AuthContext';
@@ -53,7 +54,7 @@ export function AlunoLayout({ children, areas, usuario, navegar, facilitador, ad
   );
 
   return (
-    <MolduraSimples sistema="formacao" areas={areas} usuario={usuario} navegar={navegar} avisos={menu} semOQueFazer aoSair={sair}>
+    <MolduraSimples cliente={supabase} sistema="formacao" areas={areas} usuario={usuario} navegar={navegar} avisos={menu} semOQueFazer aoSair={sair}>
       <div className="lsl-noite min-h-[calc(100vh-108px)]">{children}</div>
     </MolduraSimples>
   );

@@ -23,7 +23,7 @@ export default function AssociateLayout({ children }: { children: ReactNode }) {
   };
 
   return (
-    <MolduraSistema
+    <MolduraSistema cliente={supabase}
       sistema="governanca" titulo="Portal do Associado" subtitulo="Lar de Seu Luiz" iconeSistema={Crown}
       grupos={[{
         rotulo: "Associado",

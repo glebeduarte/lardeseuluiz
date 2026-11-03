@@ -106,7 +106,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   };
 
   return (
-    <MolduraSistema
+    <MolduraSistema cliente={supabase}
       sistema="governanca" titulo="Governança" subtitulo="Sistema de Gestão" iconeSistema={Landmark}
       grupos={grupos} ativo={ativo} Link={LinkRR} areas={areas} navegar={navegar}
       usuario={{ nome: areas?.nome || user?.email?.split("@")[0] || "", papel, foto: areas?.foto }}
