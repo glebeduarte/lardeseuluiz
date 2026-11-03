@@ -1,9 +1,9 @@
 -- Avisos para a gestão em todo o sistema (não só na Formação).
--- Uma tabela única, public.avisos, recebe os avisos de todas as áreas. Cada aviso tem uma área,
+-- Uma tabela única, public.avisos_gestao, recebe os avisos de todas as áreas. Cada aviso tem uma área,
 -- e só vê o aviso quem cuida daquela área. O administrador geral vê todos.
--- A leitura é por pessoa (public.avisos_lidos): quando um admin marca como lido, os outros continuam vendo como novo.
+-- A leitura é por pessoa (public.avisos_gestao_lidos): quando um admin marca como lido, os outros continuam vendo como novo.
 
-create table if not exists public.avisos (
+create table if not exists public.avisos_gestao (
   id uuid primary key default gen_random_uuid(),
   area text not null check (area in ('geral','governanca','formacao','atendimento','rifas')),
   tipo text not null,
@@ -13,11 +13,11 @@ create table if not exists public.avisos (
   related_id uuid,
   criado_em timestamptz not null default now()
 );
-create index if not exists avisos_criado_em_idx on public.avisos (criado_em desc);
-create index if not exists avisos_area_idx on public.avisos (area);
+create index if not exists avisos_gestao_criado_em_idx on public.avisos_gestao (criado_em desc);
+create index if not exists avisos_gestao_area_idx on public.avisos_gestao (area);
 
-create table if not exists public.avisos_lidos (
-  aviso_id uuid not null references public.avisos(id) on delete cascade,
+create table if not exists public.avisos_gestao_lidos (
+  aviso_id uuid not null references public.avisos_gestao(id) on delete cascade,
   user_id uuid not null references auth.users(id) on delete cascade,
   lido_em timestamptz not null default now(),
   primary key (aviso_id, user_id)
@@ -42,15 +42,15 @@ begin
 end $$;
 grant execute on function public.pode_ver_aviso(text) to authenticated;
 
-alter table public.avisos enable row level security;
-alter table public.avisos_lidos enable row level security;
+alter table public.avisos_gestao enable row level security;
+alter table public.avisos_gestao_lidos enable row level security;
 
-drop policy if exists "Ver avisos da minha área" on public.avisos;
-create policy "Ver avisos da minha área" on public.avisos for select to authenticated
+drop policy if exists "Ver avisos da minha área" on public.avisos_gestao;
+create policy "Ver avisos da minha área" on public.avisos_gestao for select to authenticated
   using (public.pode_ver_aviso(area));
 
-drop policy if exists "Ver minhas leituras" on public.avisos_lidos;
-create policy "Ver minhas leituras" on public.avisos_lidos for select to authenticated
+drop policy if exists "Ver minhas leituras" on public.avisos_gestao_lidos;
+create policy "Ver minhas leituras" on public.avisos_gestao_lidos for select to authenticated
   using (user_id = auth.uid());
 
 -- Avisos de quem está logado, com a marca de lido.
@@ -59,8 +59,8 @@ returns table (id uuid, area text, tipo text, titulo text, descricao text, link 
 language sql stable security definer set search_path = public
 as $$
   select a.id, a.area, a.tipo, a.titulo, a.descricao, a.link, a.related_id, a.criado_em,
-         exists (select 1 from public.avisos_lidos l where l.aviso_id = a.id and l.user_id = auth.uid())
-    from public.avisos a
+         exists (select 1 from public.avisos_gestao_lidos l where l.aviso_id = a.id and l.user_id = auth.uid())
+    from public.avisos_gestao a
    where public.pode_ver_aviso(a.area)
    order by a.criado_em desc
    limit least(greatest(coalesce(p_limite, 50), 1), 200)
@@ -74,8 +74,8 @@ as $$
 declare v_qtd int;
 begin
   if auth.uid() is null then return 0; end if;
-  insert into public.avisos_lidos (aviso_id, user_id)
-  select a.id, auth.uid() from public.avisos a
+  insert into public.avisos_gestao_lidos (aviso_id, user_id)
+  select a.id, auth.uid() from public.avisos_gestao a
    where public.pode_ver_aviso(a.area) and (p_ids is null or a.id = any(p_ids))
   on conflict do nothing;
   get diagnostics v_qtd = row_count;
@@ -89,7 +89,7 @@ returns uuid language plpgsql security definer set search_path = public
 as $$
 declare v_id uuid;
 begin
-  insert into public.avisos (area, tipo, titulo, descricao, link, related_id)
+  insert into public.avisos_gestao (area, tipo, titulo, descricao, link, related_id)
   values (p_area, p_tipo, p_titulo, coalesce(p_descricao, ''), p_link, p_related)
   returning id into v_id;
   return v_id;
@@ -139,7 +139,7 @@ drop trigger if exists aviso_nova_pessoa on governanca.people;
 create trigger aviso_nova_pessoa after insert on governanca.people for each row execute function governanca.aviso_nova_pessoa();
 
 -- Avisos não lidos da Formação que já existiam.
-insert into public.avisos (area, tipo, titulo, descricao, link, related_id, criado_em)
+insert into public.avisos_gestao (area, tipo, titulo, descricao, link, related_id, criado_em)
 select 'formacao',
        case when type = 'enrollment' then 'inscricao' else 'cadastro_aluno' end,
        title, description,
@@ -150,7 +150,7 @@ select 'formacao',
 
 -- Tempo real: o sino recebe o aviso novo sem recarregar (respeita a política de leitura acima).
 do $$ begin
-  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'avisos') then
-    alter publication supabase_realtime add table public.avisos;
+  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'avisos_gestao') then
+    alter publication supabase_realtime add table public.avisos_gestao;
   end if;
 end $$;

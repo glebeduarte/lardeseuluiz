@@ -68,7 +68,7 @@ export function SinoAvisos({ cliente, navegar }: { cliente: ClienteSupabase; nav
     carregar();
     const canal = cliente
       .channel(`lsl-avisos-${Math.random().toString(36).slice(2)}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "avisos" }, (payload: { new: Omit<AvisoLsl, "lido"> }) => {
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "avisos_gestao" }, (payload: { new: Omit<AvisoLsl, "lido"> }) => {
         setAvisos((v) => (v.some((x) => x.id === payload.new.id) ? v : [{ ...payload.new, lido: false }, ...v]));
       })
       .subscribe();
