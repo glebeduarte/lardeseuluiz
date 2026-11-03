@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Calendar, Clock, MapPin, BookOpen, Users, Lock, Loader2 } from 'lucide-react';
+import { Calendar, Clock, MapPin, BookOpen, Users, Lock, Loader2, CheckCircle2, MessageCircle, Mail, ArrowRight } from 'lucide-react';
 import { enrollUserInCourse } from '@/lib/enrollments';
 import logo from '@/assets/logo-lar-seu-luiz.png';
 
@@ -78,7 +77,7 @@ function EsdeClosedCard() {
   );
 }
 
-function EsdeRegistrationForm() {
+function EsdeRegistrationForm({ onSuccess }: { onSuccess: (nome: string, email: string) => void }) {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -86,7 +85,6 @@ function EsdeRegistrationForm() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,8 +126,8 @@ function EsdeRegistrationForm() {
 
         if (enrollmentError) console.error('Enrollment error:', enrollmentError);
 
-        toast({ title: "Inscrição realizada com sucesso!", description: "Você foi inscrito no curso ESDE I. Verifique seu e-mail para confirmar sua conta e depois acesse a área do aluno." });
-        setTimeout(() => navigate('/auth'), 3000);
+        onSuccess(fullName.trim(), email.trim());
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     } catch (error: any) {
       console.error('Registration error:', error);
@@ -180,8 +178,85 @@ function EsdeRegistrationForm() {
   );
 }
 
+// Tela exibida logo após a inscrição. O link do grupo vem da aula "Informações Iniciais"
+// (módulo "Comece aqui") por meio da função formacao.esde_link_grupo_whatsapp().
+function EsdeConfirmacao({ nome, email }: { nome: string; email: string }) {
+  const [link, setLink] = useState<string | null>(null);
+  const [carregando, setCarregando] = useState(true);
+  const [clicou, setClicou] = useState(false);
+
+  useEffect(() => {
+    (supabase as any)
+      .rpc('esde_link_grupo_whatsapp')
+      .then(({ data }: { data: string | null }) => {
+        setLink(data ?? null);
+        setCarregando(false);
+      });
+  }, []);
+
+  const primeiroNome = nome.split(' ')[0];
+
+  return (
+    <Card className="rounded-2xl border bg-card shadow-sm">
+      <CardHeader className="space-y-3 text-center">
+        <div className="mx-auto p-3 rounded-full bg-primary/10 w-fit">
+          <CheckCircle2 className="h-10 w-10 text-primary" />
+        </div>
+        <CardTitle className="font-['Playfair_Display'] text-2xl">
+          {primeiroNome ? `${primeiroNome}, sua inscrição foi feita` : 'Inscrição feita'}
+        </CardTitle>
+        <CardDescription>Falta um passo: entrar no grupo de WhatsApp da turma.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-5">
+        <div className="rounded-lg border-2 border-primary/30 bg-primary/5 p-4 space-y-3">
+          <p className="text-sm font-semibold text-foreground">1. Entre no grupo da turma agora</p>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Os avisos, o link das aulas ao vivo e os materiais de estudo são enviados pelo grupo.
+            Quem não entra no grupo fica sem essas informações.
+          </p>
+          {carregando ? (
+            <div className="flex justify-center py-2"><Loader2 className="h-5 w-5 animate-spin text-primary" /></div>
+          ) : link ? (
+            <Button asChild size="lg" className="w-full bg-[#25D366] hover:bg-[#1ebe5a] text-white">
+              <a href={link} target="_blank" rel="noreferrer" onClick={() => setClicou(true)}>
+                <MessageCircle className="h-5 w-5 mr-2" /> Entrar no grupo de WhatsApp
+              </a>
+            </Button>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              O link do grupo também está na primeira aula do curso, em "Comece aqui", dentro da área do aluno.
+            </p>
+          )}
+          {clicou && (
+            <p className="text-xs text-muted-foreground text-center">
+              Se o WhatsApp não abriu, toque no botão de novo ou acesse a aula "Informações Iniciais" na área do aluno.
+            </p>
+          )}
+        </div>
+
+        <div className="rounded-lg bg-muted p-4 space-y-2">
+          <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <Mail className="h-4 w-4" /> 2. Confirme seu e-mail
+          </p>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Enviamos uma mensagem para <span className="font-medium text-foreground break-all">{email}</span>.
+            Clique no link dela para ativar sua conta. Confira também a caixa de spam.
+          </p>
+        </div>
+
+        <Button asChild variant="outline" className="w-full">
+          <a href={`${import.meta.env.BASE_URL}auth`}>
+            3. Acessar a área do aluno <ArrowRight className="h-4 w-4 ml-2" />
+          </a>
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function EsdeRegistration() {
   const [enrollmentOpen, setEnrollmentOpen] = useState<boolean | null>(null);
+  const [inscrito, setInscrito] = useState<{ nome: string; email: string } | null>(null);
 
   useEffect(() => {
     supabase
@@ -215,10 +290,20 @@ export default function EsdeRegistration() {
       </header>
 
       <div className="max-w-5xl mx-auto px-4 py-8">
+        {inscrito ? (
+          <div className="max-w-lg mx-auto">
+            <EsdeConfirmacao nome={inscrito.nome} email={inscrito.email} />
+          </div>
+        ) : (
         <div className="grid md:grid-cols-2 gap-8">
           <EsdeCourseInfo />
-          {enrollmentOpen ? <EsdeRegistrationForm /> : <EsdeClosedCard />}
+          {enrollmentOpen ? (
+            <EsdeRegistrationForm onSuccess={(nome, email) => setInscrito({ nome, email })} />
+          ) : (
+            <EsdeClosedCard />
+          )}
         </div>
+        )}
 
         <div className="text-left mt-12 text-xs text-muted-foreground">
           <p>Lar de Seu Luiz</p>
