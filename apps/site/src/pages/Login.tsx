@@ -31,7 +31,7 @@ const Login = () => {
         if (error) throw error;
         toast.success("Cadastro realizado! Verifique seu e-mail para confirmar.");
       } else {
-        const { error, data } = await supabase.auth.signInWithPassword({ email, password });
+        const { error, data } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
         if (error) throw error;
         toast.success("Login realizado com sucesso!");
         // Redirect based on role

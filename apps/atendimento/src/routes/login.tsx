@@ -27,7 +27,7 @@ function LoginPage() {
   const signIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
     if (error) { setBusy(false); return toast.error(error.message); }
     // Verifica se precisa trocar senha
     if (data.user) {
