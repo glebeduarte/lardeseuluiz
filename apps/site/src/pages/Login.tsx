@@ -81,7 +81,7 @@ const Login = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Senha</Label>
-              <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} />
+              <Input id="password" type="password" autoCapitalize="none" autoCorrect="off" spellCheck={false} value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} />
               {!isSignUp && (
                 <div className="text-right">
                   <Link to="/recuperar-senha" className="text-sm text-muted-foreground hover:text-primary hover:underline underline-offset-4">Esqueci minha senha</Link>

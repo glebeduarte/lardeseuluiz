@@ -82,11 +82,11 @@ const RedefinirSenha = () => {
             <form onSubmit={salvar} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="senha">Nova senha</Label>
-                <Input id="senha" type={mostrar ? "text" : "password"} value={senha} onChange={(e) => setSenha(e.target.value)} autoComplete="new-password" placeholder="Pelo menos 8 caracteres" required autoFocus />
+                <Input id="senha" type={mostrar ? "text" : "password"} autoCapitalize="none" autoCorrect="off" spellCheck={false} value={senha} onChange={(e) => setSenha(e.target.value)} autoComplete="new-password" placeholder="Pelo menos 8 caracteres" required autoFocus />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirma">Repita a nova senha</Label>
-                <Input id="confirma" type={mostrar ? "text" : "password"} value={confirma} onChange={(e) => setConfirma(e.target.value)} autoComplete="new-password" required />
+                <Input id="confirma" type={mostrar ? "text" : "password"} autoCapitalize="none" autoCorrect="off" spellCheck={false} value={confirma} onChange={(e) => setConfirma(e.target.value)} autoComplete="new-password" required />
               </div>
               <label className="flex items-center gap-2 text-sm text-muted-foreground">
                 <input type="checkbox" checked={mostrar} onChange={(e) => setMostrar(e.target.checked)} /> Mostrar senha

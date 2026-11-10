@@ -164,7 +164,7 @@ export default function ResetPassword() {
                 <div className="relative">
                   <Input
                     id="password"
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? 'text' : 'password'} autoCapitalize="none" autoCorrect="off" spellCheck={false}
                     placeholder="••••••••"
                     value={form.password}
                     onChange={(e) => setForm({ ...form, password: e.target.value })}
@@ -187,7 +187,7 @@ export default function ResetPassword() {
                 <Label htmlFor="confirmPassword">Confirmar Nova Senha</Label>
                 <Input
                   id="confirmPassword"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? 'text' : 'password'} autoCapitalize="none" autoCorrect="off" spellCheck={false}
                   placeholder="••••••••"
                   value={form.confirmPassword}
                   onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}

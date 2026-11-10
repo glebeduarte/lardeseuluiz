@@ -263,7 +263,7 @@ export default function Auth() {
                     <div className="relative">
                       <Input
                         id="login-password"
-                        type={showPassword ? 'text' : 'password'}
+                        type={showPassword ? 'text' : 'password'} autoCapitalize="none" autoCorrect="off" spellCheck={false}
                         placeholder="••••••••"
                         value={loginForm.password}
                         onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
@@ -343,7 +343,7 @@ export default function Auth() {
                     <div className="relative">
                       <Input
                         id="signup-password"
-                        type={showPassword ? 'text' : 'password'}
+                        type={showPassword ? 'text' : 'password'} autoCapitalize="none" autoCorrect="off" spellCheck={false}
                         placeholder="••••••••"
                         value={signUpForm.password}
                         onChange={(e) => setSignUpForm({ ...signUpForm, password: e.target.value })}
@@ -366,7 +366,7 @@ export default function Auth() {
                     <Label htmlFor="signup-confirm">Confirmar Senha</Label>
                     <Input
                       id="signup-confirm"
-                      type={showPassword ? 'text' : 'password'}
+                      type={showPassword ? 'text' : 'password'} autoCapitalize="none" autoCorrect="off" spellCheck={false}
                       placeholder="••••••••"
                       value={signUpForm.confirmPassword}
                       onChange={(e) => setSignUpForm({ ...signUpForm, confirmPassword: e.target.value })}

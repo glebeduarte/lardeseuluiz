@@ -106,7 +106,7 @@ function RedefinirSenhaPage() {
                 <div className="relative">
                   <Input
                     id="s1"
-                    type={mostrarSenha ? "text" : "password"}
+                    type={mostrarSenha ? "text" : "password"} autoCapitalize="none" autoCorrect="off" spellCheck={false}
                     required
                     value={senha}
                     onChange={(e) => setSenha(e.target.value)}
@@ -127,7 +127,7 @@ function RedefinirSenhaPage() {
                 <div className="relative">
                   <Input
                     id="s2"
-                    type={mostrarConfirma ? "text" : "password"}
+                    type={mostrarConfirma ? "text" : "password"} autoCapitalize="none" autoCorrect="off" spellCheck={false}
                     required
                     value={confirma}
                     onChange={(e) => setConfirma(e.target.value)}

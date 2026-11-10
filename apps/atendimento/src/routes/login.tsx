@@ -63,7 +63,7 @@ function LoginPage() {
               <div className="relative">
                 <Input
                   id="pwd"
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? "text" : "password"} autoCapitalize="none" autoCorrect="off" spellCheck={false}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}

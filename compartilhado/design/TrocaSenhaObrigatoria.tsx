@@ -93,11 +93,11 @@ export function TrocaSenhaObrigatoria({ cliente }: { cliente: ClienteSupabase })
         <div className="mt-6 grid gap-4">
           <label className="grid gap-1.5">
             <span className="text-[15px] font-semibold">Nova senha</span>
-            <input type={mostrar ? "text" : "password"} value={senha} onChange={(e) => setSenha(e.target.value)} autoComplete="new-password" className="lsl-senha-input" placeholder="Pelo menos 8 caracteres" />
+            <input type={mostrar ? "text" : "password"} autoCapitalize="none" autoCorrect="off" spellCheck={false} value={senha} onChange={(e) => setSenha(e.target.value)} autoComplete="new-password" className="lsl-senha-input" placeholder="Pelo menos 8 caracteres" />
           </label>
           <label className="grid gap-1.5">
             <span className="text-[15px] font-semibold">Repita a nova senha</span>
-            <input type={mostrar ? "text" : "password"} value={confirma} onChange={(e) => setConfirma(e.target.value)} autoComplete="new-password" className="lsl-senha-input" />
+            <input type={mostrar ? "text" : "password"} autoCapitalize="none" autoCorrect="off" spellCheck={false} value={confirma} onChange={(e) => setConfirma(e.target.value)} autoComplete="new-password" className="lsl-senha-input" />
           </label>
           <label className="flex items-center gap-2 text-[14px] text-[#475569]">
             <input type="checkbox" checked={mostrar} onChange={(e) => setMostrar(e.target.checked)} /> Mostrar senha
