@@ -51,22 +51,25 @@ Deno.serve(async (req) => {
     const ideia = String(corpo.ideia ?? "").trim().slice(0, 400);
     if (!tema) return json({ error: "A aula precisa ter um tema para gerar a imagem." });
 
-    const resp = await fetch("https://api.openai.com/v1/images/generations", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${chave}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: Deno.env.get("OPENAI_IMAGE_MODEL") ?? "gpt-image-1",
-        prompt: montarPrompt(tema, modulo, ideia),
-        size: "1024x1024",
-        quality: "medium",
-        n: 1,
-      }),
-    });
-    const dados = await resp.json();
-    if (!resp.ok) {
-      console.error("OpenAI", dados);
-      return json({ error: `A IA não conseguiu gerar a imagem: ${dados?.error?.message ?? resp.status}` });
+    // Tenta o modelo configurado e, se a conta não tiver acesso a ele, os seguintes da lista
+    const modelos = [Deno.env.get("OPENAI_IMAGE_MODEL"), "gpt-image-2", "chatgpt-image-latest", "gpt-image-1.5", "gpt-image-1"]
+      .filter((m, i, l): m is string => !!m && l.indexOf(m) === i);
+    let dados: any = null;
+    let ultimoErro = "";
+    for (const modelo of modelos) {
+      const resp = await fetch("https://api.openai.com/v1/images/generations", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${chave}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ model: modelo, prompt: montarPrompt(tema, modulo, ideia), size: "1024x1024", quality: "medium", n: 1 }),
+      });
+      const r = await resp.json();
+      if (resp.ok) { dados = r; break; }
+      console.error("OpenAI", modelo, r);
+      ultimoErro = r?.error?.message ?? String(resp.status);
+      const semAcesso = /does not exist|not found|model_not_found|must be verified|do not have access/i.test(ultimoErro);
+      if (!semAcesso) break;
     }
+    if (!dados) return json({ error: `A IA não conseguiu gerar a imagem: ${ultimoErro}` });
     const b64 = dados?.data?.[0]?.b64_json;
     if (!b64) return json({ error: "A IA não devolveu imagem. Tente de novo." });
     return json({ imagem: `data:image/png;base64,${b64}` });

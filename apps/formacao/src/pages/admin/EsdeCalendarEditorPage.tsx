@@ -182,77 +182,75 @@ export default function EsdeCalendarEditorPage() {
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
         ) : (
-          <div className="rounded-lg border bg-card overflow-x-auto">
-            <div>
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50 border-b border-border">
-                  <tr>
-                    <th className="px-3 py-3 text-left font-medium text-muted-foreground w-[80px]">Ordem</th>
-                    <th className="px-3 py-3 text-left font-medium text-muted-foreground w-[110px]">Data</th>
-                    <th className="px-3 py-3 text-left font-medium text-muted-foreground w-[80px]">Nº</th>
-                    <th className="px-3 py-3 text-left font-medium text-muted-foreground">Tema</th>
-                    <th className="px-3 py-3 text-left font-medium text-muted-foreground w-[120px]">Módulo</th>
-                    <th className="px-3 py-3 text-left font-medium text-muted-foreground w-[150px]">Facilitador</th>
-                    <th className="px-3 py-3 text-left font-medium text-muted-foreground w-[90px]">Tipo</th>
-                    <th className="px-3 py-3 text-right font-medium text-muted-foreground w-[240px]">Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {entries.map((e, i) => (
-                    <tr key={e.id} className="border-b border-border last:border-0 hover:bg-muted/30">
-                      <td className="px-3 py-2">
-                        <div className="flex items-center gap-1">
-                          <Button size="icon" variant="ghost" className="h-7 w-7" disabled={i === 0} onClick={() => move(i, -1)}>
-                            <ArrowUp className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button size="icon" variant="ghost" className="h-7 w-7" disabled={i === entries.length - 1} onClick={() => move(i, 1)}>
-                            <ArrowDown className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      </td>
-                      <td className="px-3 py-2 font-medium">{e.date_label}</td>
-                      <td className="px-3 py-2">{e.roteiro || '—'}</td>
-                      <td className="px-3 py-2 max-w-[420px] truncate">{e.tema || <span className="text-muted-foreground italic">—</span>}</td>
-                      <td className="px-3 py-2">
+          <div className="rounded-lg border bg-card">
+            <table className="w-full text-sm table-fixed">
+              <thead className="bg-muted/50 border-b border-border">
+                <tr>
+                  <th className="px-2 py-3 text-left font-medium text-muted-foreground w-[44px]"><span className="sr-only">Ordem</span></th>
+                  <th className="px-2 py-3 text-left font-medium text-muted-foreground w-[96px]">Data</th>
+                  <th className="px-2 py-3 text-left font-medium text-muted-foreground">Aula</th>
+                  <th className="px-2 py-3 text-right font-medium text-muted-foreground w-[112px]">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {entries.map((e, i) => (
+                  <tr key={e.id} className="border-b border-border last:border-0 hover:bg-muted/30 align-top">
+                    <td className="px-1 py-2">
+                      <div className="flex flex-col items-center">
+                        <Button size="icon" variant="ghost" className="h-7 w-7" disabled={i === 0} onClick={() => move(i, -1)} aria-label="Subir">
+                          <ArrowUp className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7" disabled={i === entries.length - 1} onClick={() => move(i, 1)} aria-label="Descer">
+                          <ArrowDown className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </td>
+                    <td className="px-2 py-2">
+                      <p className="font-medium">{e.date_label}</p>
+                      {e.roteiro && <p className="text-xs text-muted-foreground">Roteiro {e.roteiro}</p>}
+                    </td>
+                    <td className="px-2 py-2">
+                      <p className="break-words">{e.tema || <span className="text-muted-foreground italic">Sem tema</span>}</p>
+                      <div className="flex flex-wrap items-center gap-1.5 mt-1">
                         {e.modulo && (
-                          <Badge variant="outline" className={moduloColors[e.modulo] || ''}>{e.modulo}</Badge>
+                          <Badge variant="outline" className={`text-xs ${moduloColors[e.modulo] || ''}`}>{e.modulo}</Badge>
                         )}
-                      </td>
-                      <td className="px-3 py-2 text-muted-foreground">{e.facilitador || '—'}</td>
-                      <td className="px-3 py-2">
-                        <Badge variant="outline" className="bg-muted text-muted-foreground border-border capitalize text-xs">{e.tipo}</Badge>
-                      </td>
-                      <td className="px-3 py-2 text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          {e.tipo === 'aula' && e.tema && (
-                            <Button
-                              size="sm" variant="ghost" className="gap-1"
-                              title="Gerar imagem da aula"
-                              onClick={() => setAulaImagem({ tema: e.tema, modulo: e.modulo, roteiro: e.roteiro })}
-                            >
-                              <ImageIcon className="h-3.5 w-3.5" /> Imagem
-                            </Button>
-                          )}
-                          <Button size="sm" variant="ghost" onClick={() => openEdit(e)} className="gap-1">
-                            <Pencil className="h-3.5 w-3.5" /> Editar
+                        {e.tipo !== 'aula' && (
+                          <Badge variant="outline" className="bg-muted text-muted-foreground border-border capitalize text-xs">{e.tipo}</Badge>
+                        )}
+                        {e.facilitador && <span className="text-xs text-muted-foreground">{e.facilitador}</span>}
+                      </div>
+                    </td>
+                    <td className="px-1 py-2">
+                      <div className="flex items-center justify-end gap-0.5">
+                        {e.tipo === 'aula' && e.tema && (
+                          <Button
+                            size="icon" variant="ghost" className="h-8 w-8 text-primary"
+                            title="Gerar imagem da aula" aria-label="Gerar imagem da aula"
+                            onClick={() => setAulaImagem({ tema: e.tema, modulo: e.modulo, roteiro: e.roteiro })}
+                          >
+                            <ImageIcon className="h-4 w-4" />
                           </Button>
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteId(e.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {entries.length === 0 && (
-                    <tr>
-                      <td colSpan={8} className="px-3 py-12 text-center text-muted-foreground">
-                        Nenhuma entrada cadastrada.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                        )}
+                        <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => openEdit(e)} title="Editar" aria-label="Editar">
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteId(e.id)} title="Remover" aria-label="Remover">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {entries.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="px-3 py-12 text-center text-muted-foreground">
+                      Nenhuma entrada cadastrada.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
