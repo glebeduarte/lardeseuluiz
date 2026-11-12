@@ -16,7 +16,8 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Plus, Pencil, Trash2, ArrowUp, ArrowDown, Loader2, Save } from 'lucide-react';
+import { Calendar, Plus, Pencil, Trash2, ArrowUp, ArrowDown, Loader2, Save, ImageIcon } from 'lucide-react';
+import { GerarImagemAula, type AulaParaImagem } from '@/components/admin/GerarImagemAula';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -72,6 +73,7 @@ export default function EsdeCalendarEditorPage() {
   const [editing, setEditing] = useState<Entry | null>(null);
   const [form, setForm] = useState<Omit<Entry, 'id'>>(emptyEntry('ESDE_I'));
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [aulaImagem, setAulaImagem] = useState<AulaParaImagem | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -192,7 +194,7 @@ export default function EsdeCalendarEditorPage() {
                     <th className="px-3 py-3 text-left font-medium text-muted-foreground w-[120px]">Módulo</th>
                     <th className="px-3 py-3 text-left font-medium text-muted-foreground w-[150px]">Facilitador</th>
                     <th className="px-3 py-3 text-left font-medium text-muted-foreground w-[90px]">Tipo</th>
-                    <th className="px-3 py-3 text-right font-medium text-muted-foreground w-[160px]">Ações</th>
+                    <th className="px-3 py-3 text-right font-medium text-muted-foreground w-[240px]">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -222,6 +224,15 @@ export default function EsdeCalendarEditorPage() {
                       </td>
                       <td className="px-3 py-2 text-right">
                         <div className="flex items-center justify-end gap-1">
+                          {e.tipo === 'aula' && e.tema && (
+                            <Button
+                              size="sm" variant="ghost" className="gap-1"
+                              title="Gerar imagem da aula"
+                              onClick={() => setAulaImagem({ tema: e.tema, modulo: e.modulo, roteiro: e.roteiro })}
+                            >
+                              <ImageIcon className="h-3.5 w-3.5" /> Imagem
+                            </Button>
+                          )}
                           <Button size="sm" variant="ghost" onClick={() => openEdit(e)} className="gap-1">
                             <Pencil className="h-3.5 w-3.5" /> Editar
                           </Button>
@@ -323,6 +334,8 @@ export default function EsdeCalendarEditorPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <GerarImagemAula aula={aulaImagem} onClose={() => setAulaImagem(null)} />
 
       <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
         <AlertDialogContent>
