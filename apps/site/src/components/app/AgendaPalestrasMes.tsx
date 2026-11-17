@@ -11,6 +11,7 @@ import { CalendarIcon, Plus, Trash2, Copy, Check, ChevronLeft, ChevronRight } fr
 import { addMonths, endOfMonth, startOfMonth } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import MensagemPalestra from "./MensagemPalestra";
 
 const DIAS_SEMANA: Record<number, string> = {
   0: "DOM", 1: "SEG", 2: "TER", 3: "QUA", 4: "QUI", 5: "SEX", 6: "SAB",
@@ -304,7 +305,9 @@ export default function AgendaPalestrasMes({ podeEditar = true }: { podeEditar?:
                         <td style={{ padding: "8px 12px", textAlign: "left", borderRight: borderStyle, borderBottom: borderStyle, fontWeight: r.tema !== "-" ? 600 : 400 }}>
                           {r.tema}
                         </td>
-                        <td style={{ padding: "4px 8px", textAlign: "center", borderBottom: borderStyle }}>
+                        <td data-sem-copia style={{ padding: "4px 8px", textAlign: "center", borderBottom: borderStyle, whiteSpace: "nowrap" }}>
+                          <span className="inline-flex items-center gap-3">
+                          {r.tema !== "-" && <MensagemPalestra palestra={r} />}
                           {podeEditar && <button
                             onClick={() => handleDelete(r.id)}
                             disabled={deleting === r.id}
@@ -313,6 +316,7 @@ export default function AgendaPalestrasMes({ podeEditar = true }: { podeEditar?:
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>}
+                          </span>
                         </td>
                       </tr>
                     );
