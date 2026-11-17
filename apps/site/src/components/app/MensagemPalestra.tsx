@@ -80,7 +80,7 @@ export default function MensagemPalestra({ palestra }: { palestra: PalestraMensa
 
   const gerar = async () => {
     setGerando(true);
-    const { data, error } = await supabase.functions.invoke("gerar-mensagem-palestra", { body: { tema: palestra.tema } });
+    const { data, error } = await supabase.functions.invoke("supabase-functions-deploy-gerar-mensagem-palestra---project-ref-pbwyxunwteaocqssqpuv", { body: { tema: palestra.tema } });
     setGerando(false);
     if (error || data?.error) {
       toast.error(data?.error ?? "Não foi possível gerar a introdução. A mensagem saiu sem ela; você pode escrever à mão.");
