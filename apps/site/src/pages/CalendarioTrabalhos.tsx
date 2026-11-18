@@ -9,7 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { PaginaSite } from "@/components/inicio/Pagina";
 import { toast } from "sonner";
 import { Printer, Pencil, Plus, Trash2, Tags, CalendarPlus, Check } from "lucide-react";
 
@@ -46,10 +47,10 @@ function dataEquivalente(dataIso: string, anoDestino: number): string {
   return iso(anoDestino, mes, alvo);
 }
 
-export default function CalendarioTrabalhos() {
+export default function CalendarioTrabalhos({ publico = false }: { publico?: boolean }) {
   const qc = useQueryClient();
   const { isAdmin, canAccess } = usePermissions();
-  const podeEditar = isAdmin || canAccess("modulo_gestao");
+  const podeEditar = !publico && (isAdmin || canAccess("modulo_gestao"));
 
   const [calId, setCalId] = useState<string>("");
   const [filtro, setFiltro] = useState<string | null>(null);
@@ -116,14 +117,13 @@ export default function CalendarioTrabalhos() {
 
   const ano = cal?.ano ?? new Date().getFullYear();
 
-  return (
-    <AppLayout>
-      <TooltipProvider>
+  const conteudo = (
+      <>
         <div className="max-w-7xl mx-auto space-y-5 print:space-y-2">
           <div className="flex flex-wrap items-end justify-between gap-3 print:hidden">
             <div>
-              <h1 className="text-2xl font-bold">Calendário de trabalhos</h1>
-              <p className="text-sm text-muted-foreground">Dias de trabalho, atendimentos, cursos, reuniões e eventos da casa no ano.</p>
+              {!publico && <h1 className="text-2xl font-bold">Calendário de trabalhos</h1>}
+              <p className="text-sm text-muted-foreground">Toque em um dia colorido para ver o que acontece nele.</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               {calendarios.length > 0 && (
@@ -206,9 +206,9 @@ export default function CalendarioTrabalhos() {
                             : ativs[0] ? `${ativs[0].cor}30` : undefined;
                         const dica = [...ativs.map((a) => a.nome), ...(feriado ? ["Feriado"] : [])].join(", ");
                         const el = (
-                          <button type="button" disabled={!editando} onClick={() => setDiaAberto(chave)}
+                          <button type="button" disabled={!editando && !dica} onClick={editando ? () => setDiaAberto(chave) : undefined}
                             className={`relative w-full aspect-square flex items-center justify-center text-sm font-medium rounded-md print:text-[10px]
-                              ${ativs.length ? "border" : ""} ${editando ? "hover:ring-2 hover:ring-primary cursor-pointer" : "cursor-default"}
+                              ${ativs.length ? "border" : ""} ${editando || dica ? "hover:ring-2 hover:ring-primary cursor-pointer" : "cursor-default"}
                               ${feriado ? "font-bold" : ""} ${i % 7 === 0 && !ativs.length && !feriado ? "text-destructive/70" : ""}
                               ${combina ? "" : "opacity-20"}`}
                             style={{ background: fundo, borderColor: ativs[0]?.cor, color: feriado ? "#9ca3af" : undefined }}>
@@ -216,12 +216,27 @@ export default function CalendarioTrabalhos() {
                             {ativs.length > 1 && <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-foreground/70" />}
                           </button>
                         );
-                        return dica ? (
-                          <Tooltip key={i} delayDuration={200}>
-                            <TooltipTrigger asChild><div>{el}</div></TooltipTrigger>
-                            <TooltipContent><p className="text-xs">{dica}</p></TooltipContent>
-                          </Tooltip>
-                        ) : <div key={i}>{el}</div>;
+                        if (!dica || editando) return <div key={i}>{el}</div>;
+                        const [, mm, dd] = chave.split("-");
+                        return (
+                          <Popover key={i}>
+                            <PopoverTrigger asChild>{el}</PopoverTrigger>
+                            <PopoverContent side="top" className="w-60 p-3">
+                              <p className="text-xs font-semibold text-muted-foreground mb-2">
+                                {new Date(ano, Number(mm) - 1, Number(dd)).toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })}
+                              </p>
+                              <ul className="space-y-1.5">
+                                {ativs.map((a) => (
+                                  <li key={a.id} className="flex items-center gap-2 text-sm"><span className="w-3 h-3 rounded shrink-0" style={{ backgroundColor: a.cor }} />{a.nome}</li>
+                                ))}
+                                {feriado && (
+                                  <li className="flex items-center gap-2 text-sm"><span className="w-3 h-3 rounded shrink-0" style={{ backgroundColor: COR_FERIADO }} />
+                                    Feriado{feriados.find((f) => f.data === chave)?.nome ? `: ${feriados.find((f) => f.data === chave)?.nome}` : ""}</li>
+                                )}
+                              </ul>
+                            </PopoverContent>
+                          </Popover>
+                        );
                       })}
                     </div>
                   </div>
@@ -239,9 +254,15 @@ export default function CalendarioTrabalhos() {
           onMudou={() => { qc.invalidateQueries({ queryKey: ["cal-categorias"] }); recarregar(); }} />
         <DialogNovoAno aberto={abrirNovoAno} onFechar={() => setAbrirNovoAno(false)} calendarios={calendarios}
           onCriado={(id) => { qc.invalidateQueries({ queryKey: ["cal-calendarios"] }); setCalId(id); }} />
-      </TooltipProvider>
-    </AppLayout>
+      </>
   );
+
+  return publico ? (
+    <PaginaSite documento="Calendário" titulo={`Calendário de trabalhos ${ano}`}
+      intro="Dias de trabalho, atendimentos ao público, cursos, reuniões e eventos da casa ao longo do ano.">
+      {conteudo}
+    </PaginaSite>
+  ) : <AppLayout>{conteudo}</AppLayout>;
 }
 
 function DialogDia({ data, calId, categorias, eventos, feriado, onFechar, onSalvo }: {

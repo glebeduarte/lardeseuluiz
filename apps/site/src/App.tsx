@@ -81,6 +81,7 @@ const App = () => (
             <Route path="/redefinir-senha" element={<RedefinirSenha />} />
             <Route path="/atendimentos" element={<AtendimentosPublic />} />
             <Route path="/agenda" element={<Agenda />} />
+            <Route path="/calendario" element={<CalendarioTrabalhos publico />} />
             <Route path="/a-casa" element={<ACasa />} />
             <Route path="/projetos/:slug" element={<Projeto />} />
             <Route path="/rifas" element={<Rifas />} />

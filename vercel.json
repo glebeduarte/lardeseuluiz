@@ -87,7 +87,7 @@
           "value": "calendario.lardeseuluiz.com.br"
         }
       ],
-      "destination": "https://lardeseuluiz.com.br/app/calendario",
+      "destination": "https://lardeseuluiz.com.br/calendario",
       "permanent": true
     },
     {
@@ -117,7 +117,7 @@
       "permanent": false
     },
     {
-      "source": "/calendario/:codigo?",
+      "source": "/calendario/:codigo",
       "destination": "/formacao/esde/calendario",
       "permanent": false
     },
