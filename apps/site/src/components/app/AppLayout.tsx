@@ -29,6 +29,7 @@ const navGroups: NavGroup[] = [
       { to: "/app/familias", icon: Home, label: "Famílias atendidas", perm: "modulo_projetos" },
       { to: "/app/rifas", icon: Ticket, label: "Rifas", perm: "rifas_opera" },
       { to: "/app/rifas/vender", icon: Ticket, label: "Vender rifa", perm: "rifas_vende" },
+      { to: "/app/calendario", icon: CalendarDays, label: "Calendário de trabalhos", perm: "always" },
       { to: "/app/eventos", icon: CalendarDays, label: "Eventos e palestras", perm: "always" },
       { href: "/atendimento/", icon: HeartPulse, label: "Sistema de Macas", perm: "modulo_macas" },
       { href: "/formacao/admin", icon: GraduationCap, label: "Formação", perm: "modulo_formacao" },

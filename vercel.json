@@ -87,7 +87,7 @@
           "value": "calendario.lardeseuluiz.com.br"
         }
       ],
-      "destination": "https://lardeseuluiz.com.br/calendario/:path*",
+      "destination": "https://lardeseuluiz.com.br/app/calendario",
       "permanent": true
     },
     {

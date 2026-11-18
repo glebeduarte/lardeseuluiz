@@ -26,6 +26,7 @@ import MeusDados from "./pages/associate/MeusDados";
 import SecretariasPage from "./pages/Secretarias";
 import SecretariaDetalhePage from "./pages/SecretariaDetalhe";
 import SecretariaTarefas from "./pages/SecretariaTarefas";
+import CalendarioTrabalhos from "./pages/CalendarioTrabalhos";
 import Eventos from "./pages/Eventos";
 import Stories from "./pages/Stories";
 import Associados from "./pages/Associados";
@@ -96,6 +97,7 @@ const App = () => (
             <Route path="/app/usuarios" element={<Navigate to="/app/pessoas" replace />} />
             <Route path="/app/secretarias" element={<SecretariasPage />} />
             <Route path="/app/eventos" element={<Eventos />} />
+            <Route path="/app/calendario" element={<CalendarioTrabalhos />} />
             <Route path="/app/associados" element={<Associados />} />
             <Route path="/app/pessoas" element={<PessoasPainel />} />
             <Route path="/app/pessoas/painel" element={<IrParaPessoas />} />
