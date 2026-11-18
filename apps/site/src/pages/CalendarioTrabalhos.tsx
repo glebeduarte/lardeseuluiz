@@ -198,12 +198,12 @@ export default function CalendarioTrabalhos({ publico = false }: { publico?: boo
                         const ativs = porDia.get(chave) || [];
                         const feriado = feriadoSet.has(chave);
                         const combina = !filtro || ativs.some((a) => a.slug === filtro) || (filtro === "feriado" && feriado);
-                        const cores = ativs.slice(0, 3).map((a) => `${a.cor}55`);
+                        const cores = ativs.slice(0, 3).map((a) => `${a.cor}66`);
                         const fundo = cores.length === 2
                           ? `linear-gradient(135deg, ${cores[0]} 50%, ${cores[1]} 50%)`
                           : cores.length === 3
                             ? `linear-gradient(135deg, ${cores[0]} 33%, ${cores[1]} 33%, ${cores[1]} 66%, ${cores[2]} 66%)`
-                            : ativs[0] ? `${ativs[0].cor}30` : undefined;
+                            : ativs[0] ? `${ativs[0].cor}45` : undefined;
                         const dica = [...ativs.map((a) => a.nome), ...(feriado ? ["Feriado"] : [])].join(", ");
                         const el = (
                           <button type="button" disabled={!editando && !dica} onClick={editando ? () => setDiaAberto(chave) : undefined}
