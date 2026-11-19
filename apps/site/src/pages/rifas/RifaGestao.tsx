@@ -502,6 +502,10 @@ function AbaSorteio({ rifa, pedidos, sorteados, nomes, atualizar }: { rifa: Rifa
   const [numero, setNumero] = useState("");
   const [notas, setNotas] = useState("");
   const [confirmar, setConfirmar] = useState(false);
+  // Desfazer: "ultimo" tira só o último número que saiu; "tudo" zera o sorteio da rifa
+  const [desfazer, setDesfazer] = useState<"ultimo" | "tudo" | null>(null);
+  const [motivoDesfazer, setMotivoDesfazer] = useState("");
+  const [desfazendo, setDesfazendo] = useState(false);
   const pendentes = pedidos.filter((p) => p.status === "reservado").length;
   const n = Number(numero);
   const dono = pedidos.find((p) => p.status !== "cancelado" && (p.raffle_tickets ?? []).some((t) => t.ativo && t.number === n));
@@ -523,6 +527,17 @@ function AbaSorteio({ rifa, pedidos, sorteados, nomes, atualizar }: { rifa: Rifa
     toast.success(fim ? "Sorteio registrado. O resultado já aparece na página da rifa." : `${ordinal(feitos + 1)} número registrado. ${qtd - feitos - 1 === 1 ? "Falta 1" : `Faltam ${qtd - feitos - 1}`}.`);
     setConfirmar(false); setNumero(""); atualizar();
   };
+
+  const confirmarDesfazer = async () => {
+    if (!desfazer) return;
+    setDesfazendo(true);
+    const { error } = await db.rpc("rifa_desfazer_sorteio", { p_raffle: rifa.id, p_tudo: desfazer === "tudo", p_motivo: motivoDesfazer });
+    setDesfazendo(false);
+    if (error) return toast.error(erroAmigavel(error));
+    toast.success(desfazer === "tudo" ? "Sorteio desfeito. A rifa está pronta para sortear de novo." : "Último número desfeito. Ele volta a concorrer.");
+    setDesfazer(null); setMotivoDesfazer(""); atualizar();
+  };
+  const ultimo = sorteados[sorteados.length - 1];
 
   const copiarLista = () => {
     const linhas = lista.map((s) => `${ordinal(s.position)} · número ${pad(s.number, rifa.total_numbers)} · ${s.pedido ? s.pedido.buyer_name : "sem pedido pago"}`);
@@ -569,7 +584,27 @@ function AbaSorteio({ rifa, pedidos, sorteados, nomes, atualizar }: { rifa: Rifa
           <Button variant="outline" onClick={copiarLista}><Copy className="w-4 h-4 mr-2" /> Copiar a lista</Button>
           <Button variant="outline" asChild><Link to={`/app/rifas/${rifa.id}/sorteio`}><Trophy className="w-4 h-4 mr-2" /> {acabou ? "Mostrar na tela" : "Continuar na tela do sorteio"}</Link></Button>
         </div>
+        <div className="border-t pt-3 flex flex-wrap items-center gap-2">
+          <span className="text-sm text-muted-foreground mr-1">Sorteou por engano ou em teste?</span>
+          <Button variant="ghost" className="text-red-700 hover:text-red-800 hover:bg-red-50" onClick={() => setDesfazer("ultimo")}><Undo2 className="w-4 h-4 mr-2" /> Desfazer o último número</Button>
+          {feitos > 1 && <Button variant="ghost" className="text-red-700 hover:text-red-800 hover:bg-red-50" onClick={() => setDesfazer("tudo")}><Undo2 className="w-4 h-4 mr-2" /> Desfazer o sorteio inteiro</Button>}
+        </div>
       </CardContent>
+      <Dialog open={!!desfazer} onOpenChange={(a) => { if (!a) setDesfazer(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-['Playfair_Display']">{desfazer === "tudo" ? `Desfazer os ${feitos} números sorteados?` : `Desfazer o número ${ultimo ? pad(ultimo.number, rifa.total_numbers) : ""}?`}</DialogTitle>
+            <DialogDescription>
+              {desfazer === "tudo"
+                ? "Todos os números sorteados saem do resultado e voltam a concorrer."
+                : `O ${ordinal(ultimo?.position ?? feitos)} número sai do resultado e volta a concorrer.`}
+              {acabou ? ' A rifa volta para "Vendas encerradas" e pode ser sorteada de novo.' : ""} O resultado some da página pública. Fica registrado quem desfez e quando.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-2"><Label>Motivo (opcional)</Label><Textarea value={motivoDesfazer} onChange={(e) => setMotivoDesfazer(e.target.value)} placeholder="Ex.: sorteio de teste, toque por engano..." /></div>
+          <DialogFooter><Button variant="outline" onClick={() => setDesfazer(null)}>Voltar</Button><Button variant="destructive" onClick={confirmarDesfazer} disabled={desfazendo}>{desfazendo ? "Desfazendo..." : "Desfazer"}</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 
@@ -602,7 +637,7 @@ function AbaSorteio({ rifa, pedidos, sorteados, nomes, atualizar }: { rifa: Rifa
       <Dialog open={confirmar} onOpenChange={setConfirmar}>
         <DialogContent className="max-w-md">
           <DialogHeader><DialogTitle className="font-['Playfair_Display']">Confirmar o número {pad(n || 0, rifa.total_numbers)}?</DialogTitle>
-            <DialogDescription>{feitos + 1 >= qtd ? 'O resultado fica público na página da rifa e a rifa passa para "Sorteada".' : `Fica registrado como o ${ordinal(feitos + 1)} número de ${qtd} e não dá para desfazer.`}</DialogDescription></DialogHeader>
+            <DialogDescription>{feitos + 1 >= qtd ? 'O resultado fica público na página da rifa e a rifa passa para "Sorteada".' : `Fica registrado como o ${ordinal(feitos + 1)} número de ${qtd}.`}</DialogDescription></DialogHeader>
           <DialogFooter><Button variant="outline" onClick={() => setConfirmar(false)}>Voltar</Button><Button onClick={registrar}>Confirmar resultado</Button></DialogFooter>
         </DialogContent>
       </Dialog>

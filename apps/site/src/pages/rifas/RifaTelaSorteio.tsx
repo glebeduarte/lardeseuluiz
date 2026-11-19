@@ -176,8 +176,8 @@ function RifaTelaSorteioConteudo() {
           {fase === "confirmar" && (
             <div className="sorteio__comando">
               <p className="sorteio__confirma">{varios
-                ? `Serão sorteados ${qtd} números, um por vez, entre os ${concorrem.length} pagos. Cada número sorteado fica registrado e não dá para desfazer. Depois do primeiro, ninguém reserva mais números.`
-                : `O número sai entre os ${concorrem.length} pagos e o resultado fica registrado. Não dá para sortear de novo.`}</p>
+                ? `Serão sorteados ${qtd} números, um por vez, entre os ${concorrem.length} pagos. Cada número sorteado fica registrado na hora. Depois do primeiro, ninguém reserva mais números.`
+                : `O número sai entre os ${concorrem.length} pagos e o resultado fica registrado na hora.`}</p>
               <div className="sorteio__duplo">
                 <button type="button" className="sorteio__botao sorteio__botao--sec" onClick={() => setFase("pronto")}>Voltar</button>
                 <button type="button" className="sorteio__botao" onClick={sortear}><Trophy /> Confirmar e sortear</button>
