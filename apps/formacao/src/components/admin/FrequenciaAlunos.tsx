@@ -5,14 +5,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Switch } from '@/components/ui/switch';
+import { useToast } from '@/hooks/use-toast';
 import { CheckCircle, Download, Loader2, Search } from 'lucide-react';
 
 // Frequência por aluno de um curso: presenças (link da aula ou aula marcada como concluída) sobre o total de aulas do curso.
-// Aprovado com 75% de presença. Quem usa o painel pode ligar um segundo critério: aprovação em todas as
-// avaliações publicadas do curso. A escolha fica guardada neste aparelho, por curso.
+// Aprovado com 70% de presença. Quem usa o painel pode ligar um segundo critério: aprovação em todas as
+// avaliações publicadas do curso. A escolha fica guardada no curso (courses.approval_requires_assessments)
+// e vale também para a situação que o aluno vê no perfil.
 // Os números vêm de formacao.painel_presenca (administrador ou facilitador do curso).
 
-const MINIMO_APROVACAO = 75;
+const MINIMO_APROVACAO = 70;
 
 interface LinhaAluno {
   user_id: string;
@@ -27,24 +29,35 @@ interface LinhaAluno {
   total_avaliacoes: number;
 }
 
-const chaveCriterio = (courseId: string) => `lsl-formacao-criterio-avaliacoes-${courseId}`;
-
-function lerCriterio(courseId: string) {
-  try { return localStorage.getItem(chaveCriterio(courseId)) === '1'; } catch { return false; }
-}
-
 export function FrequenciaAlunos({ courseId, courseTitle }: { courseId: string; courseTitle: string }) {
+  const { toast } = useToast();
   const [linhas, setLinhas] = useState<LinhaAluno[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
   const [busca, setBusca] = useState('');
-  const [exigeAvaliacoes, setExigeAvaliacoes] = useState(() => lerCriterio(courseId));
+  const [exigeAvaliacoes, setExigeAvaliacoes] = useState(false);
+  const [salvandoCriterio, setSalvandoCriterio] = useState(false);
 
-  useEffect(() => { setExigeAvaliacoes(lerCriterio(courseId)); }, [courseId]);
+  useEffect(() => {
+    let ativo = true;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any).from('courses').select('approval_requires_assessments').eq('id', courseId).maybeSingle()
+      .then(({ data }: { data: { approval_requires_assessments: boolean } | null }) => {
+        if (ativo) setExigeAvaliacoes(!!data?.approval_requires_assessments);
+      });
+    return () => { ativo = false; };
+  }, [courseId]);
 
-  const mudarCriterio = (ligado: boolean) => {
+  const mudarCriterio = async (ligado: boolean) => {
     setExigeAvaliacoes(ligado);
-    try { localStorage.setItem(chaveCriterio(courseId), ligado ? '1' : '0'); } catch { /* sem armazenamento local: vale só nesta visita */ }
+    setSalvandoCriterio(true);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase as any).rpc('definir_criterio_avaliacoes', { p_course: courseId, p_exige: ligado });
+    setSalvandoCriterio(false);
+    if (error) {
+      setExigeAvaliacoes(!ligado);
+      toast({ title: 'A mudança não foi salva', description: 'Atualize a página e tente de novo.', variant: 'destructive' });
+    }
   };
 
   useEffect(() => {
@@ -116,7 +129,7 @@ export function FrequenciaAlunos({ courseId, courseTitle }: { courseId: string; 
             {exigeAvaliacoes && totalAvaliacoes > 0 ? ` e aprovação nas ${totalAvaliacoes} avaliações do curso.` : '.'}
           </p>
           <label className="mt-3 flex items-center gap-2 cursor-pointer">
-            <Switch checked={exigeAvaliacoes} onCheckedChange={mudarCriterio} />
+            <Switch checked={exigeAvaliacoes} onCheckedChange={mudarCriterio} disabled={salvandoCriterio} />
             <span className="text-foreground">Exigir aprovação nas avaliações</span>
           </label>
           {exigeAvaliacoes && totalAvaliacoes === 0 && (

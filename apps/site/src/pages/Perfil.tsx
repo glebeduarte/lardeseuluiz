@@ -60,7 +60,9 @@ type Endereco = { street?: string; number?: string; complement?: string; neighbo
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Linha = any;
 
-type CursoResumo = { id: string; titulo: string; capa: string | null; status: string; inicio: string | null; fim: string | null; horario: string | null; aulas: number; concluidas: number };
+// Situação de aprovação no curso (só nos cursos com presença por link): 70% de presença e, se o curso exigir, as avaliações.
+type AprovacaoCurso = { presencas: number; total_aulas: number; minimo_presencas: number; avaliacoes_aprovadas: number; total_avaliacoes: number; exige_avaliacoes: boolean; aprovado: boolean };
+type CursoResumo = { id: string; titulo: string; capa: string | null; status: string; inicio: string | null; fim: string | null; horario: string | null; aulas: number; concluidas: number; aprovacao?: AprovacaoCurso | null };
 type Resumo = {
   formacao: { cursos: CursoResumo[]; presencas: number; avaliacoes_aprovadas: number; admin: boolean };
   atendimento: null | { papeis: string[]; macas: { nome: string; numero: number; dia: string | null; cor: string | null }[]; dialogos: number; dialogos_mes: number; acompanhamentos_ativos: number };
@@ -483,6 +485,7 @@ export default function Perfil() {
                                   <span className="text-xs text-muted-foreground whitespace-nowrap">{c.concluidas}/{c.aulas}</span>
                                 </div>
                               ) : <SituacaoInscricao status={c.status} />}
+                              {c.aprovacao && <SituacaoAprovacao a={c.aprovacao} />}
                             </div>
                             <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
                           </a>
@@ -702,6 +705,21 @@ function Vazio({ icone: Icone, cor, titulo, texto, acao }: { icone: ComponentTyp
       {acao}
     </div>
   );
+}
+
+function SituacaoAprovacao({ a }: { a: AprovacaoCurso }) {
+  if (a.aprovado) {
+    return <div><span className="inline-flex items-center rounded-full bg-emerald-100 text-emerald-800 text-xs font-semibold px-2.5 py-1">Aprovado</span></div>;
+  }
+  const aulas = Math.max(a.minimo_presencas - a.presencas, 0);
+  const avaliacoes = a.exige_avaliacoes ? Math.max(a.total_avaliacoes - a.avaliacoes_aprovadas, 0) : 0;
+  const partes = [
+    aulas > 0 ? (aulas === 1 ? "1 aula" : `${aulas} aulas`) : null,
+    avaliacoes > 0 ? (avaliacoes === 1 ? "1 avaliação" : `${avaliacoes} avaliações`) : null,
+  ].filter(Boolean) as string[];
+  if (!partes.length) return null;
+  const verbo = partes.length === 1 && (aulas === 1 || (aulas === 0 && avaliacoes === 1)) ? "Falta" : "Faltam";
+  return <p className="text-xs text-muted-foreground">{verbo} {partes.join(" e ")} para a aprovação.</p>;
 }
 
 function SituacaoInscricao({ status }: { status: string }) {
