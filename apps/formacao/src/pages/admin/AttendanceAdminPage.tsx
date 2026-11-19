@@ -12,6 +12,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { FrequenciaAlunos } from '@/components/admin/FrequenciaAlunos';
 import { Link2, Copy, Check, Users, Clock, Download, Eye, Loader2, ListChecks, RotateCcw } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { format } from 'date-fns';
@@ -297,7 +298,7 @@ export default function AttendanceAdminPage() {
 
   return (
     <DashboardLayout>
-      <CabecalhoPagina titulo="Presenças" descricao={isAdmin ? "Gerencie a frequência das aulas do ESDE" : "Gere o link de presença das suas aulas e confira quem esteve"} />
+      <CabecalhoPagina titulo="Presenças" descricao={isAdmin ? "Gerencie as presenças das aulas do ESDE e a frequência de cada aluno" : "Gere o link de presença das suas aulas e acompanhe a frequência de cada aluno"} />
       <div className="space-y-6">
 
         {loading ? (
@@ -432,7 +433,22 @@ export default function AttendanceAdminPage() {
               </TabsList>
               {(courseTitles.length ? courseTitles : ['ESDE I']).map((t) => (
                 <TabsContent key={t} value={t} className="mt-4">
-                  {renderTable(lessons.filter((l) => l.course_title === t))}
+                  {/* Dentro de cada curso: as aulas (links e presentes) e os alunos (percentual e aprovação) */}
+                  <Tabs defaultValue="aulas" className="w-full">
+                    <TabsList>
+                      <TabsTrigger value="aulas" className="gap-1.5"><ListChecks className="h-4 w-4" />Por aula</TabsTrigger>
+                      <TabsTrigger value="alunos" className="gap-1.5"><Users className="h-4 w-4" />Por aluno</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="aulas" className="mt-4">
+                      {renderTable(lessons.filter((l) => l.course_title === t))}
+                    </TabsContent>
+                    <TabsContent value="alunos" className="mt-4">
+                      {(() => {
+                        const courseId = lessons.find((l) => l.course_title === t)?.course_id;
+                        return courseId ? <FrequenciaAlunos courseId={courseId} courseTitle={t} /> : null;
+                      })()}
+                    </TabsContent>
+                  </Tabs>
                 </TabsContent>
               ))}
             </Tabs>
