@@ -82,6 +82,7 @@ button.rifa-num--reservado:not(:disabled), button.rifa-num--vendido:not(:disable
 .rifa-ganhou { display: flex; align-items: center; gap: 20px; padding: 24px; border-radius: 24px; background: #003c7f; color: #fff; }
 .rifa-ganhou b { width: 88px; height: 88px; flex: none; border-radius: 50%; background: #ffc116; color: #0f1f3d; display: inline-flex; align-items: center; justify-content: center; font: 700 30px/1 var(--font-display, Georgia, serif); }
 .rifa-ganhou p { margin: 0; font-size: 17px; }
+.rifa-sorteados { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
 
 .rifa-progresso { height: 12px; border-radius: 999px; background: #e3eaf3; overflow: hidden; }
 .rifa-progresso span { display: block; height: 100%; background: #ffc116; border-radius: 999px; }

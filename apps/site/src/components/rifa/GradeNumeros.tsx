@@ -11,18 +11,19 @@ export default function GradeNumeros({ total, ocupados, selecionados, aoTocar, d
   ocupados: Map<number, Situacao>;
   selecionados?: Set<number>;
   aoTocar: (n: number) => void;
-  /** Número ganhador, quando a rifa já foi sorteada. */
-  destaque?: number | null;
+  /** Número sorteado (ou os números sorteados), quando o sorteio já aconteceu. */
+  destaque?: number | Set<number> | null;
   /** No modo de gestão, números ocupados também são clicáveis (para ver o pedido). */
   rotuloOcupado?: boolean;
 }) {
   // Para quem compra, os números ocupados ficam ocultos por padrão: aparecem primeiro os disponíveis.
   // Na gestão (rotuloOcupado), a grade mostra tudo.
   const [mostrarOcupados, setMostrarOcupados] = useState(!!rotuloOcupado);
+  const sorteado = (n: number) => (destaque instanceof Set ? destaque.has(n) : n === destaque);
   const visiveis = useMemo(() => {
     const out: number[] = [];
     for (let n = 1; n <= total; n++) {
-      if (mostrarOcupados || !ocupados.has(n) || selecionados?.has(n) || n === destaque) out.push(n);
+      if (mostrarOcupados || !ocupados.has(n) || selecionados?.has(n) || sorteado(n)) out.push(n);
     }
     return out;
   }, [total, ocupados, selecionados, destaque, mostrarOcupados]);
@@ -95,9 +96,9 @@ export default function GradeNumeros({ total, ocupados, selecionados, aoTocar, d
         {naPagina.map((n) => {
           const s = ocupados.get(n);
           const escolhido = selecionados?.has(n);
-          const classe = n === destaque ? "ganhador" : escolhido ? "escolhido" : s === "p" ? "vendido" : s === "r" ? "reservado" : "livre";
+          const classe = sorteado(n) ? "ganhador" : escolhido ? "escolhido" : s === "p" ? "vendido" : s === "r" ? "reservado" : "livre";
           const desativado = !!s && !rotuloOcupado;
-          const titulo = n === destaque ? "Número sorteado" : s === "p" ? "Vendido" : s === "r" ? "Reservado" : escolhido ? "Escolhido por você" : "Livre";
+          const titulo = sorteado(n) ? "Número sorteado" : s === "p" ? "Vendido" : s === "r" ? "Reservado" : escolhido ? "Escolhido por você" : "Livre";
           return (
             <button key={n} type="button" className={`rifa-num rifa-num--${classe}`} disabled={desativado}
               aria-pressed={escolhido} aria-label={`Número ${pad(n, total)}: ${titulo}`} title={titulo} onClick={() => aoTocar(n)}>

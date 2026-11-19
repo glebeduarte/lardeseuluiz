@@ -30,6 +30,13 @@ export interface Rifa {
   draw_date: string | null; draw_place: string | null; rules: string | null; authorization_note: string | null;
   project_id: string | null; status: RifaStatus; winner_number: number | null; winner_order_id: string | null;
   drawn_at: string | null; draw_notes: string | null; created_at: string; created_by?: string | null; slugs_antigos?: string[];
+  /** Quantos números a rifa sorteia. Saem um por vez; a mesma pessoa pode ganhar de novo com outro número. */
+  draw_count: number;
+}
+/** Cada número sorteado, na ordem em que saiu (governanca.raffle_draws). */
+export interface Sorteado {
+  id: string; raffle_id: string; position: number; number: number; order_id: string | null;
+  pool: number | null; manual: boolean; drawn_at: string;
 }
 export interface Pedido {
   id: string; raffle_id: string; code: string; buyer_name: string; buyer_phone: string; buyer_email: string | null;
@@ -44,11 +51,15 @@ export interface RifaPublica {
   whatsapp: string | null; pix_chave: string | null; pix_nome: string | null; pix_cidade: string | null;
   numeros: [number, "r" | "p"][];
   ganhador: { numero: number; data: string; nome: string | null } | null;
+  qtd_sorteio?: number;
+  sorteados?: { posicao: number; numero: number; nome: string | null }[];
 }
 export interface Reserva { codigo: string; valor: number; status: PedidoStatus; numeros: number[] }
 
 export const reais = (v: number | string) => Number(v).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 export const pad = (n: number, total: number) => String(n).padStart(String(total).length, "0");
+/** 1º, 2º, 3º... */
+export const ordinal = (n: number) => `${n}º`;
 export const soDigitos = (t: string) => (t || "").replace(/\D/g, "");
 export const linkWhats = (tel: string, msg?: string) => {
   let d = soDigitos(tel);

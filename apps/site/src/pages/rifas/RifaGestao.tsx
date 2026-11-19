@@ -17,7 +17,7 @@ import BuscaPessoa from "@/components/acoes/BuscaPessoa";
 import GradeNumeros, { type Situacao } from "@/components/rifa/GradeNumeros";
 import VendaRapida from "@/components/rifa/VendaRapida";
 import { db, useNomesPessoas, type PessoaBasica } from "@/lib/acoes";
-import { dataBR, erroAmigavel, linkWhats, mensagemCobranca, pad, PEDIDO_COR, PEDIDO_STATUS, reais, RIFA_COR, RIFA_STATUS, slugRifa, type Pedido, type Rifa, type RifaStatus } from "@/lib/rifas";
+import { dataBR, erroAmigavel, linkWhats, mensagemCobranca, ordinal, pad, PEDIDO_COR, PEDIDO_STATUS, reais, RIFA_COR, RIFA_STATUS, slugRifa, type Pedido, type Rifa, type RifaStatus, type Sorteado } from "@/lib/rifas";
 import "@/components/rifa/rifa.css";
 import GuardaRifas from "@/components/rifa/GuardaRifas";
 
@@ -36,16 +36,18 @@ function RifaGestaoConteudo() {
     queryKey: ["rifa-gestao", id],
     enabled: !!id,
     queryFn: async () => {
-      const [{ data: rifa, error }, { data: pedidos }, { data: vendedores }, { data: projetos }] = await Promise.all([
+      const [{ data: rifa, error }, { data: pedidos }, { data: vendedores }, { data: projetos }, { data: sorteados }] = await Promise.all([
         db.from("raffles").select("*").eq("id", id).maybeSingle(),
         db.from("raffle_orders").select("*, raffle_tickets(number, ativo)").eq("raffle_id", id).order("created_at", { ascending: false }),
         db.from("raffle_sellers").select("*").eq("raffle_id", id),
         db.from("projects").select("id, name, cover_url").order("display_order"),
+        db.from("raffle_draws").select("*").eq("raffle_id", id).order("position"),
       ]);
       if (error) throw error;
       return {
         rifa: rifa as Rifa | null, pedidos: (pedidos ?? []) as Pedido[], vendedores: (vendedores ?? []) as Vendedor[],
         projetos: (projetos ?? []) as { id: string; name: string; cover_url: string | null }[],
+        sorteados: (sorteados ?? []) as Sorteado[],
       };
     },
   });
@@ -57,6 +59,7 @@ function RifaGestaoConteudo() {
   if (!rifa) return <AppLayout><CabecalhoPagina titulo="Rifa não encontrada" Link={LinkRR} voltar={{ href: "/app/rifas", rotulo: "Rifas" }} /></AppLayout>;
 
   const pedidos = data!.pedidos;
+  const sorteados = data!.sorteados;
   const ativos = pedidos.filter((p) => p.status !== "cancelado");
   const conta = (st: string) => ativos.filter((p) => p.status === st).reduce((s, p) => s + (p.raffle_tickets ?? []).filter((t) => t.ativo).length, 0);
   const pagos = conta("pago"), reservados = conta("reservado");
@@ -96,11 +99,11 @@ function RifaGestaoConteudo() {
           <TabsTrigger value="sorteio" className="rounded-full">Sorteio</TabsTrigger>
           <TabsTrigger value="configurar" className="rounded-full">Configurar</TabsTrigger>
         </TabsList>
-        <TabsContent value="pedidos" className="mt-5"><AbaPedidos rifa={rifa} pedidos={pedidos} nomes={nomes.data ?? {}} atualizar={atualizar} /></TabsContent>
-        <TabsContent value="numeros" className="mt-5"><AbaNumeros rifa={rifa} pedidos={pedidos} /></TabsContent>
+        <TabsContent value="pedidos" className="mt-5"><AbaPedidos rifa={rifa} pedidos={pedidos} sorteados={sorteados} nomes={nomes.data ?? {}} atualizar={atualizar} /></TabsContent>
+        <TabsContent value="numeros" className="mt-5"><AbaNumeros rifa={rifa} pedidos={pedidos} sorteados={sorteados} /></TabsContent>
         <TabsContent value="vendedores" className="mt-5"><AbaVendedores rifa={rifa} vendedores={data!.vendedores} pedidos={pedidos} nomes={nomes.data ?? {}} atualizar={atualizar} /></TabsContent>
-        <TabsContent value="sorteio" className="mt-5"><AbaSorteio rifa={rifa} pedidos={pedidos} atualizar={atualizar} /></TabsContent>
-        <TabsContent value="configurar" className="mt-5"><AbaConfigurar rifa={rifa} projetos={data!.projetos} atualizar={atualizar} /></TabsContent>
+        <TabsContent value="sorteio" className="mt-5"><AbaSorteio rifa={rifa} pedidos={pedidos} sorteados={sorteados} nomes={nomes.data ?? {}} atualizar={atualizar} /></TabsContent>
+        <TabsContent value="configurar" className="mt-5"><AbaConfigurar rifa={rifa} projetos={data!.projetos} jaSorteados={sorteados.length} atualizar={atualizar} /></TabsContent>
       </Tabs>
     </AppLayout>
   );
@@ -119,7 +122,9 @@ function Numero({ rotulo, valor, cor, detalhe }: { rotulo: string; valor: string
 const numerosDo = (p: Pedido) => (p.raffle_tickets ?? []).filter((t) => p.status === "cancelado" || t.ativo).map((t) => t.number).sort((a, b) => a - b);
 
 /* ───── Pedidos ───── */
-function AbaPedidos({ rifa, pedidos, nomes, atualizar }: { rifa: Rifa; pedidos: Pedido[]; nomes: Record<string, PessoaBasica>; atualizar: () => void }) {
+function AbaPedidos({ rifa, pedidos, sorteados, nomes, atualizar }: { rifa: Rifa; pedidos: Pedido[]; sorteados: Sorteado[]; nomes: Record<string, PessoaBasica>; atualizar: () => void }) {
+  // Pedido com número sorteado não pode ser liberado nem apagado
+  const comSorteado = useMemo(() => new Set(sorteados.map((s) => s.order_id).filter(Boolean) as string[]), [sorteados]);
   const [filtro, setFiltro] = useState<Filtro>("reservado");
   const [busca, setBusca] = useState("");
   const [liberar, setLiberar] = useState<Pedido | null>(null);
@@ -239,8 +244,8 @@ function AbaPedidos({ rifa, pedidos, nomes, atualizar }: { rifa: Rifa; pedidos: 
                         </a>
                       </Button>
                     )}
-                    {p.status !== "cancelado" && <Button variant="ghost" onClick={() => setLiberar(p)}><Unlock className="w-4 h-4 mr-2" /> Liberar</Button>}
-                    {souCriador && rifa.winner_order_id !== p.id && (
+                    {p.status !== "cancelado" && !comSorteado.has(p.id) && <Button variant="ghost" onClick={() => setLiberar(p)}><Unlock className="w-4 h-4 mr-2" /> Liberar</Button>}
+                    {souCriador && !comSorteado.has(p.id) && (
                       <Button variant="ghost" className="text-red-700 hover:text-red-800 hover:bg-red-50" onClick={() => setRemover(p)}><Trash2 className="w-4 h-4 mr-2" /> Remover venda</Button>
                     )}
                   </div>
@@ -311,7 +316,8 @@ function AbaPedidos({ rifa, pedidos, nomes, atualizar }: { rifa: Rifa; pedidos: 
 }
 
 /* ───── Números ───── */
-function AbaNumeros({ rifa, pedidos }: { rifa: Rifa; pedidos: Pedido[] }) {
+function AbaNumeros({ rifa, pedidos, sorteados }: { rifa: Rifa; pedidos: Pedido[]; sorteados: Sorteado[] }) {
+  const numerosSorteados = useMemo(() => new Set(sorteados.map((s) => s.number)), [sorteados]);
   const { ocupados, dono } = useMemo(() => {
     const o = new Map<number, Situacao>(); const d = new Map<number, Pedido>();
     for (const p of pedidos) if (p.status !== "cancelado") for (const t of p.raffle_tickets ?? []) if (t.ativo) { o.set(t.number, p.status === "pago" ? "p" : "r"); d.set(t.number, p); }
@@ -322,7 +328,7 @@ function AbaNumeros({ rifa, pedidos }: { rifa: Rifa; pedidos: Pedido[] }) {
   return (
     <Card><CardContent className="p-5 space-y-4">
       <p className="text-sm text-muted-foreground">Toque num número reservado ou vendido para ver de quem é.</p>
-      <GradeNumeros total={rifa.total_numbers} ocupados={ocupados} aoTocar={(n) => setVer(n)} rotuloOcupado destaque={rifa.winner_number} />
+      <GradeNumeros total={rifa.total_numbers} ocupados={ocupados} aoTocar={(n) => setVer(n)} rotuloOcupado destaque={numerosSorteados} />
       {ver && (
         <div className="rounded-2xl bg-muted/60 p-4 text-sm">
           <strong>Número {pad(ver, rifa.total_numbers)}:</strong>{" "}
@@ -492,67 +498,111 @@ function Resumo({ rotulo, valor, nota, cor }: { rotulo: string; valor: string; n
 }
 
 /* ───── Sorteio ───── */
-function AbaSorteio({ rifa, pedidos, atualizar }: { rifa: Rifa; pedidos: Pedido[]; atualizar: () => void }) {
+function AbaSorteio({ rifa, pedidos, sorteados, nomes, atualizar }: { rifa: Rifa; pedidos: Pedido[]; sorteados: Sorteado[]; nomes: Record<string, PessoaBasica>; atualizar: () => void }) {
   const [numero, setNumero] = useState("");
   const [notas, setNotas] = useState("");
   const [confirmar, setConfirmar] = useState(false);
   const pendentes = pedidos.filter((p) => p.status === "reservado").length;
-  const ganhador = rifa.winner_order_id ? pedidos.find((p) => p.id === rifa.winner_order_id) : null;
   const n = Number(numero);
   const dono = pedidos.find((p) => p.status !== "cancelado" && (p.raffle_tickets ?? []).some((t) => t.ativo && t.number === n));
+  const qtd = Math.max(1, rifa.draw_count ?? 1);
+  const feitos = sorteados.length;
+  const acabou = rifa.status === "sorteada";
+  const jaSaiu = sorteados.some((s) => s.number === n);
+
+  // Lista dos sorteados, na ordem em que saíram, com quem comprou
+  const lista = useMemo(() => sorteados.map((s) => {
+    const p = pedidos.find((x) => x.id === s.order_id) ?? null;
+    return { ...s, pedido: p, vendedor: p?.seller_person_id ? nomes[p.seller_person_id]?.full_name ?? null : null };
+  }), [sorteados, pedidos, nomes]);
 
   const registrar = async () => {
-    const { error } = await db.rpc("rifa_registrar_sorteio", { p_raffle: rifa.id, p_numero: n, p_notas: notas });
+    const { data, error } = await db.rpc("rifa_registrar_sorteio", { p_raffle: rifa.id, p_numero: n, p_notas: notas });
     if (error) return toast.error(erroAmigavel(error));
-    toast.success("Sorteio registrado. O resultado já aparece na página da rifa.");
-    setConfirmar(false); atualizar();
+    const fim = (data as { concluido?: boolean } | null)?.concluido;
+    toast.success(fim ? "Sorteio registrado. O resultado já aparece na página da rifa." : `${ordinal(feitos + 1)} número registrado. ${qtd - feitos - 1 === 1 ? "Falta 1" : `Faltam ${qtd - feitos - 1}`}.`);
+    setConfirmar(false); setNumero(""); atualizar();
   };
 
-  if (rifa.status === "sorteada") {
-    return (
-      <Card><CardContent className="p-6 space-y-4">
-        <div className="rifa-ganhou">
-          <b>{pad(rifa.winner_number ?? 0, rifa.total_numbers)}</b>
-          <div>
-            <p><strong>Número sorteado em {rifa.drawn_at ? new Date(rifa.drawn_at).toLocaleString("pt-BR") : ""}</strong></p>
-            <p>{ganhador ? `${ganhador.buyer_name} · ${ganhador.buyer_phone} · pedido ${ganhador.code}` : "Este número não estava pago."}</p>
-            {rifa.draw_notes && <p className="text-sm" style={{ color: "#cfe0f5" }}>{rifa.draw_notes}</p>}
-          </div>
-        </div>
+  const copiarLista = () => {
+    const linhas = lista.map((s) => `${ordinal(s.position)} · número ${pad(s.number, rifa.total_numbers)} · ${s.pedido ? s.pedido.buyer_name : "sem pedido pago"}`);
+    const texto = [`*${rifa.title}*`, `Resultado do sorteio${rifa.drawn_at ? ` de ${dataBR(rifa.drawn_at)}` : ""}:`, "", ...linhas].join("\n");
+    navigator.clipboard?.writeText(texto);
+    toast.success("Lista copiada. Cole no WhatsApp para divulgar o resultado.");
+  };
+
+  const listaSorteados = feitos > 0 && (
+    <Card>
+      <CardHeader>
+        <CardTitle className="font-['Playfair_Display'] text-lg">{acabou ? "Resultado do sorteio" : `Sorteados até agora: ${feitos} de ${qtd}`}</CardTitle>
+        <CardDescription>
+          {qtd > 1 ? "Na ordem em que os números saíram." : "Número sorteado."}
+          {acabou && rifa.drawn_at ? ` Sorteio concluído em ${new Date(rifa.drawn_at).toLocaleString("pt-BR")}.` : ""}
+          {rifa.draw_notes ? ` ${rifa.draw_notes}` : ""}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="grid gap-3">
+        <ol className="grid gap-2">
+          {lista.map((s) => (
+            <li key={s.id} className="rounded-2xl border p-3 flex flex-wrap items-center gap-3">
+              <span className="w-10 text-sm font-semibold text-muted-foreground">{ordinal(s.position)}</span>
+              <b className="w-16 h-16 flex-none rounded-full bg-[#ffc116] text-[#0f1f3d] inline-flex items-center justify-center text-xl font-bold">{pad(s.number, rifa.total_numbers)}</b>
+              <div className="flex-1 min-w-[180px] text-sm">
+                {s.pedido ? (
+                  <>
+                    <p className="text-base font-semibold">{s.pedido.buyer_name}</p>
+                    <p className="text-muted-foreground">{s.pedido.buyer_phone} · pedido {s.pedido.code} · {s.vendedor ? `vendido por ${s.vendedor}` : "comprado pelo site"}</p>
+                  </>
+                ) : <p>Este número não estava pago.</p>}
+              </div>
+              {s.pedido && (
+                <Button variant="outline" asChild>
+                  <a href={linkWhats(s.pedido.buyer_phone, `Olá, ${s.pedido.buyer_name.split(" ")[0]}! O número ${pad(s.number, rifa.total_numbers)} foi sorteado na ${rifa.title} e é seu. Parabéns! Vamos combinar a entrega do prêmio.`)} target="_blank" rel="noopener noreferrer">
+                    <MessageCircle className="w-4 h-4 mr-2" /> Avisar
+                  </a>
+                </Button>
+              )}
+            </li>
+          ))}
+        </ol>
         <div className="flex flex-wrap gap-2">
-        <Button variant="outline" asChild><Link to={`/app/rifas/${rifa.id}/sorteio`}><Trophy className="w-4 h-4 mr-2" /> Mostrar na tela</Link></Button>
-        {ganhador && <Button asChild><a href={linkWhats(ganhador.buyer_phone, `Olá, ${ganhador.buyer_name.split(" ")[0]}! O número ${pad(rifa.winner_number ?? 0, rifa.total_numbers)} foi sorteado na ${rifa.title} e é seu. Parabéns! Vamos combinar a entrega do prêmio: ${rifa.prize}.`)} target="_blank" rel="noopener noreferrer"><MessageCircle className="w-4 h-4 mr-2" /> Avisar o ganhador</a></Button>}
+          <Button variant="outline" onClick={copiarLista}><Copy className="w-4 h-4 mr-2" /> Copiar a lista</Button>
+          <Button variant="outline" asChild><Link to={`/app/rifas/${rifa.id}/sorteio`}><Trophy className="w-4 h-4 mr-2" /> {acabou ? "Mostrar na tela" : "Continuar na tela do sorteio"}</Link></Button>
         </div>
-      </CardContent></Card>
-    );
-  }
+      </CardContent>
+    </Card>
+  );
+
+  if (acabou) return <div className="grid gap-4">{listaSorteados || <Card><CardContent className="p-6 text-sm">Esta rifa está como sorteada, mas não há número registrado.</CardContent></Card>}</div>;
 
   return (
     <div className="grid gap-4">
+    {listaSorteados}
     <Card>
       <CardHeader><CardTitle className="font-['Playfair_Display'] text-lg">Sortear pela ferramenta</CardTitle>
-        <CardDescription>Abra a tela do sorteio no projetor ou na TV. Ela mostra quem vendeu, quantos números pagos concorrem e sorteia um deles ao acaso.</CardDescription></CardHeader>
+        <CardDescription>Abra a tela do sorteio no projetor ou na TV. Ela mostra quem vendeu, quantos números pagos concorrem e sorteia ao acaso.
+          {qtd > 1 ? ` Esta rifa sorteia ${qtd} números, um por vez. Cada número sai uma vez só; a mesma pessoa pode ganhar de novo com outro número.` : " Esta rifa sorteia 1 número."} A quantidade é definida em Configurar.</CardDescription></CardHeader>
       <CardContent className="grid gap-3 max-w-xl">
         {pendentes > 0 && <p className="rounded-2xl bg-amber-50 text-amber-900 px-4 py-3 text-sm">Ainda há {pendentes} {pendentes === 1 ? "pedido esperando" : "pedidos esperando"} PIX. Só números pagos concorrem: confirme ou libere esses pedidos antes do sorteio.</p>}
-        <div><Button asChild><Link to={`/app/rifas/${rifa.id}/sorteio`}><Trophy className="w-4 h-4 mr-2" /> Abrir a tela do sorteio</Link></Button></div>
+        <div><Button asChild><Link to={`/app/rifas/${rifa.id}/sorteio`}><Trophy className="w-4 h-4 mr-2" /> {feitos > 0 ? "Continuar na tela do sorteio" : "Abrir a tela do sorteio"}</Link></Button></div>
       </CardContent>
     </Card>
     <Card>
       <CardHeader><CardTitle className="font-['Playfair_Display'] text-lg">Ou registre um sorteio feito à mão</CardTitle>
-        <CardDescription>Se o sorteio for feito na casa de outro jeito, digite o número sorteado. O resultado aparece na página da rifa.</CardDescription></CardHeader>
+        <CardDescription>Se o sorteio for feito na casa de outro jeito, digite {qtd > 1 ? `cada número sorteado, na ordem em que saiu. Agora é o ${ordinal(feitos + 1)} de ${qtd}` : "o número sorteado"}. O resultado aparece na página da rifa.</CardDescription></CardHeader>
       <CardContent className="grid gap-4 max-w-xl">
-        {rifa.status === "vendendo" && <p className="text-sm text-muted-foreground">Dica: em Configurar, mude a situação para "Vendas encerradas" antes de sortear, para ninguém reservar no meio do sorteio.</p>}
-        <div className="grid gap-2"><Label>Número sorteado</Label><Input type="number" min={1} max={rifa.total_numbers} value={numero} onChange={(e) => setNumero(e.target.value)} className="text-2xl font-bold h-14 max-w-[200px]" /></div>
+        {rifa.status === "vendendo" && feitos === 0 && <p className="text-sm text-muted-foreground">Dica: em Configurar, mude a situação para "Vendas encerradas" antes de sortear, para ninguém reservar no meio do sorteio.</p>}
+        <div className="grid gap-2"><Label>{qtd > 1 ? `${ordinal(feitos + 1)} número sorteado` : "Número sorteado"}</Label><Input type="number" min={1} max={rifa.total_numbers} value={numero} onChange={(e) => setNumero(e.target.value)} className="text-2xl font-bold h-14 max-w-[200px]" /></div>
         {numero && n >= 1 && n <= rifa.total_numbers && (
-          <p className="text-sm">{dono ? (dono.status === "pago" ? `Este número é de ${dono.buyer_name} (pago).` : `Este número está reservado por ${dono.buyer_name}, mas ainda não foi pago.`) : "Este número não foi vendido."}</p>
+          <p className="text-sm">{jaSaiu ? "Este número já foi sorteado nesta rifa." : dono ? (dono.status === "pago" ? `Este número é de ${dono.buyer_name} (pago).` : `Este número está reservado por ${dono.buyer_name}, mas ainda não foi pago.`) : "Este número não foi vendido."}</p>
         )}
         <div className="grid gap-2"><Label>Como foi o sorteio (opcional)</Label><Textarea value={notas} onChange={(e) => setNotas(e.target.value)} placeholder="Ex.: sorteado na reunião de sábado, com a presença de..." /></div>
-        <div><Button onClick={() => setConfirmar(true)} disabled={!n || n < 1 || n > rifa.total_numbers}><Trophy className="w-4 h-4 mr-2" /> Registrar resultado</Button></div>
+        <div><Button onClick={() => setConfirmar(true)} disabled={!n || n < 1 || n > rifa.total_numbers || jaSaiu}><Trophy className="w-4 h-4 mr-2" /> Registrar resultado</Button></div>
       </CardContent>
       <Dialog open={confirmar} onOpenChange={setConfirmar}>
         <DialogContent className="max-w-md">
           <DialogHeader><DialogTitle className="font-['Playfair_Display']">Confirmar o número {pad(n || 0, rifa.total_numbers)}?</DialogTitle>
-            <DialogDescription>O resultado fica público na página da rifa e a rifa passa para "Sorteada".</DialogDescription></DialogHeader>
+            <DialogDescription>{feitos + 1 >= qtd ? 'O resultado fica público na página da rifa e a rifa passa para "Sorteada".' : `Fica registrado como o ${ordinal(feitos + 1)} número de ${qtd} e não dá para desfazer.`}</DialogDescription></DialogHeader>
           <DialogFooter><Button variant="outline" onClick={() => setConfirmar(false)}>Voltar</Button><Button onClick={registrar}>Confirmar resultado</Button></DialogFooter>
         </DialogContent>
       </Dialog>
@@ -562,7 +612,7 @@ function AbaSorteio({ rifa, pedidos, atualizar }: { rifa: Rifa; pedidos: Pedido[
 }
 
 /* ───── Configurar ───── */
-function AbaConfigurar({ rifa, projetos, atualizar }: { rifa: Rifa; projetos: { id: string; name: string; cover_url: string | null }[]; atualizar: () => void }) {
+function AbaConfigurar({ rifa, projetos, jaSorteados, atualizar }: { rifa: Rifa; projetos: { id: string; name: string; cover_url: string | null }[]; jaSorteados: number; atualizar: () => void }) {
   const [f, setF] = useState(rifa);
   const [salvando, setSalvando] = useState(false);
   useEffect(() => setF(rifa), [rifa]);
@@ -579,6 +629,10 @@ function AbaConfigurar({ rifa, projetos, atualizar }: { rifa: Rifa; projetos: { 
       const m = (maior as { number: number } | null)?.number ?? 0;
       if (qtd < m) return toast.error(`O número ${pad(m, rifa.total_numbers)} já está reservado ou vendido. A quantidade não pode ficar abaixo de ${m}.`);
     }
+    const sorteia = Number(f.draw_count);
+    if (!Number.isInteger(sorteia) || sorteia < 1 || sorteia > 100) return toast.error("A quantidade de números sorteados vai de 1 a 100.");
+    if (sorteia !== rifa.draw_count && rifa.status === "sorteada") return toast.error("Esta rifa já foi sorteada. A quantidade de números sorteados não muda mais.");
+    if (sorteia <= jaSorteados && sorteia !== rifa.draw_count) return toast.error(`Já ${jaSorteados === 1 ? "saiu 1 número" : `saíram ${jaSorteados} números`} nesta rifa. A quantidade precisa ser maior que isso.`);
     const slug = slugRifa(f.slug || "");
     if (slug.length < 3) return toast.error("O endereço da página precisa de pelo menos 3 letras.");
     setSalvando(true);
@@ -586,7 +640,7 @@ function AbaConfigurar({ rifa, projetos, atualizar }: { rifa: Rifa; projetos: { 
       slug, title: f.title, prize: f.prize, prize_items: (f.prize_items ?? []).map((x) => x.trim()).filter(Boolean), prize_value: f.prize_value || null, description: f.description || null, cover_url: f.cover_url || null,
       ticket_price: Number(String(f.ticket_price).replace(",", ".")), total_numbers: Number(f.total_numbers), max_per_order: Number(f.max_per_order),
       pix_key: f.pix_key || null, pix_name: f.pix_name || null, pix_city: f.pix_city || null, whatsapp: f.whatsapp || null,
-      draw_date: f.draw_date || null, draw_place: f.draw_place || null, rules: f.rules || null, authorization_note: f.authorization_note || null,
+      draw_date: f.draw_date || null, draw_place: f.draw_place || null, draw_count: sorteia, rules: f.rules || null, authorization_note: f.authorization_note || null,
       project_id: f.project_id || null, status: status ?? f.status, updated_at: new Date().toISOString(),
     }).eq("id", rifa.id);
     setSalvando(false);
@@ -650,6 +704,10 @@ function AbaConfigurar({ rifa, projetos, atualizar }: { rifa: Rifa; projetos: { 
             <div className="grid gap-2"><Label>WhatsApp para comprovantes</Label><Input value={f.whatsapp ?? ""} onChange={(e) => set("whatsapp", e.target.value)} placeholder="(84) 99143-2639" /></div>
           </div>
           <p className="text-xs text-muted-foreground">Telefone como chave vai com +55 e DDD. Confira se o nome e a cidade batem com o cadastro da chave no banco.</p>
+        </div>
+        <div className="grid gap-2 max-w-sm"><Label>Quantos números serão sorteados</Label>
+          <Input type="number" min={Math.max(1, jaSorteados + 1)} max={100} value={f.draw_count ?? 1} disabled={rifa.status === "sorteada"} onChange={(e) => set("draw_count", Number(e.target.value))} />
+          <p className="text-xs text-muted-foreground">No sorteio, os números saem um por vez, até essa quantidade. Cada número sai uma vez só, e a mesma pessoa pode ganhar de novo com outro número.</p>
         </div>
         <div className="grid sm:grid-cols-2 gap-3">
           <div className="grid gap-2"><Label>Data do sorteio</Label><Input type="date" value={f.draw_date ?? ""} onChange={(e) => set("draw_date", e.target.value)} /></div>

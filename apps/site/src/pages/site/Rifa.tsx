@@ -6,7 +6,7 @@ import { PaginaSite, Secao, ListaSol } from "@/components/inicio/Pagina";
 import GradeNumeros, { escolherAoAcaso, type Situacao } from "@/components/rifa/GradeNumeros";
 import PixPagamento from "@/components/rifa/PixPagamento";
 import { db } from "@/lib/acoes";
-import { dataBR, erroAmigavel, pad, PEDIDO_STATUS, reais, useRifaPublica, type Reserva, type RifaPublica } from "@/lib/rifas";
+import { dataBR, erroAmigavel, ordinal, pad, PEDIDO_STATUS, reais, useRifaPublica, type Reserva, type RifaPublica } from "@/lib/rifas";
 import "@/components/rifa/rifa.css";
 import TextoWhats, { ehTitulo, inlineWhats, semMarcador } from "@/components/rifa/TextoWhats";
 
@@ -44,6 +44,10 @@ export default function Rifa() {
 function RifaAberta({ rifa }: { rifa: RifaPublica }) {
   const qc = useQueryClient();
   const ocupados = useMemo(() => new Map<number, Situacao>(rifa.numeros.map(([n, s]) => [n, s])), [rifa.numeros]);
+  // Números já sorteados, na ordem em que saíram
+  const sorteados = useMemo(() => rifa.sorteados?.length ? rifa.sorteados
+    : rifa.ganhador ? [{ posicao: 1, numero: rifa.ganhador.numero, nome: rifa.ganhador.nome }] : [], [rifa.sorteados, rifa.ganhador]);
+  const numerosSorteados = useMemo(() => (sorteados.length ? new Set(sorteados.map((s) => s.numero)) : null), [sorteados]);
   const [escolhidos, setEscolhidos] = useState<Set<number>>(new Set());
   const [etapa, setEtapa] = useState<"escolher" | "dados" | "pagar">("escolher");
   const [qtd, setQtd] = useState(1);
@@ -122,16 +126,23 @@ function RifaAberta({ rifa }: { rifa: RifaPublica }) {
           Você pode testar a escolha dos números, mas a reserva só funciona depois de abrir as vendas em Governança › Rifas › Configurar.
         </div>
       )}
-      {rifa.status === "sorteada" && rifa.ganhador && (
-        <Secao titulo="Resultado do sorteio" fundo="papel">
-          <div className="rifa-ganhou">
-            <b>{pad(rifa.ganhador.numero, rifa.total)}</b>
-            <div>
-              <p><strong>Número sorteado: {pad(rifa.ganhador.numero, rifa.total)}</strong></p>
-              <p>{rifa.ganhador.nome ? `Parabéns, ${rifa.ganhador.nome}! A coordenação entra em contato para a entrega do prêmio.` : "Este número não tinha sido vendido. A coordenação informa os próximos passos."}</p>
-              {rifa.ganhador.data && <p className="ini-pequeno" style={{ color: "#cfe0f5" }}>Sorteio registrado em {dataBR(rifa.ganhador.data)}.</p>}
-            </div>
+      {sorteados.length > 0 && (
+        <Secao titulo={rifa.status === "sorteada" ? "Resultado do sorteio" : "Sorteio em andamento"} fundo="papel">
+          <div className="rifa-sorteados">
+            {sorteados.map((s) => (
+              <div className="rifa-ganhou" key={s.posicao}>
+                <b>{pad(s.numero, rifa.total)}</b>
+                <div>
+                  <p><strong>{sorteados.length > 1 || (rifa.qtd_sorteio ?? 1) > 1 ? `${ordinal(s.posicao)} número sorteado: ` : "Número sorteado: "}{pad(s.numero, rifa.total)}</strong></p>
+                  <p>{s.nome ? `Parabéns, ${s.nome}!` : "Este número não tinha sido vendido."}</p>
+                </div>
+              </div>
+            ))}
           </div>
+          <p style={{ marginTop: 16 }}>{rifa.status === "sorteada"
+            ? "A coordenação entra em contato com cada pessoa sorteada para a entrega do prêmio."
+            : `Já ${sorteados.length === 1 ? "saiu 1 número" : `saíram ${sorteados.length} números`} de ${rifa.qtd_sorteio ?? sorteados.length}. Esta página se atualiza sozinha.`}</p>
+          {rifa.status === "sorteada" && rifa.ganhador?.data && <p className="ini-pequeno">Sorteio registrado em {dataBR(rifa.ganhador.data)}.</p>}
         </Secao>
       )}
 
@@ -190,7 +201,7 @@ function RifaAberta({ rifa }: { rifa: RifaPublica }) {
             </div>
           )}
           <GradeNumeros total={rifa.total} ocupados={ocupados} selecionados={escolhidos} aoTocar={alternar}
-            destaque={rifa.status === "sorteada" ? rifa.ganhador?.numero : null} />
+            destaque={numerosSorteados} />
         </Secao>
       )}
 
@@ -293,7 +304,7 @@ function ComoFunciona({ rifa }: { rifa: RifaPublica }) {
     { icone: UserRound, titulo: "Reserve com seu nome e WhatsApp", texto: "Os números ficam guardados no seu nome e você recebe um código de reserva. Guarde esse código." },
     { icone: QrCode, titulo: "Pague pelo PIX", texto: "Use o QR Code ou o PIX copia e cola, que já vem com o valor exato. Depois mande o comprovante pelo WhatsApp, junto com o código da reserva." },
     { icone: BadgeCheck, titulo: "A coordenação confirma", texto: "Quando o PIX é conferido, sua reserva passa para pago. Você acompanha em \"Consultar minha reserva\", aqui embaixo. Reservas que não forem pagas podem ser liberadas para outras pessoas." },
-    { icone: Trophy, titulo: "Sorteio presencial", texto: `O sorteio é feito no Lar de Seu Luiz, ${quando}, só entre os números pagos. O resultado sai nesta página e a pessoa sorteada recebe contato pelo WhatsApp.` },
+    { icone: Trophy, titulo: "Sorteio presencial", texto: `O sorteio é feito no Lar de Seu Luiz, ${quando}, só entre os números pagos.${(rifa.qtd_sorteio ?? 1) > 1 ? ` Serão sorteados ${rifa.qtd_sorteio} números, um por vez.` : ""} O resultado sai nesta página e ${(rifa.qtd_sorteio ?? 1) > 1 ? "cada pessoa sorteada" : "a pessoa sorteada"} recebe contato pelo WhatsApp.` },
   ];
   const temRegras = !!(rifa.regras ?? "").trim();
   return (

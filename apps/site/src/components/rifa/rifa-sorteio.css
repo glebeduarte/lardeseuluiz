@@ -55,6 +55,18 @@
 .sorteio__vendedores li.destaque { background: var(--ouro); color: var(--azul-escuro); }
 .sorteio__vendedores li.destaque b { color: var(--azul-escuro); }
 .sorteio__vazio { margin: 0; color: var(--claro); }
+.sorteio__vazio--lista { margin-bottom: 20px; }
+.sorteio__quantos { margin: 8px 0 0; font-size: clamp(18px, 2vw, 26px); color: var(--claro); }
+.sorteio__faltam { margin: 0; font-size: 18px; color: var(--claro); }
+.sorteio__fim { margin: 24px 0 0; padding: 12px 22px; border-radius: 999px; background: rgba(255,255,255,.12); font-size: clamp(17px, 1.8vw, 24px); }
+.sorteio__vendedores h2 small { font: 500 .6em/1 "DM Sans", sans-serif; color: var(--claro); margin-left: 8px; }
+/* Lista dos números que já saíram, na ordem */
+.sorteio__vendedores ol.sorteio__lista { list-style: none; margin: 0 0 22px; padding: 0; display: grid; gap: 8px; overflow: auto; max-height: 46vh; }
+.sorteio__vendedores ol.sorteio__lista li { justify-content: flex-start; }
+.sorteio__lista i { font-style: normal; min-width: 2.2em; color: var(--claro); font-variant-numeric: tabular-nums; }
+.sorteio__vendedores ol.sorteio__lista li b { min-width: 0; text-align: left; font-variant-numeric: tabular-nums; }
+.sorteio__lista span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sorteio__vendedores li.destaque i { color: var(--azul-escuro); }
 .sorteio__obrigado { margin: auto 0 0; padding-top: 16px; font-size: 15px; color: var(--claro); }
 
 @keyframes sorteio-surge { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
@@ -65,4 +77,5 @@
   .sorteio__logo { width: 44px; height: 44px; border-radius: 12px; }
   .sorteio__palco { grid-template-columns: 1fr; padding: 16px; gap: 20px; }
   .sorteio__botao { height: 60px; font-size: 19px; padding: 0 28px; }
+  .sorteio__vendedores ol.sorteio__lista { max-height: none; }
 }
