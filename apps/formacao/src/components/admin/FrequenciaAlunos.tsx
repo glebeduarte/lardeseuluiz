@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { CheckCircle, Download, Loader2, Search } from 'lucide-react';
 
-// Frequência por aluno de um curso: presenças registradas pelos links das aulas sobre o total de aulas do curso.
+// Frequência por aluno de um curso: presenças (link da aula ou aula marcada como concluída) sobre o total de aulas do curso.
 // Aprovado com 75% de presença. Os números vêm de formacao.painel_presenca (administrador ou facilitador do curso).
 
 const MINIMO_APROVACAO = 75;

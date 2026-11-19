@@ -64,7 +64,17 @@ export default function MyAttendancePage() {
         .select('lesson_id, confirmed_at')
         .eq('user_id', user!.id);
 
-      const recordMap = Object.fromEntries((records || []).map((r) => [r.lesson_id, r.confirmed_at]));
+      // Aula marcada como concluída também soma como presença
+      const { data: concluidas } = await supabase
+        .from('lesson_progress')
+        .select('lesson_id, completed_at')
+        .eq('user_id', user!.id)
+        .eq('completed', true);
+
+      const recordMap: Record<string, string | null> = Object.fromEntries(
+        (concluidas || []).map((c) => [c.lesson_id, c.completed_at || new Date().toISOString()])
+      );
+      (records || []).forEach((r) => { recordMap[r.lesson_id] = r.confirmed_at || new Date().toISOString(); });
 
       const result: LessonAttendance[] = lessons.map((l) => ({
         lesson_id: l.id,

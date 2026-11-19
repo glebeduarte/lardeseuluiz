@@ -39,7 +39,8 @@ interface LessonWithAttendance {
 
 interface AttendanceRecord {
   id: string;
-  confirmed_at: string;
+  confirmed_at: string | null;
+  forma: 'link' | 'conclusao';
   user: {
     full_name: string;
     email: string;
@@ -117,15 +118,15 @@ export default function AttendanceAdminPage() {
 
       // Get attendance counts
       const lessonIds = lessonData.map((l) => l.id);
-      const { data: attendanceData } = await supabase
-        .from('attendance_records')
-        .select('lesson_id')
-        .in('lesson_id', lessonIds);
-
+      // Presentes por aula: confirmou pelo link ou marcou a aula como concluída
       const attendanceCounts: Record<string, number> = {};
-      attendanceData?.forEach((r) => {
-        attendanceCounts[r.lesson_id] = (attendanceCounts[r.lesson_id] || 0) + 1;
-      });
+      for (const courseId of courseIds) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: porAula } = await (supabase as any).rpc('painel_presenca_aulas', { p_course: courseId });
+        ((porAula ?? []) as { lesson_id: string; presentes: number }[]).forEach((r) => {
+          attendanceCounts[r.lesson_id] = r.presentes;
+        });
+      }
 
       // Get active links
       const { data: links } = await supabase
@@ -224,38 +225,24 @@ export default function AttendanceAdminPage() {
     setDetailOpen(true);
     setRecordsLoading(true);
 
-    const { data } = await supabase
-      .from('attendance_records')
-      .select('id, confirmed_at, user_id')
-      .eq('lesson_id', lesson.id)
-      .order('confirmed_at', { ascending: true });
-
-    if (data?.length) {
-      const userIds = data.map((r) => r.user_id);
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, full_name, email')
-        .in('id', userIds);
-
-      const profileMap = Object.fromEntries((profiles || []).map((p) => [p.id, p]));
-      setRecords(
-        data.map((r) => ({
-          id: r.id,
-          confirmed_at: r.confirmed_at,
-          user: profileMap[r.user_id] || { full_name: 'Desconhecido', email: '' },
-        }))
-      );
-    } else {
-      setRecords([]);
-    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data } = await (supabase as any).rpc('painel_presenca_aula', { p_lesson: lesson.id });
+    setRecords(
+      ((data ?? []) as { user_id: string; full_name: string; email: string; quando: string | null; forma: string }[]).map((r) => ({
+        id: r.user_id,
+        confirmed_at: r.quando,
+        forma: r.forma === 'link' ? 'link' : 'conclusao',
+        user: { full_name: r.full_name || 'Sem nome', email: r.email || '' },
+      }))
+    );
     setRecordsLoading(false);
   };
 
   const exportCSV = () => {
     if (!records.length || !selectedLesson) return;
-    const header = 'Nome,E-mail,Horário de Confirmação\n';
+    const header = 'Nome,E-mail,Forma,Data e hora\n';
     const rows = records
-      .map((r) => `"${r.user.full_name}","${r.user.email}","${format(new Date(r.confirmed_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}"`)
+      .map((r) => `"${r.user.full_name}","${r.user.email}","${r.forma === 'link' ? 'Link da aula' : 'Aula concluída'}","${r.confirmed_at ? format(new Date(r.confirmed_at), "dd/MM/yyyy HH:mm", { locale: ptBR }) : ''}"`)
       .join('\n');
     const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -276,7 +263,7 @@ export default function AttendanceAdminPage() {
       toast({ title: 'Erro ao zerar presenças', description: error.message, variant: 'destructive' });
       return;
     }
-    toast({ title: 'Presenças zeradas', description: `${count ?? 0} registro(s) removido(s) da aula "${lesson.title}".` });
+    toast({ title: 'Presenças zeradas', description: `${count ?? 0} presença(s) pelo link removida(s) da aula "${lesson.title}".` });
     fetchLessons();
   };
 
@@ -400,7 +387,7 @@ export default function AttendanceAdminPage() {
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Zerar presenças desta aula?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Isso removerá permanentemente os <strong>{lesson.attendance_count}</strong> registro(s) de presença da aula <strong>"{lesson.title}"</strong>. Esta ação não pode ser desfeita.
+                                  Isso remove as presenças registradas pelo link na aula <strong>"{lesson.title}"</strong> e não pode ser desfeito. Quem marcou a aula como concluída continua contando como presente.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
@@ -575,8 +562,9 @@ export default function AttendanceAdminPage() {
                         <p className="text-sm font-medium">{r.user.full_name}</p>
                         <p className="text-xs text-muted-foreground">{r.user.email}</p>
                       </div>
-                      <span className="text-xs text-muted-foreground">
-                        {format(new Date(r.confirmed_at), 'HH:mm', { locale: ptBR })}
+                      <span className="text-xs text-muted-foreground text-right flex-shrink-0 ml-3">
+                        {r.forma === 'link' ? 'Link da aula' : 'Aula concluída'}
+                        {r.confirmed_at && <><br />{format(new Date(r.confirmed_at), 'dd/MM HH:mm', { locale: ptBR })}</>}
                       </span>
                     </div>
                   ))}
