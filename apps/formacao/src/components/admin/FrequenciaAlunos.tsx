@@ -4,10 +4,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
+import { Switch } from '@/components/ui/switch';
 import { CheckCircle, Download, Loader2, Search } from 'lucide-react';
 
 // Frequência por aluno de um curso: presenças (link da aula ou aula marcada como concluída) sobre o total de aulas do curso.
-// Aprovado com 75% de presença. Os números vêm de formacao.painel_presenca (administrador ou facilitador do curso).
+// Aprovado com 75% de presença. Quem usa o painel pode ligar um segundo critério: aprovação em todas as
+// avaliações publicadas do curso. A escolha fica guardada neste aparelho, por curso.
+// Os números vêm de formacao.painel_presenca (administrador ou facilitador do curso).
 
 const MINIMO_APROVACAO = 75;
 
@@ -20,6 +23,14 @@ interface LinhaAluno {
   total_aulas: number;
   percentual: number;
   aprovado: boolean;
+  avaliacoes_aprovadas: number;
+  total_avaliacoes: number;
+}
+
+const chaveCriterio = (courseId: string) => `lsl-formacao-criterio-avaliacoes-${courseId}`;
+
+function lerCriterio(courseId: string) {
+  try { return localStorage.getItem(chaveCriterio(courseId)) === '1'; } catch { return false; }
 }
 
 export function FrequenciaAlunos({ courseId, courseTitle }: { courseId: string; courseTitle: string }) {
@@ -27,6 +38,14 @@ export function FrequenciaAlunos({ courseId, courseTitle }: { courseId: string; 
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
   const [busca, setBusca] = useState('');
+  const [exigeAvaliacoes, setExigeAvaliacoes] = useState(() => lerCriterio(courseId));
+
+  useEffect(() => { setExigeAvaliacoes(lerCriterio(courseId)); }, [courseId]);
+
+  const mudarCriterio = (ligado: boolean) => {
+    setExigeAvaliacoes(ligado);
+    try { localStorage.setItem(chaveCriterio(courseId), ligado ? '1' : '0'); } catch { /* sem armazenamento local: vale só nesta visita */ }
+  };
 
   useEffect(() => {
     let ativo = true;
@@ -44,7 +63,10 @@ export function FrequenciaAlunos({ courseId, courseTitle }: { courseId: string; 
 
   const totalAulas = linhas[0]?.total_aulas ?? 0;
   const minimoPresencas = Math.ceil((MINIMO_APROVACAO * totalAulas) / 100);
-  const aprovados = linhas.filter((l) => l.aprovado).length;
+  const totalAvaliacoes = linhas[0]?.total_avaliacoes ?? 0;
+  const passouAvaliacoes = (l: LinhaAluno) => l.avaliacoes_aprovadas >= l.total_avaliacoes;
+  const estaAprovado = (l: LinhaAluno) => l.aprovado && (!exigeAvaliacoes || passouAvaliacoes(l));
+  const aprovados = linhas.filter(estaAprovado).length;
 
   const visiveis = useMemo(() => {
     const termo = busca.trim().toLowerCase();
@@ -53,9 +75,9 @@ export function FrequenciaAlunos({ courseId, courseTitle }: { courseId: string; 
   }, [linhas, busca]);
 
   const exportarCSV = () => {
-    const cabecalho = 'Nome;E-mail;Presenças;Total de aulas;Percentual;Situação\n';
+    const cabecalho = 'Nome;E-mail;Presenças;Total de aulas;Percentual;Avaliações aprovadas;Total de avaliações;Situação\n';
     const corpo = linhas
-      .map((l) => `"${l.full_name ?? ''}";"${l.email ?? ''}";${l.presencas};${l.total_aulas};${l.percentual}%;${l.aprovado ? 'Aprovado' : ''}`)
+      .map((l) => `"${l.full_name ?? ''}";"${l.email ?? ''}";${l.presencas};${l.total_aulas};${l.percentual}%;${l.avaliacoes_aprovadas};${l.total_avaliacoes};${estaAprovado(l) ? 'Aprovado' : ''}`)
       .join('\n');
     const blob = new Blob(['﻿' + cabecalho + corpo], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -90,8 +112,16 @@ export function FrequenciaAlunos({ courseId, courseTitle }: { courseId: string; 
             {aprovados} de {linhas.length} alunos aprovados
           </p>
           <p className="text-muted-foreground">
-            Aprovação com {MINIMO_APROVACAO}% de presença: {minimoPresencas} de {totalAulas} aulas.
+            Aprovação com {MINIMO_APROVACAO}% de presença: {minimoPresencas} de {totalAulas} aulas
+            {exigeAvaliacoes && totalAvaliacoes > 0 ? ` e aprovação nas ${totalAvaliacoes} avaliações do curso.` : '.'}
           </p>
+          <label className="mt-3 flex items-center gap-2 cursor-pointer">
+            <Switch checked={exigeAvaliacoes} onCheckedChange={mudarCriterio} />
+            <span className="text-foreground">Exigir aprovação nas avaliações</span>
+          </label>
+          {exigeAvaliacoes && totalAvaliacoes === 0 && (
+            <p className="mt-1 text-xs text-muted-foreground">Este curso ainda não tem avaliação publicada, então vale só a presença.</p>
+          )}
         </div>
         <Button variant="outline" size="sm" className="gap-2 self-start sm:self-auto" onClick={exportarCSV}>
           <Download className="h-4 w-4" />
@@ -110,6 +140,8 @@ export function FrequenciaAlunos({ courseId, courseTitle }: { courseId: string; 
         )}
         {visiveis.map((l) => {
           const faltam = Math.max(minimoPresencas - l.presencas, 0);
+          const faltamAvaliacoes = exigeAvaliacoes ? Math.max(l.total_avaliacoes - l.avaliacoes_aprovadas, 0) : 0;
+          const aprovadoFinal = estaAprovado(l);
           return (
             <li key={l.user_id} className="px-4 py-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
               <div className="min-w-0 flex-1">
@@ -124,18 +156,20 @@ export function FrequenciaAlunos({ courseId, courseTitle }: { courseId: string; 
                   <Progress value={l.percentual} className="h-2" />
                   <p className="mt-1 text-xs text-muted-foreground">
                     {l.presencas} de {l.total_aulas} aulas
+                    {exigeAvaliacoes && l.total_avaliacoes > 0 && ` · ${l.avaliacoes_aprovadas} de ${l.total_avaliacoes} avaliações`}
                   </p>
                 </div>
-                <span className={`w-12 text-right text-sm font-semibold ${l.aprovado ? 'text-emerald-700' : 'text-foreground'}`}>{l.percentual}%</span>
-                <div className="w-[104px] text-right">
-                  {l.aprovado ? (
+                <span className={`w-12 text-right text-sm font-semibold ${aprovadoFinal ? 'text-emerald-700' : 'text-foreground'}`}>{l.percentual}%</span>
+                <div className="w-[116px] text-right">
+                  {aprovadoFinal ? (
                     <Badge variant="outline" className="gap-1 bg-emerald-100 text-emerald-800 border-emerald-300">
                       <CheckCircle className="h-3 w-3" />
                       Aprovado
                     </Badge>
                   ) : (
                     <span className="text-xs text-muted-foreground">
-                      {faltam === 1 ? 'Falta 1 presença' : `Faltam ${faltam} presenças`}
+                      {faltam > 0 && <span className="block">{faltam === 1 ? 'Falta 1 presença' : `Faltam ${faltam} presenças`}</span>}
+                      {faltamAvaliacoes > 0 && <span className="block">{faltamAvaliacoes === 1 ? 'Falta 1 avaliação' : `Faltam ${faltamAvaliacoes} avaliações`}</span>}
                     </span>
                   )}
                 </div>
