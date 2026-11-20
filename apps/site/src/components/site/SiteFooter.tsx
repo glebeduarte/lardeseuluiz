@@ -1,16 +1,21 @@
 import { Link } from "react-router-dom";
+import { Instagram, Mail, MessageCircle, Youtube } from "lucide-react";
 import logoLSL from "@/assets/logo-lsl.png";
+import fotoCasa from "@/assets/hero-bg.jpg";
 import "@/components/inicio/inicio.css";
 
-// Rodapé do site: o logo oficial no canto e os links agrupados, compacto.
+// Rodapé do site: fundo claro com o logo oficial, os links agrupados e a foto da casa ao pé.
 const SiteFooter = () => (
   <footer className="ini-rodape ini-pagina">
     <div className="ini-rodape__grade">
       <div className="ini-rodape__marca">
         <img src={logoLSL} alt="Lar de Seu Luiz" width={64} height={78} />
-        <div>
-          <p>Casa espiritualista na Colônia do Pium, Nísia Floresta/RN. Todos os serviços são gratuitos.</p>
-          <p><a href="https://wa.me/5584991432639" target="_blank" rel="noopener noreferrer">WhatsApp (84) 99143-2639</a> · <a href="mailto:contato@lardeseuluiz.com.br">contato@lardeseuluiz.com.br</a></p>
+        <p>Casa espiritualista na Colônia do Pium, Nísia Floresta/RN. Todos os serviços são gratuitos.</p>
+        <div className="ini-rodape__redes">
+          <a href="https://www.instagram.com/lardeseuluiz/" target="_blank" rel="noopener noreferrer" aria-label="Instagram do Lar de Seu Luiz"><Instagram aria-hidden="true" /></a>
+          <a href="https://www.youtube.com/@LardeSeuLuiz" target="_blank" rel="noopener noreferrer" aria-label="YouTube do Lar de Seu Luiz"><Youtube aria-hidden="true" /></a>
+          <a href="https://wa.me/5584991432639" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp (84) 99143-2639"><MessageCircle aria-hidden="true" /></a>
+          <a href="mailto:contato@lardeseuluiz.com.br" aria-label="E-mail contato@lardeseuluiz.com.br"><Mail aria-hidden="true" /></a>
         </div>
       </div>
       <nav aria-label="A casa">
@@ -37,8 +42,8 @@ const SiteFooter = () => (
         <ul>
           <li><Link to="/a-casa#transparencia">Documentos</Link></li>
           <li><Link to="/privacidade">Privacidade e LGPD</Link></li>
-          <li><a href="https://www.instagram.com/lardeseuluiz/" target="_blank" rel="noopener noreferrer">Instagram</a></li>
-          <li><a href="https://www.youtube.com/@LardeSeuLuiz" target="_blank" rel="noopener noreferrer">YouTube</a></li>
+          <li><a href="https://wa.me/5584991432639" target="_blank" rel="noopener noreferrer">WhatsApp</a></li>
+          <li><a href="mailto:contato@lardeseuluiz.com.br">E-mail</a></li>
         </ul>
       </nav>
     </div>
@@ -49,6 +54,10 @@ const SiteFooter = () => (
         {" "}Foto do litoral de Nísia Floresta: <a href="https://commons.wikimedia.org/wiki/File:N%C3%ADsia_Floresta_-_State_of_Rio_Grande_do_Norte,_Brazil_-_panoramio_(1).jpg">Luiz Henrique</a>, <a href="https://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>.
       </p>
       <Link to="/login" className="ini-rodape__entrar">Entrar</Link>
+    </div>
+
+    <div className="ini-rodape__foto">
+      <img src={fotoCasa} alt="" width={1920} height={1080} loading="lazy" />
     </div>
   </footer>
 );

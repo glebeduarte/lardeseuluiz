@@ -354,28 +354,37 @@
   .ini *, .ini *::before { animation: none !important; transition: none !important; }
 }
 
-/* ───────── Rodapé: compacto, com o logo no canto ───────── */
-.ini-rodape { background: #0f1f3d; color: #dbe5f3; padding: 48px var(--ini-gut) 28px; font-family: var(--font-body); }
+/* ───────── Rodapé: fundo claro, links agrupados e a foto da casa ao pé ───────── */
+.ini-rodape { --rodape-lado: var(--ini-gut); position: relative; isolation: isolate; overflow: hidden; background: linear-gradient(180deg, #f5f7fa 0%, #e6eef8 55%, #d5e3f4 100%); color: var(--ini-suave); padding: 56px var(--rodape-lado) 0; font-family: var(--font-body); }
 .ini-rodape__grade { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 32px; align-items: start; }
-.ini-rodape__marca { display: flex; gap: 18px; align-items: flex-start; }
-.ini-rodape__marca img { width: 64px; height: auto; flex: none; background: #fff; border-radius: 12px; padding: 6px; }
-.ini-rodape__marca p { margin: 0 0 8px; font-size: 15px; line-height: 1.55; max-width: 40ch; }
-.ini-rodape h2 { font-family: var(--font-display); font-size: 17px; color: #fff; margin: 0 0 8px; }
+.ini-rodape__marca { display: flex; flex-direction: column; gap: 16px; align-items: flex-start; }
+.ini-rodape__marca img { width: 64px; height: auto; flex: none; }
+.ini-rodape__marca p { margin: 0; font-size: 17px; line-height: 1.5; max-width: 34ch; color: var(--ini-suave); }
+.ini-rodape__redes { display: flex; gap: 6px; margin-left: -10px; }
+.ini-rodape__redes a { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 999px; color: var(--ini-tinta); }
+.ini-rodape__redes a:hover { background: rgb(15 31 61 / .08); color: var(--ini-azul); }
+.ini-rodape__redes svg { width: 22px; height: 22px; }
+.ini-rodape h2 { font-family: var(--font-body); font-weight: 600; font-size: 16px; color: var(--ini-tinta); margin: 0 0 10px; }
 .ini-rodape ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
-.ini-rodape a { color: #dbe5f3; text-decoration: none; font-size: 15px; }
+.ini-rodape a { color: var(--ini-suave); text-decoration: none; font-size: 15px; }
 .ini-rodape ul a { display: inline-flex; align-items: center; min-height: 32px; }
-.ini-rodape a:hover { color: var(--ini-ouro); }
-.ini-rodape__fim { margin-top: 32px; padding-top: 20px; box-shadow: inset 0 1px 0 rgb(255 255 255 / .08); display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
-.ini-rodape__fim p { margin: 0; font-size: 14px; color: #b9c7db; }
-.ini-rodape__fim p a { font-size: 14px; text-decoration: underline; color: #dbe5f3; }
-.ini-rodape__entrar { display: inline-flex; align-items: center; min-height: 40px; padding: 0 18px; border-radius: 999px; background: rgb(255 255 255 / .1); color: #fff !important; font-weight: 600; }
-.ini-rodape__entrar:hover { background: rgb(255 255 255 / .18); }
-@media (max-width: 900px) {
-  .ini-rodape { padding: 40px 20px 24px; }
+.ini-rodape a:hover { color: var(--ini-azul); }
+.ini-rodape__fim { margin-top: 36px; padding-top: 18px; box-shadow: inset 0 1px 0 rgb(15 31 61 / .16); display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+.ini-rodape__fim p { margin: 0; font-size: 14px; color: var(--ini-suave); max-width: 80ch; }
+.ini-rodape__fim p a { font-size: 14px; text-decoration: underline; color: var(--ini-suave); }
+.ini-rodape__entrar { display: inline-flex; align-items: center; min-height: 40px; padding: 0 18px; border-radius: 999px; background: rgb(15 31 61 / .08); color: var(--ini-tinta) !important; font-weight: 600; }
+.ini-rodape__entrar:hover { background: rgb(15 31 61 / .14); }
+/* Foto da casa no pé do rodapé: o topo se desfaz no fundo claro, e os textos ficam sempre sobre a parte clara. */
+.ini-rodape__foto { position: relative; z-index: -1; margin: -8px calc(var(--rodape-lado) * -1) 0; aspect-ratio: 16 / 7; -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 42%); mask-image: linear-gradient(to bottom, transparent 0%, #000 42%); }
+.ini-rodape__foto img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 100%; }
+@media (max-width: 880px) {
+  .ini-rodape { --rodape-lado: 20px; padding-top: 40px; }
   .ini-rodape__grade { grid-template-columns: 1fr 1fr; gap: 28px 20px; }
   .ini-rodape__marca { grid-column: 1 / -1; }
   .ini-rodape__grade nav:last-child { grid-column: 1 / -1; }
   .ini-rodape__grade nav:last-child ul { flex-direction: row; flex-wrap: wrap; gap: 0 18px; }
+  .ini-rodape__foto { aspect-ratio: 4 / 3; margin-top: 0; }
+  .ini-rodape__foto img { object-position: 72% 100%; }
 }
 
 .ini section[id] { scroll-margin-top: 80px; }
