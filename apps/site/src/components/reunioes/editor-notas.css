@@ -1,0 +1,43 @@
+/* Editor em blocos das Reuniões: tipografia e cores da casa sobre o tema claro do BlockNote. */
+.lsl-editor .bn-container {
+  --bn-font-family: "DM Sans", system-ui, sans-serif;
+  --bn-colors-editor-background: transparent;
+  --bn-colors-editor-text: #111827;
+  --bn-colors-selected-background: #0059b1;
+  --bn-colors-selected-text: #ffffff;
+  --bn-colors-hovered-background: #eef4fb;
+  --bn-colors-hovered-text: #003c7f;
+  --bn-border-radius: 10px;
+}
+
+.lsl-editor .bn-editor {
+  padding-inline: 44px 12px;
+  padding-block: 4px 24px;
+  font-size: 16px;
+  line-height: 1.6;
+}
+.lsl-editor--pauta .bn-editor { min-height: 140px; }
+.lsl-editor--anotacoes .bn-editor { min-height: 55vh; }
+
+/* No celular o editor usa a largura toda (a alça lateral dos blocos só aparece com mouse) */
+@media (max-width: 640px) {
+  .lsl-editor .bn-editor { padding-inline: 4px; }
+}
+
+.lsl-editor .bn-editor h1,
+.lsl-editor .bn-editor h2,
+.lsl-editor .bn-editor h3 {
+  font-family: "Playfair Display", Georgia, serif;
+  color: #003c7f;
+}
+.lsl-editor .bn-editor a { color: #0059b1; }
+.lsl-editor .bn-editor img,
+.lsl-editor .bn-editor video { border-radius: 10px; }
+
+/* Títulos em tamanho de anotação (o padrão do editor é grande demais para a ficha) */
+.lsl-editor .bn-editor [data-content-type="heading"] { --level: 1.7em; }
+.lsl-editor .bn-editor [data-content-type="heading"][data-level="2"] { --level: 1.4em; }
+.lsl-editor .bn-editor [data-content-type="heading"][data-level="3"] { --level: 1.2em; }
+.lsl-editor .bn-editor [data-content-type="heading"][data-level="4"],
+.lsl-editor .bn-editor [data-content-type="heading"][data-level="5"],
+.lsl-editor .bn-editor [data-content-type="heading"][data-level="6"] { --level: 1.05em; }

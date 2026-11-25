@@ -6,14 +6,14 @@ import { MolduraSistema, useAreasLsl, type GrupoMenuLsl, type LinkLslProps } fro
 import {
   LayoutDashboard, DollarSign, FileText, Vote, Heart, Shield, Users, Building2,
   CalendarDays, Landmark, UserCheck,
-  Briefcase, Sparkles, Settings, HeartPulse, GraduationCap, HeartHandshake, Home, UserPlus, Ticket, KeyRound
+  Briefcase, Sparkles, Settings, HeartPulse, GraduationCap, HeartHandshake, Home, UserPlus, Ticket, KeyRound, NotebookPen
 } from "lucide-react";
 
 import { usePermissions, type ModulePermission } from "@/hooks/usePermissions";
 import VisualizarComo from "@/components/simulacao/VisualizarComo";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-interface NavItem { to?: string; href?: string; icon: any; label: string; perm?: ModulePermission | "always" | "acessos" | "rifas_opera" | "rifas_vende"; }
+interface NavItem { to?: string; href?: string; icon: any; label: string; perm?: ModulePermission | "always" | "acessos" | "reunioes" | "rifas_opera" | "rifas_vende"; }
 interface NavGroup { label: string; items: NavItem[]; }
 
 const navGroups: NavGroup[] = [
@@ -40,6 +40,7 @@ const navGroups: NavGroup[] = [
     items: [
       { to: "/app/financeiro", icon: DollarSign, label: "Financeiro", perm: "modulo_financeiro" },
       { to: "/app/assembleias", icon: Vote, label: "Assembleias", perm: "modulo_gestao" },
+      { to: "/app/reunioes", icon: NotebookPen, label: "Reuniões", perm: "reunioes" },
       { to: "/app/documentos", icon: FileText, label: "Documentos", perm: "always" },
       { to: "/app/acessos", icon: KeyRound, label: "Acessos", perm: "acessos" },
       { to: "/app/lgpd", icon: Shield, label: "LGPD", perm: "modulo_admin" },
@@ -75,7 +76,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
   const areas = useAreasLsl(supabase, user?.id);
   // Painel de acessos: admin geral, admin do Atendimento ou admin da Formação
-  const ar = areas as { admin?: boolean; formacao_admin?: boolean; atendimento_papeis?: string[]; rifas?: { opera?: boolean; vende?: boolean } } | null;
+  const ar = areas as { admin?: boolean; gestao?: boolean; direcao?: boolean; formacao_admin?: boolean; atendimento_papeis?: string[]; rifas?: { opera?: boolean; vende?: boolean } } | null;
   const podeAcessos = isAdmin || !!ar?.admin || !!ar?.formacao_admin || !!ar?.atendimento_papeis?.includes("admin");
 
   const handleSignOut = async () => { await signOut(); navigate("/login"); };
@@ -86,6 +87,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       .filter((i) => {
         if (i.perm === "always" || !i.perm) return true;
         if (i.perm === "acessos") return podeAcessos;
+        // Reuniões: admin, gestão e direção (mesma regra do banco)
+        if (i.perm === "reunioes") return isAdmin || isGestor || !!ar?.admin || !!ar?.gestao || !!ar?.direcao;
         // Rifas: a coordenação vê a gestão; quem é vendedor (ou coordena) vê a tela de venda
         if (i.perm === "rifas_opera") return !!ar?.rifas?.opera || canAccess("modulo_projetos");
         if (i.perm === "rifas_vende") return !!ar?.rifas?.vende || !!ar?.rifas?.opera;

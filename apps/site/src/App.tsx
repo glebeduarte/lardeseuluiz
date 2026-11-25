@@ -27,6 +27,8 @@ import SecretariasPage from "./pages/Secretarias";
 import SecretariaDetalhePage from "./pages/SecretariaDetalhe";
 import SecretariaTarefas from "./pages/SecretariaTarefas";
 import CalendarioTrabalhos from "./pages/CalendarioTrabalhos";
+import Reunioes from "./pages/reunioes/Reunioes";
+import ReuniaoDetalhe from "./pages/reunioes/ReuniaoDetalhe";
 import Eventos from "./pages/Eventos";
 import Stories from "./pages/Stories";
 import Associados from "./pages/Associados";
@@ -93,6 +95,8 @@ const App = () => (
             <Route path="/app/documentos" element={<Documentos />} />
             <Route path="/app/assembleias" element={<Assembleias />} />
             <Route path="/app/assembleias/:id" element={<AssembleiaDetalhe />} />
+            <Route path="/app/reunioes" element={<Reunioes />} />
+            <Route path="/app/reunioes/:id" element={<ReuniaoDetalhe />} />
             <Route path="/app/atendimentos" element={<Atendimentos />} />
             <Route path="/app/lgpd" element={<LGPD />} />
             <Route path="/app/usuarios" element={<Navigate to="/app/pessoas" replace />} />
